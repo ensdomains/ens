@@ -36,8 +36,8 @@ contract StringUtils {
     }
 
     /**
-     * @dev Finds an occurrence of a substring in a string, returning its index,
-     *      or -1 if the substring is not found.
+     * @dev Finds the first occurrence of a substring in a string, returning its
+     *      index, or -1 if the substring is not found.
      * @param haystack The string to search.
      * @param needle The string to look for.
      * @param idx The string index at which to start searching.
@@ -52,7 +52,7 @@ contract StringUtils {
         assembly {
             hash := sha3(add(needle, 32), needleSize)
         }
-        for(; idx <= bytes(haystack).length - needleSize; idx++) {
+        for (; idx <= bytes(haystack).length - needleSize; idx++) {
             bytes32 testHash;
             assembly {
                 testHash := sha3(add(add(haystack, idx), 32), needleSize)
@@ -63,6 +63,34 @@ contract StringUtils {
         return -1;
     }
     
+    /**
+     * @dev Finds the last occurrence of a substring in a string, returning its
+     *      index, or -1 if the substring is not found.
+     * @param haystack The string to search.
+     * @param needle The string to look for.
+     * @param idx The string index at which to start searching.
+     * @return The index of the first character of the substring, or -1 if not
+     *         found.
+     */
+    function strrstr(string haystack, string needle, uint idx) internal
+        returns (int)
+    {
+        uint needleSize = bytes(needle).length;
+        bytes32 hash;
+        assembly {
+            hash := sha3(add(needle, 32), needleSize)
+        }
+        for (int i = int(idx); i >= 0; i--) {
+            bytes32 testHash;
+            assembly {
+                testHash := sha3(add(add(haystack, i), 32), needleSize)
+            }
+            if (hash == testHash)
+                return i;
+        }
+        return -1;
+    }
+
     /**
      * @dev Copies part of one string into another. If the requested range
      *      extends past the end of the source or target strings, the range will
@@ -134,11 +162,26 @@ contract StringUtils {
      * @param str The string to return the length of.
      * @return The length of the string, in characters.
      */
-     function strchrlen(string str) internal returns (uint len) {
+    function strchrlen(string str) internal returns (uint len) {
         bytes memory strdata = bytes(str);
         for (uint i = 0; i < strdata.length; i++)
             // Don't count continuation bytes, of the form 0b10xxxxxx
             if (strdata[i] & 0xC0 != 0x80)
                 len += 1;
-     }
+    }
+
+    /**
+     * @dev Cheaply computes the SHA3 hash of a substring.
+     * @param str The string to hash (part of).
+     * @param idx The start index for the section to hash.
+     * @param len The number of bytes to hash.
+     * @return The SHA3 sum of the selected substring.
+     */
+    function sha3_substring(string str, uint idx, uint len)
+        internal returns (bytes32 ret)
+    {
+        assembly {
+            ret := sha3(add(add(str, 32), idx), len)
+        }
+    }
 }

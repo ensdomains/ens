@@ -16,6 +16,10 @@ contract StringUtilsTest is Test, StringUtils {
         assertEq(strcmp(a, b), 0);
     }
 
+    function assertEq(bytes32 a, bytes32 b) {
+        assertEq(uint(a), uint(b));
+    }
+
     function testStrcmp() logs_gas {
         assertEq(sign(strcmp("foobie", "foobie")), 0);
         assertEq(sign(strcmp("foobie", "foobif")), -1);
@@ -31,6 +35,13 @@ contract StringUtilsTest is Test, StringUtils {
         assertEq(strstr("abracadabra", "bra", 2), 8);
         assertEq(strstr("abracadabra", "rab", 0), -1);
         assertEq(strstr("ABC ABCDAB ABCDABCDABDE", "ABCDABD", 0), 15);
+    }
+
+    function testStrrstr() logs_gas {
+        assertEq(strrstr("abracadabra", "bra", 8), 8);
+        assertEq(strrstr("abracadabra", "bra", 7), 1);
+        assertEq(strrstr("abracadabra", "rab", 11), -1);
+        assertEq(strrstr("ABC ABCDAB ABCDABCDABDE", "ABCDABD", 16), 15);
     }
 
     function testStrncpy() logs_gas {
@@ -71,5 +82,9 @@ contract StringUtilsTest is Test, StringUtils {
         assertEq(strchrlen(""), 0);
         assertEq(strchrlen("foobar"), 6);
         assertEq(strchrlen("I ♥ ethereum"), 12);
+    }
+
+    function testSha3Substring() logs_gas {
+        assertEq(sha3_substring("Hello, world!", 7, 5), sha3("world"));
     }
 }
