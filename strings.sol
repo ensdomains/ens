@@ -152,12 +152,16 @@ library strings {
         var selfptr = self._ptr;
         var otherptr = other._ptr;
         for (uint idx = 0; idx < shortest; idx += 32) {
-            uint diff;
-            assembly { diff := sub(mload(selfptr), mload(otherptr)) }
-            if (diff != 0) {
+            uint a;
+            uint b;
+            assembly {
+                a := mload(selfptr)
+                b := mload(otherptr)
+            }
+            if (a != b) {
                 // Mask out irrelevant bytes and check again
                 uint mask = ~(2 ** (8 * (32 - shortest + idx)) - 1);
-                diff = diff & mask;
+                var diff = (a & mask) - (b & mask);
                 if (diff != 0)
                     return int(diff);
             }
