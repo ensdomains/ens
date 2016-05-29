@@ -1,5 +1,5 @@
 import 'Resolver.sol';
-import 'strings.sol';
+import 'solidity-stringutils/strings.sol';
 
 /**
  * Simple authoritative resolver that allows its owner to insert and update records.
