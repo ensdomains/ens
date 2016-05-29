@@ -82,6 +82,7 @@ contract StringsTest is Test {
         assertEq(sign("foobie".toSlice().compare("foobi".toSlice())), 1);
         assertEq(sign("foobie".toSlice().compare("doobie".toSlice())), 1);
         assertEq(sign("01234567890123456789012345678901".toSlice().compare("012345678901234567890123456789012".toSlice())), -1);
+        assertEq(sign("foo.bar".toSlice().split(".".toSlice()).compare("foo".toSlice())), 0);
     }
 
     function testStartsWith() {
