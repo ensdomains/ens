@@ -27,6 +27,18 @@ contract StringsTest is Test {
 		assertEq(test, test.toSlice().toString());
 	}
 
+    function testBytes32Len() {
+        bytes32 test;
+        for(uint i = 0; i <= 32; i++) {
+            assertEq(i, test.len());
+            test = bytes32((uint(test) / 0x100) | 0x2000000000000000000000000000000000000000000000000000000000000000);
+        }
+    }
+
+    function testToSliceB32() {
+        assertEq(bytes32("foobar").toSliceB32(), "foobar".toSlice());
+    }
+
     function testCopy() {
         var test = "Hello, world!";
         var s1 = test.toSlice();
