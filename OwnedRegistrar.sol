@@ -1,4 +1,5 @@
 import 'Resolver.sol';
+import 'LocalResolver.sol';
 import 'solidity-stringutils/strings.sol';
 
 /**
@@ -93,6 +94,13 @@ contract OwnedRegistrar is Resolver {
 
     function getExtended(bytes32 id) constant returns (bytes data) {
         return extended[id];
+    }
+
+    /*************************************
+     * Functions from legacy resolver ABI
+     *************************************/
+    function addr(bytes32 name) returns (address) {
+        return LocalResolver.addr(address(this), name.toSliceB32());
     }
 
     /**********************

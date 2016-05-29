@@ -93,4 +93,9 @@ contract RegistrarTest is Test {
         assertEq(reg.getHash(0, 1), sha3("bar"));
         assertEq(reg.getHash(0, 2), bytes32(0));
     }
+
+    function testAddr() {
+        reg.appendRR("foo.bar", "HA", 3600, address(this));
+        assertEq(reg.addr("foo.bar"), address(this));
+    }
 }
