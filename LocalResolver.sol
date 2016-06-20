@@ -24,8 +24,9 @@ library LocalResolver {
         returns (uint16 rcode, Resolver resolver, bytes12 nodeId)
     {
         resolver = Resolver(root);
+        var dot = ".".toSlice();
         while (!name.empty()) {
-            var label = name.rsplit(".".toSlice());
+            var label = name.rsplit(dot);
             uint32 ttl;
             address addr;
             (rcode, ttl, nodeId, addr) = resolver.findResolver(nodeId, label.keccak());
