@@ -93,6 +93,14 @@ contract PersonalResolver is Resolver {
         _owner = owner;
     }
 
+    /**
+     * @dev Returns true if a contract adheres to the personal resolver contract.
+     * @return true
+     */
+    function isPersonalResolver() constant returns (bool) {
+        return true;
+    }
+
     function setRR(RR storage rr, bytes16 rtype, uint32 ttl, uint16 len, bytes32 data) private {
         if (data.length > 32)
             throw;
@@ -102,8 +110,7 @@ contract PersonalResolver is Resolver {
         rr.data = data;
     }
 
-    function findNode(strings.slice name) private returns (bytes12 id, Node storage) {
-        bytes12 nodeId = 0;
+    function findNode(bytes12 nodeId, strings.slice name) private returns (bytes12 id, Node storage) {
         var dot = '.'.toSlice();
         while (!name.empty()) {
             var label = name.rsplit(dot);
@@ -124,8 +131,7 @@ contract PersonalResolver is Resolver {
         return (nodeId, nodes[nodeId]);
     }
     
-    function findNode(bytes32[] name, uint start, uint len) private returns (bytes12 id, Node storage) {
-        bytes12 nodeId = 0;
+    function findNode(bytes12 nodeId, bytes32[] name, uint start, uint len) private returns (bytes12 id, Node storage) {
         for(int i = int(start + len - 1); i >= int(start); i--) {
             var subnodeId = getSubnodeId(nodeId, name[uint(i)]);
             var node = nodes[subnodeId];
@@ -138,9 +144,9 @@ contract PersonalResolver is Resolver {
         return (nodeId, nodes[nodeId]);
     }
     
-    function deleteSubnode(strings.slice name) private {
+    function deleteSubnode(bytes12 rootNodeId, strings.slice name) private {
         var label = name.split('.'.toSlice());
-        var (nodeId, node) = findNode(name.copy());
+        var (nodeId, node) = findNode(rootNodeId, name.copy());
 
         // Find and delete name
         var len = node.subnodeLabels.length;
@@ -158,54 +164,57 @@ contract PersonalResolver is Resolver {
         node.nodeCount -= 1;
 
         if (node.nodeCount == 1 && node.record.rtype == 0 && !name.empty())
-            deleteSubnode(name);
+            deleteSubnode(rootNodeId, name);
     }
 
-    function deletePrivateSubnode(bytes32[] name, uint start, uint len) private {
-        var (nodeId, node) = findNode(name, start + 1, len - 1);
+    function deletePrivateSubnode(bytes12 rootNodeId, bytes32[] name, uint start, uint len) private {
+        var (nodeId, node) = findNode(rootNodeId, name, start + 1, len - 1);
 
         // Delete subnode
         delete nodes[getSubnodeId(nodeId, name[0])];
         node.nodeCount -= 1;
 
         if (node.nodeCount == 1 && node.record.rtype == 0 && len > 1)
-            deletePrivateSubnode(name, start + 1, len - 1);
+            deletePrivateSubnode(rootNodeId, name, start + 1, len - 1);
     }
 
     /**
      * @dev Sets the RR for a node. This resoler only supports one RR per node.
+     * @param rootNodeId The ID of the root node to start at.
      * @param name The name to set the record under. The empty name indicates
      *        the root node.
      * @param rtype The record type of the record to set.
      * @param ttl The TTL of the new record.
      * @param data The value of the record. Must be <=32 bytes.
      */
-    function setRR(string name, bytes16 rtype, uint32 ttl, uint16 len, bytes32 data) owner_only {
-        var (nodeId, node) = findNode(name.toSlice());
+    function setRR(bytes12 rootNodeId, string name, bytes16 rtype, uint32 ttl, uint16 len, bytes32 data) owner_only {
+        var (nodeId, node) = findNode(rootNodeId, name.toSlice());
         setRR(node.record, rtype, ttl, len, data);
     }
 
     /**
      * @dev Sets the RR for a node without recording its preimage. This resolver only
      * supports one RR per node.
+     * @param rootNodeId The ID of the root node to start at.
      * @param name The list of label hashes to set the record under. The empty
      *        array indicates the root node.
      * @param rtype The record type of the record to set.
      * @param ttl The TTL of the new record.
      * @param data The value of the record. Must be <=32 bytes.
      */
-    function setPrivateRR(bytes32[] name, bytes16 rtype, uint32 ttl, uint16 len, bytes32 data) owner_only {
-        var (nodeId, node) = findNode(name, 0, name.length);
+    function setPrivateRR(bytes12 rootNodeId, bytes32[] name, bytes16 rtype, uint32 ttl, uint16 len, bytes32 data) owner_only {
+        var (nodeId, node) = findNode(rootNodeId, name, 0, name.length);
         setRR(node.record, rtype, ttl, len, data);
     }
 
     /**
      * @dev Deletes an RR record.
+     * @param rootNodeId The ID of the root node to start at.
      * @param name The name of the record to delete. The empty name indicates
      *        the root node.
      */
-    function deleteRR(string name) owner_only {
-        var (nodeId, node) = findNode(name.toSlice());
+    function deleteRR(bytes12 rootNodeId, string name) owner_only {
+        var (nodeId, node) = findNode(rootNodeId, name.toSlice());
         if (node.nodeCount == 0)
             throw;
 
@@ -214,17 +223,18 @@ contract PersonalResolver is Resolver {
             setRR(node.record, 0, 0, 0, "");
         } else {
             // No subnodes - delete this node.
-            deleteSubnode(name.toSlice());
+            deleteSubnode(rootNodeId, name.toSlice());
         }
     }
 
     /**
      * @dev Deletes an RR record.
+     * @param rootNodeId The ID of the root node to start at.
      * @param name The list of label hashes of the node to delete the RR from.
      *        The empty name indicates the root node.
      */
-    function deletePrivateRR(bytes32[] name) owner_only {
-        var (nodeId, node) = findNode(name, 0, name.length);
+    function deletePrivateRR(bytes12 rootNodeId, bytes32[] name) owner_only {
+        var (nodeId, node) = findNode(rootNodeId, name, 0, name.length);
         if (node.nodeCount == 0)
             throw;
 
@@ -233,7 +243,7 @@ contract PersonalResolver is Resolver {
             setRR(node.record, 0, 0, 0, "");
         } else {
             // No subnodes - delete this node.
-            deletePrivateSubnode(name, 0, name.length);
+            deletePrivateSubnode(rootNodeId, name, 0, name.length);
         }
     }
 }

@@ -12,7 +12,7 @@ contract LocalResolverTest is Test {
     function setUp() {
         reg = new PersonalResolver();
 
-        reg.setRR("foo.bar.baz", "HA", 3600, 20, bytes32(address(this)));
+        reg.setRR(0, "foo.bar.baz", "HA", 3600, 20, bytes32(address(this)));
     }
     
     function testFindResolver() {
