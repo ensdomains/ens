@@ -29,7 +29,7 @@ contract PersonalResolver is Resolver {
         string[] subnodeLabels;
     }
 
-    address _owner;
+    address public owner;
 
     mapping (bytes12=>Node) nodes;
 
@@ -82,15 +82,15 @@ contract PersonalResolver is Resolver {
         return "";
     }
 
-    modifier owner_only { if (msg.sender != _owner) throw; _ }
+    modifier owner_only { if (msg.sender != owner) throw; _ }
     
-    function PersonalResolver() {
-        _owner = msg.sender;
+    function PersonalResolver(address _owner) {
+        owner = _owner;
         nodes[0].nodeCount = 1;
     }
-    
-    function setOwner(address owner) owner_only {
-        _owner = owner;
+
+    function setOwner(address newOwner) owner_only {
+        owner = newOwner;
     }
 
     /**
@@ -245,5 +245,11 @@ contract PersonalResolver is Resolver {
             // No subnodes - delete this node.
             deletePrivateSubnode(rootNodeId, name, 0, name.length);
         }
+    }
+}
+
+library PersonalResolverFactory {
+    function deploy(address owner) returns (PersonalResolver) {
+        return new PersonalResolver(owner);
     }
 }

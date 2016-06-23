@@ -5,7 +5,7 @@ contract PersonalResolverTest is Test {
     PersonalResolver reg;
 
     function setUp() {
-        reg = new PersonalResolver();
+        reg = new PersonalResolver(address(this));
     }
 
     function assertEq(bytes32 a, bytes32 b) {
