@@ -37,19 +37,19 @@ contract OpenRegistrarTest is Test {
 
 	function testTransfer() {
 		reg.register(sha3("foo"));
-		reg.transfer(sha3("foo"), address(reg));
+		reg.setOwner(sha3("foo"), address(reg));
 		assertEq(reg.getOwner(sha3("foo")), address(reg));
 	}
 
 	function testThrowOnTransferFromNonOwner() {
 		reg.register(sha3("foo"));
-		reg.transfer(sha3("foo"), address(reg));
-		reg.transfer(sha3("foo"), address(this));
+		reg.setOwner(sha3("foo"), address(reg));
+		reg.setOwner(sha3("foo"), address(this));
 	}
 
 	function testThrowOnTransferToZero() {
 		reg.register(sha3("foo"));
-		reg.transfer(sha3("foo"), address(0));
+		reg.setOwner(sha3("foo"), address(0));
 	}
 
 	function testSetResolver() {
@@ -65,7 +65,7 @@ contract OpenRegistrarTest is Test {
 
 	function testThrowOnSetResolverFromNonOwner() {
 		reg.register(sha3("foo"));
-		reg.transfer(sha3("foo"), address(reg));
+		reg.setOwner(sha3("foo"), address(reg));
 		reg.setResolver(sha3("foo"), address(this), 0);
 	}
 

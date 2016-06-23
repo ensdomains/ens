@@ -75,7 +75,7 @@ contract OpenRegistrar is Resolver {
      * @param label The domain label hash to update.
      * @param newOwner The new owner of the domain.
      */
-    function transfer(bytes32 label, address newOwner) {
+    function setOwner(bytes32 label, address newOwner) {
         if (newOwner == 0)
             throw;
         var domain = domains[label];
