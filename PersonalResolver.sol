@@ -247,9 +247,3 @@ contract PersonalResolver is Resolver {
         }
     }
 }
-
-library PersonalResolverFactory {
-    function deploy(address owner) returns (PersonalResolver) {
-        return new PersonalResolver(owner);
-    }
-}

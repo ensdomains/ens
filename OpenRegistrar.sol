@@ -1,9 +1,7 @@
-import "PersonalResolver.sol";
 import "Resolver.sol";
 
 /**
- * A registrar that allocates names to the first user to request them, and
- * automatically deploys a PersonalResolver.
+ * A registrar that allocates names to the first user to request them.
  */
 contract OpenRegistrar is Resolver {
     uint32 constant DEFAULT_TTL = 3600;
@@ -44,24 +42,12 @@ contract OpenRegistrar is Resolver {
     }
     
     /**
-     * @dev Registers a domain and deploys a personal resolver for it.
-     * @param label The label hash to register.
-     */
-    function register(bytes32 label) {
-        var domain = domains[label];
-        if (domain.owner != address(0))
-            throw;
-        var resolver = PersonalResolverFactory.deploy(msg.sender);
-        domains[label] = RegistrarEntry(address(resolver), 0, msg.sender);
-    }
-    
-    /**
      * @dev Registers a domain and points it at the provided resolver.
      * @param label The domain label hash.
      * @param resolver The resolver address to point the new domain at.
      * @param nodeId The node ID on the resolver.
      */
-    function registerWithResolver(bytes32 label, address resolver, bytes12 nodeId) {
+    function register(bytes32 label, address resolver, bytes12 nodeId) {
         if (resolver == 0)
             throw;
         var domain = domains[label];
