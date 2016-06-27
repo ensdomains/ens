@@ -45,7 +45,7 @@ contract OpenRegistrar is Resolver {
     
     /**
      * @dev Registers a domain and deploys a personal resolver for it.
-     * 
+     * @param label The label hash to register.
      */
     function register(bytes32 label) {
         var domain = domains[label];
@@ -61,7 +61,7 @@ contract OpenRegistrar is Resolver {
      * @param resolver The resolver address to point the new domain at.
      * @param nodeId The node ID on the resolver.
      */
-    function register(bytes32 label, address resolver, bytes12 nodeId) {
+    function registerWithResolver(bytes32 label, address resolver, bytes12 nodeId) {
         if (resolver == 0)
             throw;
         var domain = domains[label];
