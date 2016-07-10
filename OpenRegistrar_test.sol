@@ -10,13 +10,13 @@ contract OpenRegistrarTest is Test {
 	}
 
 	function testThrowOnExistingDomain() {
-		var pr = new PersonalResolver(address(this));
+		var pr = new PersonalResolver();
 		reg.register(sha3("foo"), pr, 0);
 		reg.register(sha3("foo"), pr, 0);
 	}
 
 	function testRegisterWithResolver() {
-		var pr = new PersonalResolver(address(this));
+		var pr = new PersonalResolver();
 		reg.register(sha3("foo"), pr, 0);
 		var (rcode, ttl, rnode, raddress) = reg.findResolver(0, sha3("foo"));
 		assertEq(uint(rcode), 0);
@@ -27,29 +27,29 @@ contract OpenRegistrarTest is Test {
 	}
 
 	function testTransfer() {
-		var pr = new PersonalResolver(address(this));
+		var pr = new PersonalResolver();
 		reg.register(sha3("foo"), pr, 0);
 		reg.setOwner(sha3("foo"), address(reg));
 		assertEq(reg.getOwner(sha3("foo")), address(reg));
 	}
 
 	function testThrowOnTransferFromNonOwner() {
-		var pr = new PersonalResolver(address(this));
+		var pr = new PersonalResolver();
 		reg.register(sha3("foo"), pr, 0);
 		reg.setOwner(sha3("foo"), address(reg));
 		reg.setOwner(sha3("foo"), address(this));
 	}
 
 	function testThrowOnTransferToZero() {
-		var pr = new PersonalResolver(address(this));
+		var pr = new PersonalResolver();
 		reg.register(sha3("foo"), pr, 0);
 		reg.setOwner(sha3("foo"), address(0));
 	}
 
 	function testSetResolver() {
-		var pr = new PersonalResolver(address(this));
+		var pr = new PersonalResolver();
 		reg.register(sha3("foo"), pr, 0);
-		var pr2 = new PersonalResolver(address(this));
+		var pr2 = new PersonalResolver();
 		reg.setResolver(sha3("foo"), pr2, 0);
 		var (rcode, ttl, rnode, raddress) = reg.findResolver(0, sha3("foo"));
 		assertEq(uint(rcode), 0);
@@ -59,14 +59,14 @@ contract OpenRegistrarTest is Test {
 	}
 
 	function testThrowOnSetResolverFromNonOwner() {
-		var pr = new PersonalResolver(address(this));
+		var pr = new PersonalResolver();
 		reg.register(sha3("foo"), pr, 0);
 		reg.setOwner(sha3("foo"), address(reg));
 		reg.setResolver(sha3("foo"), address(this), 0);
 	}
 
 	function testThrowOnSetResolverToZero() {
-		var pr = new PersonalResolver(address(this));
+		var pr = new PersonalResolver();
 		reg.register(sha3("foo"), pr, 0);
 		reg.setResolver(sha3("foo"), address(0), 0);
 	}

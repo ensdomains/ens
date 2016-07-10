@@ -84,8 +84,8 @@ contract PersonalResolver is Resolver {
 
     modifier owner_only { if (msg.sender != owner) throw; _ }
     
-    function PersonalResolver(address _owner) {
-        owner = _owner;
+    function PersonalResolver() {
+        owner = msg.sender;
         nodes[0].nodeCount = 1;
     }
 
