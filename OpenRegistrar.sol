@@ -51,7 +51,7 @@ contract OpenRegistrar is Resolver {
         if (resolver == 0)
             throw;
         var domain = domains[label];
-        if (domain.owner != address(0))
+        if (domain.owner != address(0) && domain.owner != msg.sender)
             throw;
         domains[label] = RegistrarEntry(resolver, nodeId, msg.sender);
     }
@@ -70,22 +70,6 @@ contract OpenRegistrar is Resolver {
         domain.owner = newOwner;
     }
     
-    /**
-     * @dev Updates the resolver for a domain.
-     * @param label The domain label hash to update.
-     * @param resolver The new resolver to point to.
-     * @param nodeId The node ID on the new resolver.
-     */
-    function setResolver(bytes32 label, address resolver, bytes12 nodeId) {
-        if (resolver == 0)
-            throw;
-        var domain = domains[label];
-        if (domain.owner != msg.sender)
-            throw;
-        domain.resolver = resolver;
-        domain.nodeId = nodeId;
-    }
-
     /**
      * @dev Gets the owner of a domain.
      * @param label The domain label hash to look up.
