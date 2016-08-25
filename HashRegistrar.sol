@@ -63,12 +63,11 @@ contract Deed {
         sealedBid = _sealedBid;
         creationDate = now;
     }
-    
-    function unsealBid(bytes32 _hash, address _owner, uint _value, bytes32 _salt) noEther onlyRegistrar {
-        if (sha3(_hash, _owner, _value, _salt) != sealedBid) throw;
-        hash = _hash;
-        owner = _owner;
-        if (!owner.send(this.balance - _value)) throw;
+        
+    function setOwner(address newOwner) {
+        if ((owner > 0 && msg.sender != owner )
+            || (owner == 0 && msg.sender != address(registrar))) throw;
+        owner = newOwner;
     }
     
     function closeDeed(uint refundRatio) noEther onlyRegistrar {
@@ -82,29 +81,27 @@ contract Deed {
         // Send the difference to the owner
         if (!owner.send(this.balance - newValue)) throw;
     }
-    
-    function transferOwnership(address newOwner) {
-        if (msg.sender != owner ) throw;
-        owner = newOwner;
-    }
+
 }
 
 contract Registrar {
-    mapping (bytes32 => entry) public hashes;
+    mapping (bytes32 => entry) public entries;
     mapping (bytes32 => Deed) public sealedBids;
     
     enum Mode { Open, Auction, Owned }
-    uint32 constant auctionLength = 20 minutes;
-    uint32 constant revealPeriod = 5 minutes;
-    uint32 constant renewalPeriod = 2 hours;
+    uint32 constant auctionLength = 20 minutes;     // Would be 7 days on the real contract
+    uint32 constant revealPeriod = 5 minutes;       // Would be 24 hours
+    uint32 constant renewalPeriod = 2 hours;        // would be 1 year
+    uint32 constant maxRenewalPeriod = 24 hours;    // would be 8 years
     uint32 constant M = 1000000; // just a multiplier to get more precision on averages
+    uint16 constant minRatio = 100;
     uint public averagePeriod;
     uint public lastSinceNewRegistry;
     uint public averagePrice;
     
     struct entry {
         Mode status;
-        address deed;
+        Deed deed;
         uint auctionExpiration;
         uint value;
         uint highestBid;
@@ -133,18 +130,18 @@ contract Registrar {
     open but not bid on are closed after a week. 
     */    
     function startAuction(bytes32 _hash) noEther{
-        entry hash = hashes[_hash];
-        if ((hash.status == Mode.Owned && now < hash.renewalDate) 
-            || (hash.status == Mode.Auction && now < hash.auctionExpiration))
+        entry newAuction = entries[_hash];
+        if ((newAuction.status == Mode.Owned && now < newAuction.renewalDate) 
+            || (newAuction.status == Mode.Auction && now < newAuction.auctionExpiration))
             throw;
         
-        if (hash.status == Mode.Owned) {
-            Deed deedContract = Deed(hash.deed);
+        if (newAuction.status == Mode.Owned) {
+            Deed deedContract = Deed(newAuction.deed);
             deedContract.closeDeed(999);
         }
         
-        hash.auctionExpiration = now + auctionLength;
-        hash.status = Mode.Auction;        
+        newAuction.auctionExpiration = now + auctionLength;
+        newAuction.status = Mode.Auction;        
     }
 
     // Allows you to open multiple for better anonimity
@@ -159,7 +156,7 @@ contract Registrar {
     }
     
     /*
-    ## One week auction for the desired hash
+    ## Blind auction for the desired hash
 
     Bids are sent by sending a message to the main contract with a hash and an amount. The hash 
     contains information about the bid, including the bidded hash, the bid amount, and a random 
@@ -192,34 +189,35 @@ contract Registrar {
         bytes32 seal = shaBid(_hash, _owner, _value, _salt);
         Deed bid = sealedBids[seal];
         if (address(bid) == 0 ) throw;
-        bid.unsealBid(_hash, _owner, _value, _salt);
+        bid.setOwner(_owner);
+        bid.setBalance(_value);
         sealedBids[seal] = Deed(0);
         
-        entry hash = hashes[bid.hash()];
+        entry hashEntry = entries[bid.hash()];
         
-        if (bid.creationDate() > hash.auctionExpiration - revealPeriod
-            || now > hash.auctionExpiration ) {
+        if (bid.creationDate() > hashEntry.auctionExpiration - revealPeriod
+            || now > hashEntry.auctionExpiration ) {
             // bid is invalid, refund 99.9%
             bid.closeDeed(1);
             
-        } else if ( _value < averagePrice / 100 ) {
+        } else if ( _value < averagePrice / minRatio ) {
             // bid is invalid but not punishable
             bid.closeDeed(1000);
             
-        } else if (_value > hash.highestBid) {
+        } else if (_value > hashEntry.highestBid) {
             // new winner
             // cancel the other bid, burn 0.1%
-            Deed previousWinner = Deed(hash.deed);
+            Deed previousWinner = Deed(hashEntry.deed);
             previousWinner.closeDeed(999);
             
             // set new winner
-            hash.value = hash.highestBid;
-            hash.highestBid = _value;
-            hash.deed = sealedBids[seal];
+            hashEntry.value = hashEntry.highestBid;
+            hashEntry.highestBid = _value;
+            hashEntry.deed = sealedBids[seal];
         
-        } else if (_value > hash.value) {
+        } else if (_value > hashEntry.value) {
             // not winner, but affects second place
-            hash.value = _value;
+            hashEntry.value = _value;
             bid.closeDeed(999);
             
         } else {
@@ -236,27 +234,27 @@ contract Registrar {
     }
     
     function finalizeAuction(bytes32 _hash) noEther {
-        entry hash = hashes[_hash];
-        if (now < hash.auctionExpiration 
-            || hash.value == 0
-            || hash.status != Mode.Auction) throw;
+        entry h = entries[_hash];
+        if (now < h.auctionExpiration 
+            || h.value == 0
+            || h.status != Mode.Auction) throw;
         
         // set the hash
-        hash.status = Mode.Owned;
-        hash.firstRegistered = now;
-        hash.lastRenewed = now;
+        h.status = Mode.Owned;
+        h.firstRegistered = now;
+        h.lastRenewed = now;
 
         //Calculate the moving average period as a way to measure frequency
         uint period = (now - lastSinceNewRegistry) * M;
         averagePeriod = (999 * averagePeriod + period) / 1000;
         // 60 seconds is the average of 10,000 registrations per week. Use whatever's higher.
         uint n = averagePeriod < (60 seconds * M) ? 7 days * M / averagePeriod : 9999;
-        averagePrice = (n*averagePrice + hash.value ) / (n+1);
-        hash.averagePrice = averagePrice;
+        averagePrice = (n*averagePrice + h.value ) / (n+1);
+        h.averagePrice = averagePrice;
         lastSinceNewRegistry = now;
         
-        Deed deedContract = Deed(hash.deed);
-        deedContract.setBalance(hash.value);
+        Deed deedContract = Deed(h.deed);
+        deedContract.setBalance(h.value);
     }
     
     /*
@@ -269,35 +267,10 @@ contract Registrar {
     after 2 years, 7/8 after 3 years etc). 
     */ 
     function updatedValue(bytes32 _hash) constant returns (uint updatedPrice) {
-        entry hash = hashes[_hash];
-        return hash.value * averagePrice / hash.averagePrice;
+        entry h = entries[_hash];
+        return h.value * averagePrice / h.averagePrice;
     }
-    
-    function renewDeed(bytes32 _hash) {
-        entry hash = hashes[_hash];
-        Deed deedContract = Deed(hash.deed);
-        uint difference = 0;
-        if (hash.status != Mode.Owned) throw;
 
-        uint updatedPrice = updatedValue(_hash);
-        
-        if (updatedPrice > hash.value) {
-            difference = updatedPrice - hash.value; 
-            if (msg.value < difference) throw;
-            deedContract.setBalance.value(msg.value)(updatedPrice);
-        } else {
-            difference =  hash.value - updatedPrice; 
-            uint ratioOfRecovery = 2**((now - hash.lastRenewed)/ renewalPeriod);
-            // the more time, the more you recover more from your initial investment
-            deedContract.setBalance(hash.value + difference - difference/ratioOfRecovery);
-        }
-        
-        hash.value = updatedPrice;
-        hash.lastRenewed = now;
-        // next renewal data is twice the current age
-        hash.renewalDate = 2 * now - hash.firstRegistered;
-    }
-     
     /*
     ## Renewals can be done at any moment by renewing the deposit
 
@@ -306,14 +279,41 @@ contract Registrar {
     in some other new venture, then holding hashes should be seen as an undesirable outcome 
     and owners have an incentive to release them. Hashes can be sold at any moment, but the 
     buyer will incur the same renewal cost/benefit analysis. 
-    */    
-    function releaseDeed(bytes32 _hash) noEther  {
-        entry hash = hashes[_hash];
-        Deed deedContract = Deed(hash.deed);
-        if (now < hash.firstRegistered + renewalPeriod/2 ) throw;
-        if (msg.sender != deedContract.owner() || hash.status != Mode.Owned) throw;
+    */  
+    
+    function renewDeed(bytes32 _hash) {
+        entry h = entries[_hash];
+        Deed deedContract = Deed(h.deed);
+        uint difference = 0;
+        if (h.status != Mode.Owned) throw;
+
+        uint updatedPrice = updatedValue(_hash);
         
-        hash.status = Mode.Open;
+        if (updatedPrice > h.value) {
+            difference = updatedPrice - h.value; 
+            if (msg.value < difference) throw;
+            deedContract.setBalance.value(msg.value)(updatedPrice);
+        } else {
+            difference =  h.value - updatedPrice; 
+            uint ratioOfRecovery = 2**((now - h.lastRenewed)/ renewalPeriod);
+            // the more time, the more you recover more from your initial investment
+            deedContract.setBalance(h.value + difference - difference/ratioOfRecovery);
+        }
+        
+        h.value = updatedPrice;
+        h.lastRenewed = now;
+        // next renewal data is twice the current age
+        uint renewalDate = 2 * now - h.firstRegistered;
+        h.renewalDate = (renewalDate > now + maxRenewalPeriod) ? now + maxRenewalPeriod : 2 * now - h.firstRegistered;
+    }
+       
+    function releaseDeed(bytes32 _hash) noEther  {
+        entry h = entries[_hash];
+        Deed deedContract = Deed(h.deed);
+        if (now < h.firstRegistered + renewalPeriod/2 ) throw;
+        if (msg.sender != deedContract.owner() || h.status != Mode.Owned) throw;
+        
+        h.status = Mode.Open;
         deedContract.closeDeed(1000);
     }
     
