@@ -42,8 +42,6 @@ contract Deed {
     // The Deed is a contract intended simply to hold ether
     // It can be controlled only by the registrar and can only send ether back to the owner
     Registrar public registrar;
-    bytes32 public sealedBid;
-    bytes32 public hash;
     address constant burn = 0xdead;
     uint public creationDate;
     address public owner;
@@ -58,9 +56,8 @@ contract Deed {
         _
     }
     
-    function Deed(bytes32 _sealedBid, address _registrar) {
-        registrar = Registrar(_registrar);
-        sealedBid = _sealedBid;
+    function Deed() {
+        registrar = Registrar(msg.sender);
         creationDate = now;
     }
         
@@ -169,7 +166,7 @@ contract Registrar {
     function newBid(bytes32 sealedBid) {
         if (address(sealedBids[sealedBid]) > 0 ) throw;
         // creates a new hash contract with the owner
-        address newBid = new Deed(sealedBid, this);
+        address newBid = new Deed();
         sealedBids[sealedBid] = Deed(newBid);
         if (!newBid.send(msg.value)) throw;
     } 
@@ -193,10 +190,10 @@ contract Registrar {
         bid.setBalance(_value);
         sealedBids[seal] = Deed(0);
         
-        entry hashEntry = entries[bid.hash()];
+        entry h = entries[_hash];
         
-        if (bid.creationDate() > hashEntry.auctionExpiration - revealPeriod
-            || now > hashEntry.auctionExpiration ) {
+        if (bid.creationDate() > h.auctionExpiration - revealPeriod
+            || now > h.auctionExpiration ) {
             // bid is invalid, refund 99.9%
             bid.closeDeed(1);
             
@@ -204,20 +201,20 @@ contract Registrar {
             // bid is invalid but not punishable
             bid.closeDeed(1000);
             
-        } else if (_value > hashEntry.highestBid) {
+        } else if (_value > h.highestBid) {
             // new winner
             // cancel the other bid, burn 0.1%
-            Deed previousWinner = Deed(hashEntry.deed);
+            Deed previousWinner = Deed(h.deed);
             previousWinner.closeDeed(999);
             
             // set new winner
-            hashEntry.value = hashEntry.highestBid;
-            hashEntry.highestBid = _value;
-            hashEntry.deed = sealedBids[seal];
+            h.value = h.highestBid;
+            h.highestBid = _value;
+            h.deed = sealedBids[seal];
         
-        } else if (_value > hashEntry.value) {
+        } else if (_value > h.value) {
             // not winner, but affects second place
-            hashEntry.value = _value;
+            h.value = _value;
             bid.closeDeed(999);
             
         } else {
@@ -228,7 +225,7 @@ contract Registrar {
     
     function cancelBid(bytes32 seal) {
         Deed bid = sealedBids[seal];
-        if (address(bid) == 0 || now < bid.creationDate() + auctionLength * 2 || bid.hash() > 0) throw; 
+        if (address(bid) == 0 || now < bid.creationDate() + auctionLength * 2 || bid.owner() > 0) throw; 
         bid.closeDeed(0);
         sealedBids[seal] = Deed(0);
     }
@@ -318,3 +315,4 @@ contract Registrar {
     }
     
 }
+
