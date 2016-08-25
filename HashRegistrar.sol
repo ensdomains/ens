@@ -1,4 +1,42 @@
-// hash registrar using deposits
+/*
+
+Hash Registrar using only Deposits
+==================================
+
+This is an attempt of setting up a name registrar that use deposits instead 
+of burning or token contributions and tries to optimize name utility and 
+reduce domain squatting. Previous initiatives of charging a "rent" based on 
+the market price with an yearly auction proved impopular with many developers 
+as they believed the registrar wasn't delivering any value for the "tax" as 
+well as worries that a sudden big auction could force someone unexpectedly 
+to be forced to sell the name.
+
+In order to start doing that let's define the problem:
+
+Name squatting is defined as buying a name and not adding any value to it, 
+just holding it expecting that domains names will become more valuable in 
+the future. Let's assume that all name buyers have the intention of acquiring 
+a name and make it more valuable over time, either by working on it as a 
+business and adding value to the "brand", or by working to increase the 
+chances of finding a better suited buyer, all have variable success on these 
+endeavours. It's natural to assume that the value of new names being acquired 
+should keep in line with the market values expectation of how profitable they 
+are to sell (either as a brand, a business or a placeholder domain) in the future.
+
+The solution here lies to require a deposit to own a name and periodically 
+require the owner to update their deposit to what is assumed to be the market 
+rate of the name of their current name. If names in general have increased in 
+value but the owner is among the bottom half that hasn't done anything to increase 
+the value of their own names, then all possible profit will be negated by the extra 
+deposit. If names have decreased in value the owners can request to withdraw part 
+of the deposit and the cost of the name will be the cost of opportunity of possibly 
+having invested in something that would have a better return. At any point name 
+holders can release and get the full deposit back.
+
+The contract is called hash registrar because it deals with onwership of hashes of 
+things, never the things themselves, to increase privacy and extensibility.
+
+*/
 
 contract Deed {
     // The Deed is a contract intended simply to hold ether
