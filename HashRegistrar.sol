@@ -186,8 +186,8 @@ contract Registrar {
     function newBid(bytes32 sealedBid) {
         if (address(sealedBids[sealedBid]) > 0 ) throw;
         // creates a new hash contract with the owner
-        address newBid = new Deed();
-        sealedBids[sealedBid] = Deed(newBid);
+        Deed newBid = new Deed();
+        sealedBids[sealedBid] = newBid;
         if (!newBid.send(msg.value)) throw;
     } 
     
