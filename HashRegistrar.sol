@@ -33,7 +33,7 @@ of the deposit and the cost of the name will be the cost of opportunity of possi
 having invested in something that would have a better return. At any point name 
 holders can release and get the full deposit back.
 
-The contract is called hash registrar because it deals with onwership of hashes of 
+The contract is called hash registrar because it deals with ownership of hashes of 
 things, never the things themselves, to increase privacy and extensibility.
 
 */
@@ -47,34 +47,52 @@ contract Deed {
     address constant burn = 0xdead;
     uint public creationDate;
     address public owner;
-    
+    event OwnerChanged(address newOwner);
+    event deedClosed();
+    bool active;
+
     modifier onlyRegistrar {
         if (msg.sender != address(registrar)) throw;
+        _
+    }
+
+    modifier onlyActive {
+        if (!active) throw;
         _
     }
     
     function Deed() {
         registrar = Registrar(msg.sender);
         creationDate = now;
+        active = true;
     }
         
     function setOwner(address newOwner) {
         if ((owner > 0 && msg.sender != owner )
             || (owner == 0 && msg.sender != address(registrar))) throw;
         owner = newOwner;
+        OwnerChanged(newOwner);
     }
     
-    function setBalance(uint newValue) onlyRegistrar {
+    function setBalance(uint newValue) onlyRegistrar onlyActive {
         // Check if it has enough balance to set the value
         if (this.balance < newValue) throw;
         // Send the difference to the owner
         if (!owner.send(this.balance - newValue)) throw;
     }
 
-    function closeDeed(uint refundRatio) onlyRegistrar {
-        owner.send((refundRatio * this.balance)/1000);
-        selfdestruct(burn);
+    function closeDeed(uint refundRatio) onlyRegistrar onlyActive {
+        active = false;            
+        burn.send(((1000 - refundRatio) * this.balance)/1000);
+        deedClosed();
+        destroyDeed();
     }    
+
+    function destroyDeed() {
+        if (active) throw;
+        if(owner.send(this.balance)) 
+            selfdestruct(burn);
+    }
 }
 
 contract Registrar {
@@ -91,7 +109,12 @@ contract Registrar {
     uint public averagePeriod;
     uint public lastSinceNewRegistry;
     uint public averagePrice;
-    
+
+    event AuctionStarted(bytes32 hash);
+    event AuctionEnded(bytes32 hash, address owner, uint value, uint averagePrice, uint averagePeriod);
+    event DeedRenewed(bytes32 hash, uint value, uint renewalDate);
+    event DeedReleased(bytes32 hash, uint value);
+
     struct entry {
         Mode status;
         Deed deed;
@@ -104,12 +127,12 @@ contract Registrar {
         uint averagePrice;
     }
     
-    modifier noEther  {
+    modifier noEther {
         if (msg.value > 0) throw;
         _
     }   
     
-    function Registrar() noEther  {
+    function Registrar() noEther {
         lastSinceNewRegistry = now;
     }
 
@@ -122,7 +145,7 @@ contract Registrar {
     attacker from simply bidding on all new auctions blindly. Dummy auctions that are 
     open but not bid on are closed after a week. 
     */    
-    function startAuction(bytes32 _hash) noEther{
+    function startAuction(bytes32 _hash) noEther {
         entry newAuction = entries[_hash];
         if ((newAuction.status == Mode.Owned && now < newAuction.renewalDate) 
             || (newAuction.status == Mode.Auction && now < newAuction.auctionExpiration))
@@ -134,11 +157,12 @@ contract Registrar {
         }
         
         newAuction.auctionExpiration = now + auctionLength;
-        newAuction.status = Mode.Auction;        
+        newAuction.status = Mode.Auction;  
+        AuctionStarted(_hash);      
     }
 
     // Allows you to open multiple for better anonimity
-    function startAuctions(bytes32[] _hashes) noEther{
+    function startAuctions(bytes32[] _hashes) noEther {
         for (uint i = 0; i < _hashes.length; i ++ ) {
             startAuction(_hashes[i]);
         }
@@ -154,7 +178,7 @@ contract Registrar {
     Bids are sent by sending a message to the main contract with a hash and an amount. The hash 
     contains information about the bid, including the bidded hash, the bid amount, and a random 
     salt. Bids are not tied to any one auction until they are revealed. The value of the bid 
-    itself can be maskeraded by changing the required period or sending more than what you are 
+    itself can be masqueraded by changing the required period or sending more than what you are 
     bidding for. This is followed by a 24h reveal period. Bids revealed after this period will 
     be burned and the ether unrecoverable. Since this is an auction, it is expected that most 
     public hashes, like known domains and common dictionary words, will have multiple bidders pushing the price up. 
@@ -182,8 +206,6 @@ contract Registrar {
         bytes32 seal = shaBid(_hash, _owner, _value, _salt);
         Deed bid = sealedBids[seal];
         if (address(bid) == 0 ) throw;
-        bid.setOwner(_owner);
-        bid.setBalance(_value);
         sealedBids[seal] = Deed(0);
         
         entry h = entries[_hash];
@@ -200,13 +222,15 @@ contract Registrar {
         } else if (_value > h.highestBid) {
             // new winner
             // cancel the other bid, burn 0.1%
-            Deed previousWinner = Deed(h.deed);
+            Deed previousWinner = h.deed;
             previousWinner.closeDeed(999);
             
             // set new winner
             h.value = h.highestBid;
             h.highestBid = _value;
             h.deed = sealedBids[seal];
+            bid.setOwner(_owner);
+            bid.setBalance(_value);
         
         } else if (_value > h.value) {
             // not winner, but affects second place
@@ -246,8 +270,9 @@ contract Registrar {
         h.averagePrice = averagePrice;
         lastSinceNewRegistry = now;
         
-        Deed deedContract = Deed(h.deed);
+        Deed deedContract = h.deed;
         deedContract.setBalance(h.value);
+        AuctionEnded(_hash, deedContract.owner(), h.value, averagePrice, averagePeriod);
     }
     
     /*
@@ -276,7 +301,7 @@ contract Registrar {
     
     function renewDeed(bytes32 _hash) {
         entry h = entries[_hash];
-        Deed deedContract = Deed(h.deed);
+        Deed deedContract = h.deed;
         uint difference = 0;
         if (h.status != Mode.Owned) throw;
 
@@ -298,16 +323,18 @@ contract Registrar {
         // next renewal data is twice the current age
         uint renewalDate = 2 * now - h.firstRegistered;
         h.renewalDate = (renewalDate > now + maxRenewalPeriod) ? now + maxRenewalPeriod : 2 * now - h.firstRegistered;
+        DeedRenewed(_hash, h.value, h.renewalDate);
     }
        
     function releaseDeed(bytes32 _hash) noEther  {
         entry h = entries[_hash];
-        Deed deedContract = Deed(h.deed);
+        Deed deedContract = h.deed;
         if (now < h.firstRegistered + renewalPeriod/2 ) throw;
         if (msg.sender != deedContract.owner() || h.status != Mode.Owned) throw;
         
         h.status = Mode.Open;
         deedContract.closeDeed(1000);
+        DeedReleased(_hash, h.value);
     }
     
 }
