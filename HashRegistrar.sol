@@ -8,8 +8,8 @@ of burning or token contributions and tries to optimize name utility and
 reduce domain squatting. Previous initiatives of charging a "rent" based on 
 the market price with an yearly auction proved impopular with many developers 
 as they believed the registrar wasn't delivering any value for the "tax" as 
-well as worries that a sudden big auction could force someone unexpectedly 
-to be forced to sell the name.
+well as worries that a sudden big auction could make someone unexpectedly 
+be forced to sell the name.
 
 In order to start doing that let's define the problem:
 
@@ -39,17 +39,14 @@ things, never the things themselves, to increase privacy and extensibility.
 */
 
 contract Deed {
-    // The Deed is a contract intended simply to hold ether
-    // It can be controlled only by the registrar and can only send ether back to the owner
+    /* 
+    The Deed is a contract intended simply to hold ether
+    It can be controlled only by the registrar and can only send ether back to the owner.
+    */
     Registrar public registrar;
     address constant burn = 0xdead;
     uint public creationDate;
     address public owner;
-  
-    modifier noEther {
-        if (msg.value > 0) throw;
-        _
-    } 
     
     modifier onlyRegistrar {
         if (msg.sender != address(registrar)) throw;
@@ -67,11 +64,6 @@ contract Deed {
         owner = newOwner;
     }
     
-    function closeDeed(uint refundRatio) noEther onlyRegistrar {
-        owner.send((refundRatio * this.balance)/1000);
-        selfdestruct(burn);
-    }
-    
     function setBalance(uint newValue) onlyRegistrar {
         // Check if it has enough balance to set the value
         if (this.balance < newValue) throw;
@@ -79,6 +71,10 @@ contract Deed {
         if (!owner.send(this.balance - newValue)) throw;
     }
 
+    function closeDeed(uint refundRatio) onlyRegistrar {
+        owner.send((refundRatio * this.balance)/1000);
+        selfdestruct(burn);
+    }    
 }
 
 contract Registrar {
@@ -315,4 +311,3 @@ contract Registrar {
     }
     
 }
-
