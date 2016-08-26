@@ -112,6 +112,7 @@ contract Registrar {
     uint public registryCreated;
 
     event AuctionStarted(bytes32 hash, uint auctionExpiryDate);
+    event NewBid(bytes32 hash, uint deposit);
     event BidRevealed(bytes32 hash, address owner, uint value, uint8 status);
     event HashRegistered(bytes32 hash, address owner, uint value, uint averagePrice, uint averagePeriod);
     event HashRenewed(bytes32 hash, uint oldValue, uint newValue, uint renewalDate);
@@ -173,7 +174,6 @@ contract Registrar {
         }
         
         // for the first six months of the registry, make longer auctions
-        // TODO: change 'hours' into 'weeks' for real contract
         uint slowStart = 1 + (registryCreated + 20 hours - now) / 4 hours;
         newAuction.registrationDate = now + auctionLength * slowStart;
         newAuction.status = Mode.Auction;  
@@ -209,6 +209,7 @@ contract Registrar {
         // creates a new hash contract with the owner
         Deed newBid = new Deed();
         sealedBids[sealedBid] = newBid;
+        NewBid(sealedBid, msg.value);
         if (!newBid.send(msg.value)) throw;
     } 
     
@@ -233,8 +234,8 @@ contract Registrar {
         
         if (bid.creationDate() > h.registrationDate - revealPeriod
             || now > h.registrationDate ) {
-            // bid is invalid, burn 99.9%
-            bid.closeDeed(1);
+            // bid is invalid, burn 99%
+            bid.closeDeed(10);
             BidRevealed(_hash, _owner, _value, 0);
             
         } else if ( _value < averagePrice / minRatio ) {
@@ -271,8 +272,11 @@ contract Registrar {
     
     function cancelBid(bytes32 seal) {
         Deed bid = sealedBids[seal];
-        if (address(bid) == 0 || now < bid.creationDate() + auctionLength * 2 || bid.owner() > 0) throw; 
-        bid.closeDeed(0);
+        // If the bid hasn't been revealed long after any possible auction date, then close it
+        if (address(bid) == 0 || now < bid.creationDate() + auctionLength * 12 || bid.owner() > 0) throw; 
+        // There is a fee for cleaning an old bid, but it's smaller than revealing it
+        bid.setOwner(msg.sender);
+        bid.closeDeed(5);
         sealedBids[seal] = Deed(0);
         BidRevealed(seal, 0, 0, 5);
     }
@@ -369,4 +373,3 @@ contract Registrar {
     }
     
 }
-
