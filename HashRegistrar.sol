@@ -229,7 +229,7 @@ contract Registrar {
         Deed bid = sealedBids[seal];
         if (address(bid) == 0 ) throw;
         sealedBids[seal] = Deed(0);
-        
+        bid.setOwner(_owner);
         entry h = entries[_hash];
         
         if (bid.creationDate() > h.registrationDate - revealPeriod
@@ -253,7 +253,6 @@ contract Registrar {
             h.value = h.highestBid;
             h.highestBid = _value;
             h.deed = bid;
-            bid.setOwner(_owner);
             bid.setBalance(_value);
             BidRevealed(_hash, _owner, _value, 2);
         
