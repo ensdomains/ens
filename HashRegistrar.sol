@@ -100,13 +100,13 @@ contract Registrar {
     mapping (bytes32 => Deed) public sealedBids;
     
     enum Mode { Open, Auction, Owned }
-    uint32 constant auctionLength = 5 minutes;      // Would be 7 days on the real contract
-    uint32 constant revealPeriod = 5 minutes;       // Would be 24 hours
-    uint32 constant renewalPeriod = 2 hours;        // would be 1 year
-    uint32 constant maxRenewalPeriod = 24 hours;    // would be 8 years
-    uint32 constant M = 1000000;    // just a multiplier to get more precision on averages
+    uint32 constant auctionLength = 7 days;
+    uint32 constant revealPeriod = 24 hours;
+    uint32 constant renewalPeriod = 1 years;
+    uint32 constant maxRenewalPeriod = 8 years;
+    uint32 constant M = 1000000;                    // multiplier to get more precision on averages
     uint16 constant minRatio = 100;
-    uint public averagePrice = 1 ether;             // Just a starting reference
+    uint public averagePrice = 1 ether;             // starting reference
     uint public averagePeriod;
     uint public lastSinceNewRegistry;
     uint public registryCreated;
@@ -174,7 +174,7 @@ contract Registrar {
         }
         
         // for the first six months of the registry, make longer auctions
-        uint slowStart = 1 + (registryCreated + 20 hours - now) / 4 hours;
+        uint slowStart = 1 + (registryCreated + 20 weeks - now) / 4 weeks;
         newAuction.registrationDate = now + auctionLength * slowStart;
         newAuction.status = Mode.Auction;  
         newAuction.value = 0;
