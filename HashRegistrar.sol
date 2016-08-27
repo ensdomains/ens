@@ -93,6 +93,9 @@ contract Deed {
         if(owner.send(this.balance)) 
             selfdestruct(burn);
     }
+
+    /* The default function just receives an amount */
+    function () {}
 }
 
 contract Registrar {
