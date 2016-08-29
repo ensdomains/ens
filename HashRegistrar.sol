@@ -83,7 +83,7 @@ contract Deed {
 
     function closeDeed(uint refundRatio) onlyRegistrar onlyActive {
         active = false;            
-        burn.send(((1000 - refundRatio) * this.balance)/1000);
+        if (! burn.send(((1000 - refundRatio) * this.balance)/1000)) throw;
         DeedClosed();
         destroyDeed();
     }    
