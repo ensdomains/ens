@@ -177,7 +177,9 @@ contract Registrar {
         }
         
         // for the first six months of the registry, make longer auctions
-        uint slowStart = 1 + (registryCreated + 20 weeks - now) / 4 weeks;
+        uint slowStart =
+          (now <= registryCreated + 20 weeks) ?
+          (1 + (registryCreated + 20 weeks - now) / 4 weeks) : 1;
         newAuction.registrationDate = now + auctionLength * slowStart;
         newAuction.status = Mode.Auction;  
         newAuction.value = 0;
