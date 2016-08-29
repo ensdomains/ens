@@ -176,7 +176,7 @@ contract Registrar {
             deedContract.closeDeed(999);
         }
         
-        // for the first six months of the registry, make longer auctions
+        // for the first five months of the registry, make longer auctions
         uint slowStart =
           (now <= registryCreated + 20 weeks) ?
           (1 + (registryCreated + 20 weeks - now) / 4 weeks) : 1;
