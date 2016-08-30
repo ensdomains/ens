@@ -93,6 +93,9 @@ contract Deed {
         if(owner.send(this.balance)) 
             selfdestruct(burn);
     }
+
+    /* The default function just receives an amount */
+    function () {}
 }
 
 contract Registrar {
@@ -173,8 +176,10 @@ contract Registrar {
             deedContract.closeDeed(999);
         }
         
-        // for the first six months of the registry, make longer auctions
-        uint slowStart = 1 + (registryCreated + 20 weeks - now) / 4 weeks;
+        // for the first five months of the registry, make longer auctions
+        uint slowStart =
+          (now <= registryCreated + 20 weeks) ?
+          (1 + (registryCreated + 20 weeks - now) / 4 weeks) : 1;
         newAuction.registrationDate = now + auctionLength * slowStart;
         newAuction.status = Mode.Auction;  
         newAuction.value = 0;
