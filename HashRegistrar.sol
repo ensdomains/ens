@@ -349,7 +349,7 @@ contract Registrar {
         h.value = updatedPrice;
         h.lastRenewed = now;
         // Twice the current age, as long as it's betwen some max and min parameters
-        uint currentAge = h.registrationDate - now;
+        uint currentAge = now - h.registrationDate;
         uint renewalDate = now + min(currentAge, maxRenewalPeriod);
         h.renewalDate = max(renewalDate, h.registrationDate + renewalPeriod);
         h.averagePrice = averagePrice;
