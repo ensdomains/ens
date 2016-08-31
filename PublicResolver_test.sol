@@ -19,7 +19,7 @@ contract PublicResolverTest is Test {
 
     function testSetAddr() {
         assertEq(resolver.has(node, "addr"), false);
-        ens.setOwner(0, sha3('eth'), this);
+        ens.setSubnodeOwner(0, sha3('eth'), this);
         resolver.setAddr(node, 0x1234);
         assertEq(resolver.addr(node), 0x1234);
         assertEq(resolver.has(node, "addr"), true);
@@ -31,7 +31,7 @@ contract PublicResolverTest is Test {
 
     function testSetContent() {
         assertEq(resolver.has(node, "content"), false);
-        ens.setOwner(0, sha3('eth'), this);
+        ens.setSubnodeOwner(0, sha3('eth'), this);
         resolver.setContent(node, 0x1234);
         assertEq(uint(resolver.content(node)), 0x1234);
         assertEq(resolver.has(node, "content"), true);

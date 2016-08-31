@@ -17,11 +17,11 @@ contract ENSTest is Test {
         var node = sha3(bytes32(0), sha3('eth'));
 
         NewOwner(0, sha3('eth'), 0x1234);
-        ens.setOwner(0, sha3('eth'), 0x1234);
+        ens.setSubnodeOwner(0, sha3('eth'), 0x1234);
         assertEq(0x1234, ens.owner(node));
 
         NewOwner(0, sha3('eth'), 0x1235);
-        ens.setOwner(0, sha3('eth'), 0x1235);
+        ens.setSubnodeOwner(0, sha3('eth'), 0x1235);
         assertEq(0x1235, ens.owner(node));
     }
 
@@ -38,7 +38,7 @@ contract ENSTest is Test {
 
         var node = sha3(bytes32(0), sha3('eth'));
         NewOwner(0, sha3('eth'), this);
-        ens.setOwner(0, sha3('eth'), this);
+        ens.setSubnodeOwner(0, sha3('eth'), this);
         NewResolver(node, 0x1234);
         ens.setResolver(node, 0x1234);
         assertEq(0x1234, ens.resolver(node));

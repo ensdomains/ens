@@ -28,6 +28,6 @@ contract FIFSRegistrar {
         if(currentOwner != 0 && currentOwner != msg.sender)
             throw;
 
-        ens.setOwner(rootNode, subnode, owner);
+        ens.setSubnodeOwner(rootNode, subnode, owner);
     }
 }
