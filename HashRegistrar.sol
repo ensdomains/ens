@@ -38,6 +38,8 @@ things, never the things themselves, to increase privacy and extensibility.
 
 */
 
+import 'ENS.sol';
+
 contract Deed {
     /* 
     The Deed is a contract intended simply to hold ether
@@ -67,9 +69,7 @@ contract Deed {
         active = true;
     }
         
-    function setOwner(address newOwner) {
-        if ((owner > 0 && msg.sender != owner )
-            || (owner == 0 && msg.sender != address(registrar))) throw;
+    function setOwner(address newOwner) onlyRegistrar {
         owner = newOwner;
         OwnerChanged(newOwner);
     }
@@ -99,6 +99,9 @@ contract Deed {
 }
 
 contract Registrar {
+    ENS public ens;
+    bytes32 public rootNode;
+
     mapping (bytes32 => entry) public entries;
     mapping (bytes32 => Deed) public sealedBids;
     
@@ -135,9 +138,18 @@ contract Registrar {
     modifier noEther {
         if (msg.value > 0) throw;
         _
-    }   
+    }
+
+    modifier onlyOwner(bytes32 _hash) {
+        entry h = entries[_hash];
+        if (msg.sender != h.deed.owner() || h.status != Mode.Owned) throw;
+        _
+    }
     
-    function Registrar() noEther {
+    function Registrar(address _ens, bytes32 _rootNode) noEther {
+        ens = ENS(_ens);
+        rootNode = _rootNode;
+
         lastSinceNewRegistry = now;
         registryCreated = now;
     }
@@ -172,8 +184,8 @@ contract Registrar {
             throw;
         
         if (newAuction.status == Mode.Owned) {
-            Deed deedContract = Deed(newAuction.deed);
-            deedContract.closeDeed(999);
+            ens.setSubnodeOwner(rootNode, _hash, newAuction.deed.owner());
+            newAuction.deed.closeDeed(999);
         }
         
         // for the first five months of the registry, make longer auctions
@@ -297,6 +309,9 @@ contract Registrar {
         h.renewalDate = now + renewalPeriod;
         h.value =  max(h.value, averagePrice / minRatio);
 
+        // Assign the owner in ENS
+        ens.setSubnodeOwner(rootNode, _hash, h.deed.owner());
+
         //Calculate the moving average period as a way to measure frequency
         uint period = (now - lastSinceNewRegistry) * M;
         averagePeriod = (999 * averagePeriod + period) / 1000;
@@ -355,6 +370,14 @@ contract Registrar {
         h.averagePrice = averagePrice;
     }
 
+    /*
+    ## The owner of a domain may transfer it to someone else at any time.
+    */
+    function transfer(bytes32 _hash, address newOwner) onlyOwner(_hash) noEther {
+        entry h = entries[_hash];
+        h.deed.setOwner(newOwner);
+        ens.setSubnodeOwner(rootNode, _hash, newOwner);
+    }
 
     /*
     ## After some time, you can release the property and get your ether back
@@ -366,15 +389,14 @@ contract Registrar {
     buyer will incur the same renewal cost/benefit analysis. 
     */ 
 
-    function releaseDeed(bytes32 _hash) noEther  {
+    function releaseDeed(bytes32 _hash) onlyOwner(_hash) noEther  {
         entry h = entries[_hash];
         Deed deedContract = h.deed;
         if (now < h.registrationDate + renewalPeriod/2 ) throw;
-        if (msg.sender != deedContract.owner() || h.status != Mode.Owned) throw;
         
         h.status = Mode.Open;
+        ens.setSubnodeOwner(rootNode, _hash, 0);
         deedContract.closeDeed(1000);
         HashReleased(_hash, h.value);
-    }
-    
+    }    
 }
