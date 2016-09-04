@@ -7,6 +7,14 @@ contract FIFSRegistrar {
     ENS ens;
     bytes32 rootNode;
     
+    modifier only_owner(bytes32 subnode) {
+        var node = sha3(rootNode, subnode);
+        var currentOwner = ens.owner(node);
+        if(currentOwner != 0 && currentOwner != msg.sender)
+            throw;
+        _
+    }
+    
     /**
      * Constructor.
      * @param ensAddr The address of the ENS registry.
@@ -22,12 +30,7 @@ contract FIFSRegistrar {
      * @param subnode The hash of the label to register.
      * @param owner The address of the new owner.
      */    
-    function register(bytes32 subnode, address owner) {
-        var node = sha3(rootNode, subnode);
-        var currentOwner = ens.owner(node);
-        if(currentOwner != 0 && currentOwner != msg.sender)
-            throw;
-
+    function register(bytes32 subnode, address owner) only_owner(subnode) {
         ens.setSubnodeOwner(rootNode, subnode, owner);
     }
 }
