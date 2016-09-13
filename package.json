@@ -1,0 +1,21 @@
+{
+  "name": "ens",
+  "version": "0.1.0",
+  "description": "Implementations for registrars and local resolvers for the Ethereum Name Service",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Arachnid/ens.git"
+  },
+  "author": "Nick Johnson <nick@ethereum.org>",
+  "license": "CC0-1.0",
+  "bugs": {
+    "url": "https://github.com/Arachnid/ens/issues"
+  },
+  "homepage": "https://github.com/Arachnid/ens#readme",
+  "dependencies": {
+    "ethereumjs-testrpc": "^2.2.4"
+  }
+}

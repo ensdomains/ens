@@ -36,7 +36,7 @@ contract PublicResolver {
      * @return True if this resolver has a record of the provided type on the
      *         provided node.
      */
-    function has(bytes32 node, bytes32 kind) returns (bool) {
+    function has(bytes32 node, bytes32 kind) constant returns (bool) {
         return (kind == "addr" && addresses[node] != 0) ||
                (kind == "content" && contents[node] != 0);
     }
