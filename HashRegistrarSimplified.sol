@@ -23,7 +23,7 @@ contract Deed {
     The Deed is a contract intended simply to hold ether
     It can be controlled only by the registrar and can only send ether back to the owner.
     */
-    Registrar public registrar;
+    address public registrar;
     address constant burn = 0xdead;
     uint public creationDate;
     address public owner;
@@ -32,7 +32,7 @@ contract Deed {
     bool active;
 
     modifier onlyRegistrar {
-        if (msg.sender != address(registrar)) throw;
+        if (msg.sender != registrar) throw;
         _
     }
 
@@ -42,7 +42,7 @@ contract Deed {
     }
     
     function Deed() {
-        registrar = Registrar(msg.sender);
+        registrar = msg.sender;
         creationDate = now;
         active = true;
     }
@@ -90,12 +90,12 @@ contract Registrar {
     uint constant minPrice = 0.01 ether;
     uint public registryCreated;
 
-    event AuctionStarted(bytes32 hash, uint auctionExpiryDate);
-    event NewBid(bytes32 hash, uint deposit);
-    event BidRevealed(bytes32 hash, address owner, uint value, uint8 status);
-    event HashRegistered(bytes32 hash, address owner, uint value, uint now);
-    event HashReleased(bytes32 hash, uint value);
-    event HashInvalidated(bytes32 hash, string name, uint value, uint now);
+    event AuctionStarted(bytes32 indexed hash, uint auctionExpiryDate);
+    event NewBid(bytes32 indexed hash, uint deposit);
+    event BidRevealed(bytes32 indexed hash, address indexed owner, uint value, uint8 status);
+    event HashRegistered(bytes32 indexed hash, address indexed owner, uint value, uint now);
+    event HashReleased(bytes32 indexed hash, uint value);
+    event HashInvalidated(bytes32 indexed hash, string indexed name, uint value, uint now);
 
     struct entry {
         Mode status;
