@@ -70,6 +70,7 @@ contract Deed {
         if (active) throw;
         if(owner.send(this.balance)) 
             selfdestruct(burn);
+        else throw;
     }
 
     /* The default function just receives an amount */
@@ -103,11 +104,6 @@ contract Registrar {
         uint value;
         uint highestBid;
     }
-    
-    modifier noEther {
-        if (msg.value > 0) throw;
-        _
-    }
 
     modifier onlyOwner(bytes32 _hash) {
         entry h = entries[_hash];
@@ -115,7 +111,7 @@ contract Registrar {
         _
     }
     
-    function Registrar(address _ens, bytes32 _rootNode) noEther {
+    function Registrar(address _ens, bytes32 _rootNode) {
         ens = ENS(_ens);
         rootNode = _rootNode;
 
@@ -173,7 +169,7 @@ contract Registrar {
     attacker from simply bidding on all new auctions blindly. Dummy auctions that are 
     open but not bid on are closed after a week. 
     */    
-    function startAuction(bytes32 _hash) noEther {
+    function startAuction(bytes32 _hash) {
         entry newAuction = entries[_hash];
         if ((newAuction.status == Mode.Auction && now < newAuction.registrationDate)
             || newAuction.status == Mode.Owned 
@@ -181,8 +177,7 @@ contract Registrar {
             || now > registryCreated + 4 years)
             throw;
         
-        // for the first five months of the registry, make longer auctions
-        
+        // for the first month of the registry, make longer auctions
         newAuction.registrationDate = max(now + auctionLength, registryCreated + 4 weeks);
         newAuction.status = Mode.Auction;  
         newAuction.value = 0;
@@ -191,7 +186,7 @@ contract Registrar {
     }
 
     // Allows you to open multiple for better anonimity
-    function startAuctions(bytes32[] _hashes) noEther  {
+    function startAuctions(bytes32[] _hashes)  {
         for (uint i = 0; i < _hashes.length; i ++ ) {
             startAuction(_hashes[i]);
         }
@@ -212,7 +207,7 @@ contract Registrar {
     be burned and the ether unrecoverable. Since this is an auction, it is expected that most 
     public hashes, like known domains and common dictionary words, will have multiple bidders pushing the price up. 
     */ 
-    function newBid(bytes32 sealedBid) {
+    function newBid(bytes32 sealedBid) payable {
         if (address(sealedBids[sealedBid]) > 0 ) throw;
         // creates a new hash contract with the owner
         Deed newBid = new Deed();
@@ -224,7 +219,7 @@ contract Registrar {
     /*
     ## Winning bids are locked
     */ 
-    function unsealBid(bytes32 _hash, address _owner, uint _value, bytes32 _salt) noEther  {
+    function unsealBid(bytes32 _hash, address _owner, uint _value, bytes32 _salt) {
         bytes32 seal = shaBid(_hash, _owner, _value, _salt);
         Deed bid = sealedBids[seal];
         if (address(bid) == 0 ) throw;
@@ -276,7 +271,7 @@ contract Registrar {
         BidRevealed(seal, 0, 0, 5);
     }
     
-    function finalizeAuction(bytes32 _hash) noEther {
+    function finalizeAuction(bytes32 _hash) {
         entry h = entries[_hash];
         if (now < h.registrationDate 
             || h.highestBid == 0
@@ -297,7 +292,7 @@ contract Registrar {
     /*
     ## The owner of a domain may transfer it to someone else at any time.
     */
-    function transfer(bytes32 _hash, address newOwner) onlyOwner(_hash) noEther {
+    function transfer(bytes32 _hash, address newOwner) onlyOwner(_hash) {
         entry h = entries[_hash];
         h.deed.setOwner(newOwner);
         ens.setSubnodeOwner(rootNode, _hash, newOwner);
@@ -307,7 +302,7 @@ contract Registrar {
     ## After some time, you can release the property and get your ether back
     */ 
 
-    function releaseDeed(bytes32 _hash) onlyOwner(_hash) noEther  {
+    function releaseDeed(bytes32 _hash) onlyOwner(_hash) {
         entry h = entries[_hash];
         Deed deedContract = h.deed;
         if (now < h.registrationDate + 1 years 
@@ -320,10 +315,10 @@ contract Registrar {
     }  
 
     /*
-    Names on the simplified registrar can't be six letters or more. We are purposefully
-    handicapping it's usefulness as a way to force it into being restructured in a few years
+    Names on the simplified registrar can't be six letters or less. We are purposefully
+    handicapping its usefulness as a way to force it into being restructured in a few years
     */
-    function invalidateName(string unhashedName) noEther {
+    function invalidateName(string unhashedName) {
         if (strlen(unhashedName) > 6 ) throw;
         bytes32 hash = sha3(unhashedName);
         
@@ -331,7 +326,9 @@ contract Registrar {
         h.status = Mode.Forbidden;
         ens.setSubnodeOwner(rootNode, hash, 0);
         if(address(h.deed) != 0) {
-            h.deed.closeDeed(0);
+            // Reward the discoverer with 10% of the deed
+            h.deed.setOwner(msg.sender);
+            h.deed.closeDeed(100);
         }
         HashInvalidated(hash, unhashedName, h.value, now);
     }
