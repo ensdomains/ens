@@ -27,6 +27,7 @@ contract Deed {
     address constant burn = 0xdead;
     uint public creationDate;
     address public owner;
+    address public previousOwner;
     event OwnerChanged(address newOwner);
     event DeedClosed();
     bool active;
@@ -48,6 +49,7 @@ contract Deed {
     }
         
     function setOwner(address newOwner) onlyRegistrar {
+        previousOwner = owner;
         owner = newOwner;
         OwnerChanged(newOwner);
     }
