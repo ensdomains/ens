@@ -136,40 +136,14 @@ contract Registrar {
             return b;
     }
 
-    /*
-    * @title String & slice utility library for Solidity contracts.
-    * @author Nick Johnson <arachnid@notdot.net>
-    */
-    struct slice {
-        uint _len;
-        uint _ptr;
-    }
-
-    /*
-     * @dev Returns a slice containing the entire string.
-     * @param self The string to make a slice from.
-     * @return A newly allocated slice containing the entire string.
-     */
-    function toSlice(string self) internal returns (slice) {
+    function strlen(string s) internal constant returns (uint) {
+        // Starting here means the LSB will be the byte we care about
         uint ptr;
+        uint end;
         assembly {
-            ptr := add(self, 0x20)
+            ptr := add(s, 1)
+            end := add(mload(s), ptr)
         }
-        return slice(bytes(self).length, ptr);
-    }
-    
-    /*
-     * @dev Returns the length in runes of the slice. Note that this operation
-     *      takes time proportional to the length of the slice; avoid using it
-     *      in loops, and call `slice.empty()` if you only need to know whether
-     *      the slice is empty or not.
-     * @param self The slice to operate on.
-     * @return The length of the slice in runes.
-     */
-    function len(slice self) internal returns (uint) {
-        // Starting at ptr-31 means the LSB will be the byte we care about
-        var ptr = self._ptr - 31;
-        var end = ptr + self._len;
         for (uint len = 0; ptr < end; len++) {
             uint8 b;
             assembly { b := and(mload(ptr), 0xFF) }
@@ -349,17 +323,16 @@ contract Registrar {
     Names on the simplified registrar can't be six letters or more. We are purposefully
     handicapping it's usefulness as a way to force it into being restructured in a few years
     */
-
-    function invalidateDeed(string unhashedName) noEther {
-        if (len(toSlice(unhashedName)) > 6 ) throw;
+    function invalidateName(string unhashedName) noEther {
+        if (strlen(unhashedName) > 6 ) throw;
         bytes32 hash = sha3(unhashedName);
         
         entry h = entries[hash];
-        Deed deedContract = h.deed;
-        
         h.status = Mode.Forbidden;
         ens.setSubnodeOwner(rootNode, hash, 0);
-        deedContract.closeDeed(0);
+        if(address(h.deed) != 0) {
+            h.deed.closeDeed(0);
+        }
         HashInvalidated(hash, unhashedName, h.value, now);
     }
 
