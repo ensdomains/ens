@@ -1,3 +1,5 @@
+pragma solidity ^0.4.0;
+
 /**
  * The ENS registry contract.
  */
@@ -21,7 +23,7 @@ contract ENS {
     // Permits modifications only by the owner of the specified node.
     modifier only_owner(bytes32 node) {
         if(records[node].owner != msg.sender) throw;
-        _
+        _;
     }
     
     /**

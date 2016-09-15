@@ -1,4 +1,4 @@
-
+pragma solidity ^0.4.0;
 
 
 /*
@@ -33,14 +33,14 @@ contract Deed {
 
     modifier onlyRegistrar {
         if (msg.sender != registrar) throw;
-        _
+        _;
     }
 
     modifier onlyActive {
         if (!active) throw;
-        _
+        _;
     }
-    
+
     function Deed() {
         registrar = msg.sender;
         creationDate = now;
@@ -52,7 +52,7 @@ contract Deed {
         OwnerChanged(newOwner);
     }
     
-    function setBalance(uint newValue) onlyRegistrar onlyActive {
+    function setBalance(uint newValue) onlyRegistrar onlyActive payable {
         // Check if it has enough balance to set the value
         if (this.balance < newValue) throw;
         // Send the difference to the owner
@@ -74,7 +74,7 @@ contract Deed {
     }
 
     /* The default function just receives an amount */
-    function () {}
+    function () payable {}
 }
 
 contract Registrar {
@@ -108,7 +108,7 @@ contract Registrar {
     modifier onlyOwner(bytes32 _hash) {
         entry h = entries[_hash];
         if (msg.sender != h.deed.owner() || h.status != Mode.Owned) throw;
-        _
+        _;
     }
     
     function Registrar(address _ens, bytes32 _rootNode) {
@@ -226,7 +226,7 @@ contract Registrar {
         sealedBids[seal] = Deed(0);
         bid.setOwner(_owner);
         entry h = entries[_hash];
-        
+
         if (bid.creationDate() > h.registrationDate - revealPeriod
             || now > h.registrationDate 
             || _value < minPrice) {
@@ -237,8 +237,10 @@ contract Registrar {
         } else if (_value > h.highestBid) {
             // new winner
             // cancel the other bid, refund 99.9%
-            Deed previousWinner = h.deed;
-            previousWinner.closeDeed(999);
+            if(address(h.deed) != 0) {
+                Deed previousWinner = h.deed;
+                previousWinner.closeDeed(999);
+            }
             
             // set new winner
             h.value = h.highestBid;

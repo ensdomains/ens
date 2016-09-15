@@ -1,3 +1,5 @@
+pragma solidity ^0.4.0;
+
 import 'ENS.sol';
 
 /**
@@ -12,7 +14,7 @@ contract FIFSRegistrar {
         var currentOwner = ens.owner(node);
         if(currentOwner != 0 && currentOwner != msg.sender)
             throw;
-        _
+        _;
     }
     
     /**

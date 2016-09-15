@@ -1,3 +1,5 @@
+pragma solidity ^0.4.0;
+
 import 'ENS.sol';
 
 /**
@@ -11,7 +13,7 @@ contract PublicResolver {
     
     modifier only_owner(bytes32 node) {
         if(ens.owner(node) != msg.sender) throw;
-        _
+        _;
     }
 
     /**
