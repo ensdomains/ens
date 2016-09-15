@@ -10,13 +10,13 @@ web3.setProvider(TestRPC.provider());
 
 var ensCode = null;
 
-function compileContract(filenames, contractname) {
+function compileContract(filenames) {
 	var sources = {}
 	for(var i = 0; i < filenames.length; i++)
 		sources[filenames[i]] = fs.readFileSync(filenames[i]).toString();
 	var compiled = solc.compile({sources: sources}, 1);
 	assert.equal(compiled.errors, undefined, compiled.errors);
-	return compiled.contracts[contractname];
+	return compiled;
 }
 
 module.exports = {
@@ -25,7 +25,7 @@ module.exports = {
 	compileContract: compileContract,
 	deployENS: function (account, done) {
 		if(ensCode == null)
-			ensCode = compileContract(['ENS.sol'], 'ENS');
+			ensCode = compileContract(['ENS.sol']).contracts['ENS'];
 		return web3.eth.contract(JSON.parse(ensCode.interface)).new(
 		    account,
 		    {
