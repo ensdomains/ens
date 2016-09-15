@@ -20,6 +20,8 @@ describe('SimpleHashRegistrar', function() {
 	var registrar = null;
 	var ens = null;
 
+	var dotEth = web3.sha3('0000000000000000000000000000000000000000000000000000000000000000' + web3.sha3('eth').slice(2), {encoding: 'hex'});
+	var nameDotEth = web3.sha3(dotEth + web3.sha3('name').slice(2), {encoding: 'hex'});
 
 	before(function() {
 		this.timeout(30000);
@@ -36,7 +38,7 @@ describe('SimpleHashRegistrar', function() {
 			function(done) {
 				registrar = web3.eth.contract(registrarABI).new(
 				    ens.address,
-				    web3.sha3('0000000000000000000000000000000000000000000000000000000000000000' + web3.sha3('eth').slice(2), {encoding: 'hex'}),
+				    dotEth,
 				    {
 				    	from: accounts[0],
 				     	data: registrarBytecode,
@@ -188,6 +190,14 @@ describe('SimpleHashRegistrar', function() {
 							});
 						}
 					], done);
+				});
+			},
+			// Check the owner is set in ENS
+			function(done) {
+				ens.owner(nameDotEth, function(err, owner) {
+					assert.equal(err, null, err);
+					assert.equal(owner, accounts[1]);
+					done();
 				});
 			}
 		], done);
