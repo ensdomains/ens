@@ -2,7 +2,7 @@
 Implementations for registrars and local resolvers for the Ethereum Name Service
 
 ## Resolver.sol
-Provides an abstract interface for the methods all ENS resolvers are expected to implement. For details, see the [ENS specification](https://github.com/Arachnid/EIPs/blob/ens/EIPS/eip-XXX.md).
+Provides an abstract interface for the methods all ENS resolvers are expected to implement. For details, see the [ENS specification](https://github.com/ethereum/EIPs/issues/137).
 
 ## OwnedRegistrar.sol
 Provides a functionally complete implementation of an ENS resolver and registrar for individual use. The account that deploys the contract is considered the owner, and is the only party that can update ENS mappings. Simple methods are provided for inserting and updating mappings, as well, as iterating over existing names.
