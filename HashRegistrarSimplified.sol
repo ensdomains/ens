@@ -12,17 +12,16 @@ and all ether still locked after 8 years will become unreachable.
 
 The plan is to test the basic features and then move to a new contract in at most
 2 years, when some sort of renewal mechanism will be enabled.
-
 */
+
 
 import 'ENS.sol';
 
-
+/**@title Deed to hold ether in exchange for ownership of a node
+ * The Deed is a contract intended simply to hold ether
+ * It can be controlled only by the registrar and can only send ether back to the owner.
+ */
 contract Deed {
-    /* 
-    The Deed is a contract intended simply to hold ether
-    It can be controlled only by the registrar and can only send ether back to the owner.
-    */
     address public registrar;
     address constant burn = 0xdead;
     uint public creationDate;
@@ -30,6 +29,7 @@ contract Deed {
     event OwnerChanged(address newOwner);
     event DeedClosed();
     bool active;
+
 
     modifier onlyRegistrar {
         if (msg.sender != registrar) throw;
@@ -59,6 +59,10 @@ contract Deed {
         if (!owner.send(this.balance - newValue)) throw;
     }
 
+    /**
+     * @dev Close a deed and refund a specified fracion of the bid value
+     * @param refundRatio The amount*1/1000 to refund
+     */
     function closeDeed(uint refundRatio) onlyRegistrar onlyActive {
         active = false;            
         if (! burn.send(((1000 - refundRatio) * this.balance)/1000)) throw;
@@ -73,10 +77,13 @@ contract Deed {
         else throw;
     }
 
-    /* The default function just receives an amount */
+    // The default function just receives an amount
     function () payable {}
 }
 
+/**@title Registrar
+ * @dev The registrar handles the auction process for each subnode of the node it owns.
+ */
 contract Registrar {
     ENS public ens;
     bytes32 public rootNode;
@@ -111,13 +118,22 @@ contract Registrar {
         _;
     }
     
+    /**
+     * @dev Constructs a new Registrar, with the provided address as the owner of the root node.
+     * @param _ens The address of the ENS
+     * @param _rootNode The sha3 hash of the rootnode (should this be the rootnode 0, or the rootnode owned by this registrar (ie. ETH?).
+     */
     function Registrar(address _ens, bytes32 _rootNode) {
         ens = ENS(_ens);
         rootNode = _rootNode;
-
         registryCreated = now;
     }
 
+    /**
+     * @dev Returns the maximum of two unsigned integers
+     * @param a A number to compare
+     * @param b A number to compare
+     */
     function max(uint a, uint b) internal constant returns (uint max) {
         if (a > b)
             return a;
@@ -125,6 +141,11 @@ contract Registrar {
             return b;
     }
 
+    /**
+     * @dev Returns the minimum of two unsigned integers
+     * @param a A number to compare
+     * @param b A number to compare
+     */
     function  min(uint a, uint b) internal constant returns (uint min) {
         if (a < b)
             return a;
@@ -132,6 +153,10 @@ contract Registrar {
             return b;
     }
 
+    /**
+     * @dev Returns the length of a given string
+     * @param s The string to measure the length of
+     */
     function strlen(string s) internal constant returns (uint) {
         // Starting here means the LSB will be the byte we care about
         uint ptr;
@@ -160,21 +185,29 @@ contract Registrar {
         return len;
     }
 
-    /*
-    ## Start Auction for available hash
+    /* 
+    ## Start Auction for an Available hash
 
     Anyone can start an auction by sending an array of hashes that they want to bid for. 
     Arrays are sent so that someone can open up an auction for X dummy hashes when they 
     are only really interested in bidding for one. This will increase the cost for an 
-    attacker from simply bidding on all new auctions blindly. Dummy auctions that are 
+    attacker to simply bid blindely on all new auctions. Dummy auctions that are 
     open but not bid on are closed after a week. 
-    */    
+    */
+    
+    /**
+     * @dev Start an auction for an available hash
+     * @param _hash The hash to start an auction on
+     */    
     function startAuction(bytes32 _hash) {
         entry newAuction = entries[_hash];
+        // Ensure the hash is available, and no auction is currently underway
         if ((newAuction.status == Mode.Auction && now < newAuction.registrationDate)
             || newAuction.status == Mode.Owned 
             || newAuction.status == Mode.Forbidden
             || now > registryCreated + 4 years)
+            // Should something more informative be returned here?
+            // Perhaps an AuctionRejected event? 
             throw;
         
         // for the first month of the registry, make longer auctions
@@ -185,28 +218,44 @@ contract Registrar {
         AuctionStarted(_hash, newAuction.registrationDate);      
     }
 
-    // Allows you to open multiple for better anonimity
+    /**
+     * @dev Start multiple auctions for better anonymity
+     * @param _hashes An array of hashes, at least one of which you presumably want to bid on
+     */
     function startAuctions(bytes32[] _hashes)  {
         for (uint i = 0; i < _hashes.length; i ++ ) {
             startAuction(_hashes[i]);
         }
     }
     
+    /**
+     * @dev Hash the values required for a secret bid
+     * @param hash The node corresponding to the desired namehash
+     * @param owner The address which will own the 
+     * @param value The bid amount
+     * @param salt A random value to ensure secrecy of the bid
+     * @return The hash of the bid
+     */
     function shaBid(bytes32 hash, address owner, uint value, bytes32 salt) constant returns (bytes32 sealedBid) {
         return sha3(hash, owner, value, salt);
     }
     
     /*
     ## Blind auction for the desired hash
-
+    
     Bids are sent by sending a message to the main contract with a hash and an amount. The hash 
     contains information about the bid, including the bidded hash, the bid amount, and a random 
     salt. Bids are not tied to any one auction until they are revealed. The value of the bid 
     itself can be masqueraded by changing the required period or sending more than what you are 
     bidding for. This is followed by a 24h reveal period. Bids revealed after this period will 
     be burned and the ether unrecoverable. Since this is an auction, it is expected that most 
-    public hashes, like known domains and common dictionary words, will have multiple bidders pushing the price up. 
+    public hashes, like known domains and common dictionary words, will have multiple bidders 
+    pushing the price up. 
     */ 
+    /**
+     * @dev Submit a new sealed bid
+     * @param sealedBid A sealedBid, created by the shaBid function
+     */
     function newBid(bytes32 sealedBid) payable {
         if (address(sealedBids[sealedBid]) > 0 ) throw;
         // creates a new hash contract with the owner
@@ -216,9 +265,14 @@ contract Registrar {
         if (!newBid.send(msg.value)) throw;
     } 
     
-    /*
-    ## Winning bids are locked
-    */ 
+    /**
+     * @dev Submit the properties of a bid to reveal them
+     * @param hash The node corresponding to the desired namehash
+     * @param owner The address which will own the 
+     * @param value The bid amount
+     * @param salt A random value to ensure secrecy of the bid
+     * @return The hash of the bid
+     */ 
     function unsealBid(bytes32 _hash, address _owner, uint _value, bytes32 _salt) {
         bytes32 seal = shaBid(_hash, _owner, _value, _salt);
         Deed bid = sealedBids[seal];
@@ -227,11 +281,15 @@ contract Registrar {
         bid.setOwner(_owner);
         entry h = entries[_hash];
 
+        // Levies a hefty penalty for submitting pointless bids?
+        // This is to prevent bids that are never intended to be revealed during the reveal period,
+        // which could otherwise appear falsely as an expression of interest. (?)
         if (bid.creationDate() > h.registrationDate - revealPeriod
             || now > h.registrationDate 
             || _value < minPrice) {
             // bid is invalid, burn 99%
             bid.closeDeed(10);
+            // Why is there no status=1 for the BidRevealed event?
             BidRevealed(_hash, _owner, _value, 0);
             
         } else if (_value > h.highestBid) {
@@ -243,6 +301,7 @@ contract Registrar {
             }
             
             // set new winner
+            // per the rules of a vickery auction, the value becomes the previous highestBid
             h.value = h.highestBid;
             h.highestBid = _value;
             h.deed = bid;
@@ -266,7 +325,7 @@ contract Registrar {
         Deed bid = sealedBids[seal];
         // If the bid hasn't been revealed long after any possible auction date, then close it
         if (address(bid) == 0 || now < bid.creationDate() + auctionLength * 12 || bid.owner() > 0) throw; 
-        // There is a fee for cleaning an old bid, but it's smaller than revealing it
+        // There is a fee for cancelling an old bid, but it's smaller than revealing it
         bid.setOwner(msg.sender);
         bid.closeDeed(5);
         sealedBids[seal] = Deed(0);
