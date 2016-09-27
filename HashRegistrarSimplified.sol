@@ -51,6 +51,10 @@ contract Deed {
         owner = newOwner;
         OwnerChanged(newOwner);
     }
+
+    function setRegistrar(address newRegistrar) onlyRegistrar {
+        registrar = newRegistrar;
+    }
     
     function setBalance(uint newValue) onlyRegistrar onlyActive payable {
         // Check if it has enough balance to set the value
@@ -335,5 +339,18 @@ contract Registrar {
         HashInvalidated(hash, unhashedName, h.value, now);
     }
 
+    /**
+     * Transfers the deed to the current registrar, if different from this one.
+     * Used during the upgrade process to a permanent registrar.
+     * @param _hash The name hash to transfer.
+     */
+    function transferRegistrars(bytes32 _hash) onlyOwner(_hash) {
+        var registrar = ens.owner(rootNode);
+        if(registrar == address(this))
+            throw;
 
+        entry h = entries[_hash];
+        h.deed.setRegistrar(registrar);
+        h.status = Mode.Forbidden;
+    }
 }
