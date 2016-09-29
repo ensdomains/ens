@@ -9,8 +9,7 @@ import 'ENS.sol';
 contract PublicResolver {
     ENS ens;
     mapping(bytes32=>address) addresses;
-    mapping(bytes32=>bytes32) contents;
-    
+
     modifier only_owner(bytes32 node) {
         if(ens.owner(node) != msg.sender) throw;
         _;
@@ -39,8 +38,7 @@ contract PublicResolver {
      *         provided node.
      */
     function has(bytes32 node, bytes32 kind) constant returns (bool) {
-        return (kind == "addr" && addresses[node] != 0) ||
-               (kind == "content" && contents[node] != 0);
+        return (kind == "addr" && addresses[node] != 0);
     }
     
     /**
@@ -53,17 +51,6 @@ contract PublicResolver {
         if(ret == 0)
             throw;
     }
-    
-    /**
-     * Returns the content hash associated with an ENS node.
-     * @param node The ENS node to query.
-     * @return The associated content hash.
-     */
-    function content(bytes32 node) constant returns (bytes32 ret) {
-        ret = contents[node];
-        if(ret == 0)
-            throw;
-    }
 
     /**
      * Sets the address associated with an ENS node.
@@ -73,15 +60,5 @@ contract PublicResolver {
      */
     function setAddr(bytes32 node, address addr) only_owner(node) {
         addresses[node] = addr;
-    }
-    
-    /**
-     * Sets the content hash associated with an ENS node.
-     * May only be called by the owner of that node in the ENS registry.
-     * @param node The node to update.
-     * @param addr The content hash to set.
-     */
-    function setContent(bytes32 node, bytes32 addr) only_owner(node) {
-        contents[node] = addr;
     }
 }
