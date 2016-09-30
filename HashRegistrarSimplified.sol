@@ -17,13 +17,10 @@ The plan is to test the basic features and then move to a new contract in at mos
 
 import 'ENS.sol';
 
-/*
-The Deed is a contract intended simply to hold ether
-It can be controlled only by the registrar and can only send ether back to the owner.
-*/
 
 /**
  * @title Deed to hold ether in exchange for ownership of a node
+ * @dev The deed can be controlled only by the registrar and can only send ether back to the owner.
  */
 contract Deed {
     address public registrar;
@@ -134,7 +131,7 @@ contract Registrar {
     /**
      * @dev Constructs a new Registrar, with the provided address as the owner of the root node.
      * @param _ens The address of the ENS
-     * @param _rootNode The sha3 hash of the rootnode (should this be the rootnode 0, or the rootnode owned by this registrar (ie. ETH?).
+     * @param _rootNode The hash of the rootnode.
      */
     function Registrar(address _ens, bytes32 _rootNode) {
         ens = ENS(_ens);
@@ -201,18 +198,15 @@ contract Registrar {
         return len;
     }
 
-    /* 
-    ## Start Auction for an Available hash
-
-    Anyone can start an auction by sending an array of hashes that they want to bid for. 
-    Arrays are sent so that someone can open up an auction for X dummy hashes when they 
-    are only really interested in bidding for one. This will increase the cost for an 
-    attacker to simply bid blindely on all new auctions. Dummy auctions that are 
-    open but not bid on are closed after a week. 
-    */
-    
     /**
      * @dev Start an auction for an available hash
+     * 
+     * Anyone can start an auction by sending an array of hashes that they want to bid for. 
+     * Arrays are sent so that someone can open up an auction for X dummy hashes when they 
+     * are only really interested in bidding for one. This will increase the cost for an 
+     * attacker to simply bid blindly on all new auctions. Dummy auctions that are 
+     * open but not bid on are closed after a week. 
+     *
      * @param _hash The hash to start an auction on
      */    
     function startAuction(bytes32 _hash) {
@@ -254,20 +248,18 @@ contract Registrar {
         return sha3(hash, owner, value, salt);
     }
     
-    /*
-    ## Blind auction for the desired hash
-    
-    Bids are sent by sending a message to the main contract with a hash and an amount. The hash 
-    contains information about the bid, including the bidded hash, the bid amount, and a random 
-    salt. Bids are not tied to any one auction until they are revealed. The value of the bid 
-    itself can be masqueraded by changing the required period or sending more than what you are 
-    bidding for. This is followed by a 24h reveal period. Bids revealed after this period will 
-    be burned and the ether unrecoverable. Since this is an auction, it is expected that most 
-    public hashes, like known domains and common dictionary words, will have multiple bidders 
-    pushing the price up. 
-    */ 
     /**
-     * @dev Submit a new sealed bid
+     * @dev Submit a new sealed bid on desired hash in a blind auction
+     * 
+     * Bids are sent by sending a message to the main contract with a hash and an amount. The hash 
+     * contains information about the bid, including the bidded hash, the bid amount, and a random 
+     * salt. Bids are not tied to any one auction until they are revealed. The value of the bid 
+     * itself can be masqueraded by changing the required period or sending more than what you are 
+     * bidding for. This is followed by a 24h reveal period. Bids revealed after this period will 
+     * be burned and the ether unrecoverable. Since this is an auction, it is expected that most 
+     * public hashes, like known domains and common dictionary words, will have multiple bidders 
+     * pushing the price up. 
+     *
      * @param sealedBid A sealedBid, created by the shaBid function
      */
     function newBid(bytes32 sealedBid) payable {
@@ -278,7 +270,6 @@ contract Registrar {
         NewBid(sealedBid, msg.value);
         if (!newBid.send(msg.value)) throw;
     } 
-    
 
     /**
      * @dev Submit the properties of a bid to reveal them
@@ -296,9 +287,9 @@ contract Registrar {
         entry h = entries[_hash];
 
         /* 
-        A penalty is applied for submitting pointless bids. This prevents bids which
-        are never intended to be revealed during the reveal period, which could otherwise
-        appear falsely as an expression of interest.
+        A penalty is applied for submitting unrevealed bids, which could otherwise
+        be used as a threat of revealing a bid higher than the second-highest 
+        bid, to extort the winner into paying them.
         */
         if (bid.creationDate() > h.registrationDate - revealPeriod
             || now > h.registrationDate 
@@ -337,7 +328,7 @@ contract Registrar {
     }
     
     /**
-     * @dev Cancel a bid you've submitted
+     * @dev Cancel a bid
      * @param seal The value returned by the shaBid function
      */ 
     function cancelBid(bytes32 seal) {
@@ -356,7 +347,7 @@ contract Registrar {
 
     /**
      * @dev Finalize an auction after the registration date has passed
-     * @param _hash 
+     * @param _hash The hash of the name the auction is for
      */ 
     function finalizeAuction(bytes32 _hash) {
         entry h = entries[_hash];
@@ -404,16 +395,14 @@ contract Registrar {
         HashReleased(_hash, h.value);
     }  
 
-    /*
-    Names on the simplified registrar can't be six letters or less. We are purposefully
-    handicapping its usefulness as a way to force it into being restructured in a few years
-    */
-    /*
-     * @dev Submit a name less than length 6. If it has been registered, 
-     * the submitter will earn 10% of the deed value.
+    /**
+     * @dev Submit a name 6 characters long or less. If it has been registered, 
+     * the submitter will earn 10% of the deed value. We are purposefully
+     * handicapping the simplified registrar as a way to force it into being restructured
+     * in a few years.
      * @param unhashedName An invalid name to search for in the registry.
+     * 
      */
-
     function invalidateName(string unhashedName) {
         if (strlen(unhashedName) > 6 ) throw;
         bytes32 hash = sha3(unhashedName);
