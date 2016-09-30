@@ -249,7 +249,7 @@ contract Registrar {
     }
     
     /**
-     * @dev Submit a new sealed bid on desired hash in a blind auction
+     * @dev Submit a new sealed bid on a desired hash in a blind auction
      * 
      * Bids are sent by sending a message to the main contract with a hash and an amount. The hash 
      * contains information about the bid, including the bidded hash, the bid amount, and a random 
