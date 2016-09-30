@@ -254,11 +254,10 @@ contract Registrar {
      * Bids are sent by sending a message to the main contract with a hash and an amount. The hash 
      * contains information about the bid, including the bidded hash, the bid amount, and a random 
      * salt. Bids are not tied to any one auction until they are revealed. The value of the bid 
-     * itself can be masqueraded by changing the required period or sending more than what you are 
-     * bidding for. This is followed by a 24h reveal period. Bids revealed after this period will 
-     * be burned and the ether unrecoverable. Since this is an auction, it is expected that most 
-     * public hashes, like known domains and common dictionary words, will have multiple bidders 
-     * pushing the price up. 
+     * itself can be masqueraded by sending more than the value of your actual bid. This is 
+     * followed by a 24h reveal period. Bids revealed after this period will be burned and the ether unrecoverable. 
+     * Since this is an auction, it is expected that most public hashes, like known domains and common dictionary 
+     * words, will have multiple bidders pushing the price up. 
      *
      * @param sealedBid A sealedBid, created by the shaBid function
      */
