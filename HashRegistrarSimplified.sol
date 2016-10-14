@@ -77,7 +77,6 @@ contract Deed {
 
     /**
      * @dev Close a deed and refund a specified fraction of the bid value
-     * @param refundRatio The amount*1/1000 to refund
      */
     function destroyDeed() {
         if (active) throw;
