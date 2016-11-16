@@ -1,0 +1,100 @@
+;;; ---------------------------------------------------------------------------
+;;; @title Macros for the ENS registry.
+;;; @author Daniel Ellison <daniel@syrinx.net>
+
+(seq
+
+  ;; --------------------------------------------------------------------------
+  ;; Constant definitions.
+
+  ;; Memory layout.
+  (def 'node-bytes  0x00)
+  (def 'label-bytes 0x20)
+  (def 'call-result 0x40)
+
+  ;; Storage layout.
+  (def 'records 0x00)
+
+  ;; Struct: Record
+  (def 'owner    0x00) ; address
+  (def 'resolver 0x20) ; address
+  (def 'ttl      0x40) ; uint64
+
+  ;; Precomputed function IDs.
+  (def 'get-node-owner    0x02571be3) ; owner(bytes32)
+  (def 'get-node-resolver 0x0178b8bf) ; resolver(bytes32)
+  (def 'get-node-ttl      0x16a25cbd) ; ttl(bytes32)
+  (def 'set-node-owner    0x5b0fc9c3) ; setOwner(bytes32,address)
+  (def 'set-subnode-owner 0x06ab5923) ; setSubnodeOwner(bytes32,bytes32,address)
+  (def 'set-node-resolver 0x1896f70a) ; setResolver(bytes32,address)
+  (def 'set-node-ttl      0x14ab9038) ; setTTL(bytes32,uint64)
+
+  ;; Jumping here causes an EVM error.
+  (def 'invalid-location 0x02)
+
+  ;; --------------------------------------------------------------------------
+  ;; @notice Shifts the leftmost 4 bytes of a 32-byte number right by 28 bytes.
+  ;; @param input A 32-byte number.
+
+  (def 'shift-right (input)
+    (div input (exp 2 224)))
+
+  ;; --------------------------------------------------------------------------
+  ;; @notice Determines whether the supplied function ID matches a known
+  ;;         function hash and executes <code-body> if so.
+  ;; @dev The function ID is in the leftmost four bytes of the call data.
+  ;; @param function-hash The four-byte hash of a known function signature.
+  ;; @param code-body The code to run in the case of a match.
+
+  (def 'function (function-hash code-body)
+    (when (= (shift-right (calldataload 0x00)) function-hash)
+      code-body))
+
+  ;; --------------------------------------------------------------------------
+  ;; @notice Calculates record location for node passed in.
+  ;; @param node Return the record location of this node.
+
+  (def 'get-record (node)
+      (+ records node))
+
+  ;; --------------------------------------------------------------------------
+  ;; @notice Calculates record location for the node and label passed in.
+  ;; @param node The parent node.
+  ;; @param label The hash of the subnode label.
+
+  (def 'get-record (node label)
+    (seq
+      (mstore node-bytes node)
+      (mstore label-bytes label)
+      (+ records (sha3 node-bytes 64))))
+
+  ;; --------------------------------------------------------------------------
+  ;; @notice Retrieves owner from node record.
+  ;; @param node Get owner of this node.
+
+  (def 'get-owner (node)
+    (sload (+ (get-record node) owner)))
+
+  ;; --------------------------------------------------------------------------
+  ;; @notice Retrieves resolver from node record.
+  ;; @param node Get resolver of this node.
+
+  (def 'get-resolver (node)
+    (sload (+ (get-record node) resolver)))
+
+  ;; --------------------------------------------------------------------------
+  ;; @notice Retrieves TTL From node record.
+  ;; @param node Get TTL of this node.
+
+  (def 'get-ttl (node)
+    (sload (+ (get-record node) ttl)))
+
+  ;; --------------------------------------------------------------------------
+  ;; @notice Checks that the caller is the node owner.
+  ;; @param node Check owner of this node.
+
+  (def 'only-node-owner (node)
+    (when (!= (caller) (get-owner node))
+      (jump invalid-location)))
+
+)

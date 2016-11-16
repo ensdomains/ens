@@ -1,0 +1,178 @@
+;;; ---------------------------------------------------------------------------
+;;; @title The Ethereum Name Service registry.
+;;; @author Daniel Ellison <daniel@syrinx.net>
+
+(seq
+
+  ;; --------------------------------------------------------------------------
+  ;; INIT
+
+  (include "macros.lll")
+
+  ;; --------------------------------------------------------------------------
+  ;; CODE
+
+  (returnlll
+    (seq
+
+      ;; ----------------------------------------------------------------------
+      ;; @notice Returns the address that owns the specified node.
+      ;; @dev Signature: owner(bytes32)
+      ;; @param node Return this node's owner.
+      ;; @return The associated address.
+
+      (function get-node-owner
+        (seq
+
+          ;; Define input parameters to this function.
+          (def 'node (calldataload 0x04))
+
+          ;; Get the node's owner and save it.
+          (mstore call-result (get-owner node))
+
+          ;; Return result.
+          (return call-result 32)))
+
+      ;; ----------------------------------------------------------------------
+      ;; @notice Returns the address of the resolver for the specified node.
+      ;; @dev Signature: resolver(bytes32)
+      ;; @param node Return this node's resolver.
+      ;; @return The associated resolver.
+
+      (function get-node-resolver
+        (seq
+
+          ;; Define input parameters to this function.
+          (def 'node (calldataload 0x04))
+
+          ;; Get the node's resolver and save it.
+          (mstore call-result (get-resolver node))
+
+          ;; Return result.
+          (return call-result 32)))
+
+      ;; ----------------------------------------------------------------------
+      ;; @notice Returns the TTL of a node and any records associated with it.
+      ;; @dev Signature: ttl(bytes32)
+      ;; @param node Return this node's TTL.
+      ;; @return The node's TTL.
+
+      (function get-node-ttl
+        (seq
+
+          ;; Define input parameters to this function.
+          (def 'node (calldataload 0x04))
+
+          ;; Get the node's TTL and save it.
+          (mstore call-result (get-ttl node))
+
+          ;; Return result.
+          (return call-result 8)))
+
+      ;; ----------------------------------------------------------------------
+      ;; @notice Transfers ownership of a node to a new address. May only be
+      ;;         called by the current owner of the node.
+      ;; @dev Signature: setOwner(bytes32,address)
+      ;; @param node The node to transfer ownership of.
+      ;; @param new-owner The address of the new owner.
+
+      (function set-node-owner
+        (seq (only-node-owner (calldataload 0x04))
+
+          ;; Define input parameters to this function.
+          (def 'node (calldataload 0x04))
+          (def 'new-owner (calldataload 0x24))
+
+          ;; Transfer ownership by storing passed-in address.
+          (sstore (+ (get-record node) owner) new-owner)
+
+          ;; Emit an event about the transfer.
+          ;; Transfer(bytes32 indexed node, address owner);
+          (log2 new-owner 32
+              (sha3 0x00 (lit 0x00 "Transfer(bytes32,address)")) node)
+
+          ;; Nothing to return.
+          (stop)))
+
+      ;; ----------------------------------------------------------------------
+      ;; @notice Transfers ownership of a subnode to a new address. May only be
+      ;;         called by the owner of the parent node.
+      ;; @dev Signature: setSubnodeOwner(bytes32,bytes32,address)
+      ;; @param node The parent node.
+      ;; @param label The hash of the label specifying the subnode.
+      ;; @param new-owner The address of the new owner.
+
+      (function set-subnode-owner
+        (seq (only-node-owner (calldataload 0x04))
+
+          ;; Define input parameters to this function.
+          (def 'node (calldataload 0x04))
+          (def 'label (calldataload 0x24))
+          (def 'new-owner (calldataload 0x44))
+
+          ;; Transfer ownership by storing passed-in address.
+          (sstore (+ (get-record node label) owner) new-owner)
+
+          ;; Emit an event about the transfer.
+          ;; NewOwner(bytes32 indexed node, bytes32 indexed label, address owner);
+          (log3 new-owner 32
+              (sha3 0x00 (lit 0x00 "NewOwner(bytes32,bytes32,address)"))
+              node label)
+
+          ;; Nothing to return.
+          (stop)))
+
+      ;; ----------------------------------------------------------------------
+      ;; @notice Sets the resolver address for the specified node.
+      ;; @dev Signature: setResolver(bytes32,address)
+      ;; @param node The node to update.
+      ;; @param new-resolver The address of the resolver.
+
+      (function set-node-resolver
+        (seq (only-node-owner (calldataload 0x04))
+
+          ;; Define input parameters to this function.
+          (def 'node (calldataload 0x04))
+          (def 'new-resolver (calldataload 0x24))
+
+          ;; Transfer ownership by storing passed-in address.
+          (sstore (+ (get-record node) resolver) new-resolver)
+
+          ;; Emit an event about the change of resolver.
+          ;; NewResolver(bytes32 indexed node, address resolver);
+          (log2 new-resolver 32
+              (sha3 0x00 (lit 0x00 "NewResolver(bytes32,address)")) node)
+
+          ;; Nothing to return.
+          (stop)))
+
+      ;; ----------------------------------------------------------------------
+      ;; @notice Sets the TTL for the specified node.
+      ;; @dev Signature: setTTL(bytes32,uint64)
+      ;; @param node The node to update.
+      ;; @param ttl The TTL in seconds.
+
+      (function set-node-ttl
+        (seq (only-node-owner (calldataload 0x04))
+
+          ;; Define input parameters to this function.
+          (def 'node (calldataload 0x04))
+          (def 'new-ttl (calldataload 0x24))
+
+          ;; Set new TTL by storing passed-in time.
+          (sstore (+ (get-record node) ttl) new-ttl)
+
+          ;; Emit an event about the change of TTL.
+          ;; NewTTL(bytes32 indexed node, uint64 ttl);
+          (log2 new-ttl 32
+              (sha3 0x00 (lit 0x00 "NewTTL(bytes32,uint64)")) node)
+
+          ;; Nothing to return.
+          (stop)))
+
+      ;; ----------------------------------------------------------------------
+      ;; @notice Fallback: No functions matched the function ID provided.
+
+      (jump invalid-location)))
+
+)
