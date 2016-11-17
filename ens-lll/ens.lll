@@ -21,11 +21,10 @@
       ;; @param node Return this node's owner.
       ;; @return The associated address.
 
+      (def 'node (calldataload 0x04))
+
       (function get-node-owner
         (seq
-
-          ;; Define input parameters to this function.
-          (def 'node (calldataload 0x04))
 
           ;; Get the node's owner and save it.
           (mstore call-result (get-owner node))
@@ -39,11 +38,10 @@
       ;; @param node Return this node's resolver.
       ;; @return The associated resolver.
 
+      (def 'node (calldataload 0x04))
+
       (function get-node-resolver
         (seq
-
-          ;; Define input parameters to this function.
-          (def 'node (calldataload 0x04))
 
           ;; Get the node's resolver and save it.
           (mstore call-result (get-resolver node))
@@ -57,11 +55,10 @@
       ;; @param node Return this node's TTL.
       ;; @return The node's TTL.
 
+      (def 'node (calldataload 0x04))
+
       (function get-node-ttl
         (seq
-
-          ;; Define input parameters to this function.
-          (def 'node (calldataload 0x04))
 
           ;; Get the node's TTL and save it.
           (mstore call-result (get-ttl node))
@@ -76,15 +73,14 @@
       ;; @param node The node to transfer ownership of.
       ;; @param new-owner The address of the new owner.
 
-      (function set-node-owner
-        (seq (only-node-owner (calldataload 0x04))
+      (def 'node (calldataload 0x04))
+      (def 'new-owner (calldataload 0x24))
 
-          ;; Define input parameters to this function.
-          (def 'node (calldataload 0x04))
-          (def 'new-owner (calldataload 0x24))
+      (function set-node-owner
+        (seq (only-node-owner node)
 
           ;; Transfer ownership by storing passed-in address.
-          (sstore (+ (get-record node) owner) new-owner)
+          (set-owner node new-owner)
 
           ;; Emit an event about the transfer.
           ;; Transfer(bytes32 indexed node, address owner);
@@ -102,16 +98,15 @@
       ;; @param label The hash of the label specifying the subnode.
       ;; @param new-owner The address of the new owner.
 
-      (function set-subnode-owner
-        (seq (only-node-owner (calldataload 0x04))
+      (def 'node (calldataload 0x04))
+      (def 'label (calldataload 0x24))
+      (def 'new-owner (calldataload 0x44))
 
-          ;; Define input parameters to this function.
-          (def 'node (calldataload 0x04))
-          (def 'label (calldataload 0x24))
-          (def 'new-owner (calldataload 0x44))
+      (function set-subnode-owner
+        (seq (only-node-owner node)
 
           ;; Transfer ownership by storing passed-in address.
-          (sstore (+ (get-record node label) owner) new-owner)
+          (set-subnode-owner node label new-owner)
 
           ;; Emit an event about the transfer.
           ;; NewOwner(bytes32 indexed node, bytes32 indexed label, address owner);
@@ -128,15 +123,14 @@
       ;; @param node The node to update.
       ;; @param new-resolver The address of the resolver.
 
-      (function set-node-resolver
-        (seq (only-node-owner (calldataload 0x04))
+      (def 'node (calldataload 0x04))
+      (def 'new-resolver (calldataload 0x24))
 
-          ;; Define input parameters to this function.
-          (def 'node (calldataload 0x04))
-          (def 'new-resolver (calldataload 0x24))
+      (function set-node-resolver
+        (seq (only-node-owner node)
 
           ;; Transfer ownership by storing passed-in address.
-          (sstore (+ (get-record node) resolver) new-resolver)
+          (set-resolver node new-resolver)
 
           ;; Emit an event about the change of resolver.
           ;; NewResolver(bytes32 indexed node, address resolver);
@@ -152,15 +146,14 @@
       ;; @param node The node to update.
       ;; @param ttl The TTL in seconds.
 
-      (function set-node-ttl
-        (seq (only-node-owner (calldataload 0x04))
+      (def 'node (calldataload 0x04))
+      (def 'new-ttl (calldataload 0x24))
 
-          ;; Define input parameters to this function.
-          (def 'node (calldataload 0x04))
-          (def 'new-ttl (calldataload 0x24))
+      (function set-node-ttl
+        (seq (only-node-owner node)
 
           ;; Set new TTL by storing passed-in time.
-          (sstore (+ (get-record node) ttl) new-ttl)
+          (set-ttl node new-ttl)
 
           ;; Emit an event about the change of TTL.
           ;; NewTTL(bytes32 indexed node, uint64 ttl);
