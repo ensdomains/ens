@@ -1,9 +1,11 @@
 pragma solidity ^0.4.0;
 
+import 'interface.sol';
+
 /**
  * The ENS registry contract.
  */
-contract ENS {
+contract ENS is AbstractENS {
     struct Record {
         address owner;
         address resolver;

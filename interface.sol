@@ -1,5 +1,6 @@
-contract ENS {
+pragma solidity ^0.4.0;
 
+contract AbstractENS {
     function owner(bytes32 node) constant returns(address);
     function resolver(bytes32 node) constant returns(address);
     function ttl(bytes32 node) constant returns(uint64);
