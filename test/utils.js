@@ -27,7 +27,6 @@ module.exports = {
 		if(ensCode == null)
 			ensCode = compileContract(['ENS.sol']).contracts['ENS'];
 		return web3.eth.contract(JSON.parse(ensCode.interface)).new(
-		    account,
 		    {
 		    	from: account,
 		     	data: ensCode.bytecode,

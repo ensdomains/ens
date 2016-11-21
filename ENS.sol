@@ -31,10 +31,10 @@ contract ENS {
     }
     
     /**
-     * Constructs a new ENS registrar, with the provided address as the owner of the root node.
+     * Constructs a new ENS registrar.
      */
-    function ENS(address owner) {
-        records[0].owner = owner;
+    function ENS() {
+        records[0].owner = msg.sender;
     }
     
     /**
