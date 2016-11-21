@@ -62,7 +62,7 @@
   ;; @param node The parent node.
   ;; @param label The hash of the subnode label.
 
-  (def 'get-record (node label)
+  (def 'get-subrecord (node label)
     (seq
       (mstore node-bytes node)
       (mstore label-bytes label)
@@ -89,8 +89,8 @@
   ;; @param label The hash of the label specifying the subnode.
   ;; @param new-owner New owner of the subnode.
 
-  (def 'set-subnode-owner (node label new-owner)
-    (sstore (+ (get-record node label) owner) new-owner))
+  (def 'set-subowner (node label new-owner)
+    (sstore (+ (get-subrecord node label) owner) new-owner))
 
   ;; --------------------------------------------------------------------------
   ;; @notice Retrieves resolver from node record.
