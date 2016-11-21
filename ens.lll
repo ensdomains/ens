@@ -67,7 +67,7 @@
           (mstore call-result (get-ttl node))
 
           ;; Return result.
-          (return call-result 8)))
+          (return call-result 32)))
 
       ;; ----------------------------------------------------------------------
       ;; @notice Transfers ownership of a node to a new address. May only be
