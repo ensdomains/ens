@@ -9,6 +9,9 @@
 
   (include "macros.lll")
 
+  ;; Set the owner of the root node (0x00) to the deploying account.
+  (sstore records (caller))
+
   ;; --------------------------------------------------------------------------
   ;; CODE
 
