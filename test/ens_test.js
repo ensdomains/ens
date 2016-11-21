@@ -13,12 +13,20 @@ before(function(done) {
 	});
 });
 
-describe('ENS', function() {
+describe('ENS.sol', function() {
+	ensTests(utils.deployENS);
+});
+
+describe('ENS.lll', function() {
+	ensTests(utils.deployENSLLL);
+});
+
+function ensTests(deploy) {
 	var ens = null;
 
 	beforeEach(function(done) {
 		this.timeout(10000);
-		ens = utils.deployENS(accounts[0], done);
+		ens = deploy(accounts[0], done);
 	});
 
 	it("transfers ownership", function(done) {
@@ -80,4 +88,4 @@ describe('ENS', function() {
 			});
 		});
 	})
-});
+}

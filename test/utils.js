@@ -9,6 +9,7 @@ var web3 = new Web3();
 web3.setProvider(TestRPC.provider());
 
 var ensCode = null;
+var ensLLLCode = null;
 
 function compileContract(filenames) {
 	var sources = {}
@@ -38,6 +39,25 @@ module.exports = {
 			   	}
 		   });
 	},
+	deployENSLLL: function(account, done) {
+		if(ensLLLCode == null) {
+			ensLLLCode = {
+				bytecode: fs.readFileSync('ens.lll.bin').toString().trim(),
+				interface: fs.readFileSync('abi/AbstractENS.abi').toString()
+			}
+		}
+		return web3.eth.contract(JSON.parse(ensLLLCode.interface)).new(
+		{
+			from: account,
+			data: ensLLLCode.bytecode,
+			gas: 4700000
+		}, function(err, contract) {
+			assert.equal(err, null, err);
+			if(contract.address != undefined) {
+				done();
+			}
+		});
+	},
 	web3: web3,
-	TestRPC: TestRPC,
+	TestRPC: TestRPC
 };

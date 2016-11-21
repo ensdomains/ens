@@ -59,3 +59,13 @@ Returns true iff the specified node has the specified record kind available. Rec
 ## addr(bytes32 node) constant returns (address ret)
 
 Implements the addr resource type. Returns the Ethereum address associated with a node if it exists, or `throw`s if it does not.
+
+# Generating ABI and binary data
+
+ens.lll.bin was generated with the following command, using the lllc packaged with Solidity 0.4.4:
+
+    lllc ens.lll > ens.lll.bin
+
+The files in the abi directory were generated with the following command:
+
+    solc --abi -o abi interface.sol FIFSRegistrar.sol HashRegistrarSimplified.sol PublicResolver.sol
