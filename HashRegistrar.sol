@@ -76,7 +76,7 @@ contract Deed {
         OwnerChanged(newOwner);
     }
     
-    function setBalance(uint newValue) onlyRegistrar onlyActive {
+    function setBalance(uint newValue) onlyRegistrar onlyActive payable {
         // Check if it has enough balance to set the value
         if (this.balance < newValue) throw;
         // Send the difference to the owner
