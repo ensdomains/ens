@@ -59,13 +59,33 @@ function ensTests(deploy) {
 		});
 	});
 
-	it("prohibits transfers by non-owners", function(done) {
+	it("prohibits setting resolver by non-owners", function(done) {
 		ens.setResolver(1, "0x1234", {from: accounts[0]}, function(err, result) {
 			assert.ok(err.toString().indexOf(utils.INVALID_JUMP) != -1, err);
 			ens.resolver(1, function(err, resolver) {
 				assert.equal(resolver, "0x0000000000000000000000000000000000000000");
+				done();
 			});
-			done();
+		});
+	});
+
+	it("permits setting TTL", function(done) {
+		ens.setTTL(0, 3600, {from: accounts[0]}, function(err, result) {
+			assert.equal(err, null, err);
+			ens.ttl(0, function(err, ttl) {
+				assert.equal(ttl.toNumber(), 3600);
+				done();
+			});
+		});
+	});
+
+	it("prohibits setting TTL by non-owners", function(done) {
+		ens.setTTL(1, 3600, {from: accounts[0]}, function(err, result) {
+			assert.ok(err.toString().indexOf(utils.INVALID_JUMP) != -1, err);
+			ens.ttl(1, function(err, ttl) {
+				assert.equal(ttl.toNumber(), 0);
+				done();
+			});
 		});
 	});
 
@@ -87,5 +107,5 @@ function ensTests(deploy) {
 				done();
 			});
 		});
-	})
+	});
 }
