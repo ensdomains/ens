@@ -12,9 +12,6 @@
   (def 'label-bytes 0x20)
   (def 'call-result 0x40)
 
-  ;; Storage layout.
-  (def 'records 0x00)
-
   ;; Struct: Record
   (def 'owner    0x00) ; address
   (def 'resolver 0x20) ; address
@@ -55,7 +52,7 @@
   ;; @param node Return the record location of this node.
 
   (def 'get-record (node)
-      (+ records node))
+      node)
 
   ;; --------------------------------------------------------------------------
   ;; @notice Calculates record location for the node and label passed in.
@@ -66,7 +63,7 @@
     (seq
       (mstore node-bytes node)
       (mstore label-bytes label)
-      (+ records (sha3 node-bytes 64))))
+      (sha3 node-bytes 64)))
 
   ;; --------------------------------------------------------------------------
   ;; @notice Retrieves owner from node record.
