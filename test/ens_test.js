@@ -21,6 +21,16 @@ describe('ENS.lll', function() {
 	ensTests(utils.deployENSLLL);
 });
 
+function getEventsForTx(event, txid, cb) {
+	web3.eth.getTransaction(txid, function(err, tx) {
+		if(err != null) {
+			cb(err, null);
+		} else {
+			event({}, {fromBlock: tx.blockNumber, toBlock: tx.blockNumber}).get(cb);
+		}
+	});
+}
+
 function ensTests(deploy) {
 	var ens = null;
 
@@ -30,11 +40,18 @@ function ensTests(deploy) {
 	});
 
 	it("transfers ownership", function(done) {
-		ens.setOwner(0, "0x1234", {from: accounts[0]}, function(err, result) {
+		ens.setOwner(0, "0x1234", {from: accounts[0]}, function(err, txid) {
 			assert.equal(err, null, err);
 			ens.owner(0, function(err, owner) {
 				assert.equal(owner, "0x0000000000000000000000000000000000001234");
-				done();
+				getEventsForTx(ens.Transfer, txid, function(err, logs) {
+					assert.equal(err, null, err);
+					assert.equal(logs.length, 1);
+					var args = logs[0].args;
+					assert.equal(args.node, "0x0000000000000000000000000000000000000000000000000000000000000000");
+					assert.equal(args.owner, "0x0000000000000000000000000000000000001234");
+					done();
+				});
 			});
 		});
 	});
@@ -50,11 +67,18 @@ function ensTests(deploy) {
 	});
 
 	it("sets resolvers", function(done) {
-		ens.setResolver(0, "0x1234", {from: accounts[0]}, function(err, result) {
+		ens.setResolver(0, "0x1234", {from: accounts[0]}, function(err, txid) {
 			assert.equal(err, null, err);
 			ens.resolver(0, function(err, resolver) {
 				assert.equal(resolver, "0x0000000000000000000000000000000000001234");
-				done();
+				getEventsForTx(ens.NewResolver, txid, function(err, logs) {
+					assert.equal(err, null, err);
+					assert.equal(logs.length, 1);
+					var args = logs[0].args;
+					assert.equal(args.node, "0x0000000000000000000000000000000000000000000000000000000000000000");
+					assert.equal(args.resolver, "0x0000000000000000000000000000000000001234");
+					done();
+				});
 			});
 		});
 	});
@@ -70,11 +94,18 @@ function ensTests(deploy) {
 	});
 
 	it("permits setting TTL", function(done) {
-		ens.setTTL(0, 3600, {from: accounts[0]}, function(err, result) {
+		ens.setTTL(0, 3600, {from: accounts[0]}, function(err, txid) {
 			assert.equal(err, null, err);
 			ens.ttl(0, function(err, ttl) {
 				assert.equal(ttl.toNumber(), 3600);
-				done();
+				getEventsForTx(ens.NewTTL, txid, function(err, logs) {
+					assert.equal(err, null, err);
+					assert.equal(logs.length, 1);
+					var args = logs[0].args;
+					assert.equal(args.node, "0x0000000000000000000000000000000000000000000000000000000000000000");
+					assert.equal(args.ttl.toNumber(), 3600);
+					done();
+				});
 			});
 		});
 	});
@@ -90,11 +121,19 @@ function ensTests(deploy) {
 	});
 
 	it("creates subnodes", function(done) {
-		ens.setSubnodeOwner(0, web3.sha3('eth'), accounts[1], {from: accounts[0]}, function(err, result) {
+		ens.setSubnodeOwner(0, web3.sha3('eth'), accounts[1], {from: accounts[0]}, function(err, txid) {
 			assert.equal(err, null);
 			ens.owner(utils.node, function(err, owner) {
 				assert.equal(owner, accounts[1]);
-				done();
+				getEventsForTx(ens.NewOwner, txid, function(err, logs) {
+					assert.equal(err, null, err);
+					assert.equal(logs.length, 1);
+					var args = logs[0].args;
+					assert.equal(args.node, "0x0000000000000000000000000000000000000000000000000000000000000000");
+					assert.equal(args.label, web3.sha3('eth'));
+					assert.equal(args.owner, accounts[1]);
+					done();
+				});
 			});
 		});
 	});
