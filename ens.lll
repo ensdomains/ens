@@ -19,23 +19,6 @@
     (seq
 
       ;; ----------------------------------------------------------------------
-      ;; @notice Returns the address that owns the specified node.
-      ;; @dev Signature: owner(bytes32)
-      ;; @param node Return this node's owner.
-      ;; @return The associated address.
-
-      (def 'node (calldataload 0x04))
-
-      (function get-node-owner
-        (seq
-
-          ;; Get the node's owner and save it.
-          (mstore call-result (get-owner node))
-
-          ;; Return result.
-          (return call-result 32)))
-
-      ;; ----------------------------------------------------------------------
       ;; @notice Returns the address of the resolver for the specified node.
       ;; @dev Signature: resolver(bytes32)
       ;; @param node Return this node's resolver.
@@ -48,6 +31,23 @@
 
           ;; Get the node's resolver and save it.
           (mstore call-result (get-resolver node))
+
+          ;; Return result.
+          (return call-result 32)))
+
+      ;; ----------------------------------------------------------------------
+      ;; @notice Returns the address that owns the specified node.
+      ;; @dev Signature: owner(bytes32)
+      ;; @param node Return this node's owner.
+      ;; @return The associated address.
+
+      (def 'node (calldataload 0x04))
+
+      (function get-node-owner
+        (seq
+
+          ;; Get the node's owner and save it.
+          (mstore call-result (get-owner node))
 
           ;; Return result.
           (return call-result 32)))
