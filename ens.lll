@@ -87,7 +87,8 @@
 
           ;; Emit an event about the transfer.
           ;; Transfer(bytes32 indexed node, address owner);
-          (log2 new-owner 32
+          (mstore call-result new-owner)
+          (log2 call-result 32
               (sha3 0x00 (lit 0x00 "Transfer(bytes32,address)")) node)
 
           ;; Nothing to return.
@@ -113,7 +114,8 @@
 
           ;; Emit an event about the transfer.
           ;; NewOwner(bytes32 indexed node, bytes32 indexed label, address owner);
-          (log3 new-owner 32
+          (mstore call-result new-owner)
+          (log3 call-result 32
               (sha3 0x00 (lit 0x00 "NewOwner(bytes32,bytes32,address)"))
               node label)
 
@@ -137,7 +139,8 @@
 
           ;; Emit an event about the change of resolver.
           ;; NewResolver(bytes32 indexed node, address resolver);
-          (log2 new-resolver 32
+          (mstore call-result new-resolver)
+          (log2 call-result 32
               (sha3 0x00 (lit 0x00 "NewResolver(bytes32,address)")) node)
 
           ;; Nothing to return.
@@ -160,7 +163,8 @@
 
           ;; Emit an event about the change of TTL.
           ;; NewTTL(bytes32 indexed node, uint64 ttl);
-          (log2 new-ttl 32
+          (mstore call-result new-ttl)
+          (log2 call-result 32
               (sha3 0x00 (lit 0x00 "NewTTL(bytes32,uint64)")) node)
 
           ;; Nothing to return.
