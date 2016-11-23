@@ -103,6 +103,7 @@ contract Registrar {
     enum Mode { Open, Auction, Owned, Forbidden }
     uint32 constant auctionLength = 7 days;
     uint32 constant revealPeriod = 24 hours;
+    uint32 constant initialAuctionPeriod = 2 weeks;
     uint constant minPrice = 0.01 ether;
     uint public registryCreated;
 
@@ -218,7 +219,7 @@ contract Registrar {
             throw;
         
         // for the first month of the registry, make longer auctions
-        newAuction.registrationDate = max(now + auctionLength, registryCreated + 4 weeks);
+        newAuction.registrationDate = max(now + auctionLength, registryCreated + initialAuctionPeriod);
         newAuction.status = Mode.Auction;  
         newAuction.value = 0;
         newAuction.highestBid = 0;
