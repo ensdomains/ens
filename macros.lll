@@ -13,8 +13,8 @@
   (def 'call-result 0x40)
 
   ;; Struct: Record
-  (def 'owner    0x00) ; address
-  (def 'resolver 0x20) ; address
+  (def 'resolver 0x00) ; address
+  (def 'owner    0x20) ; address
   (def 'ttl      0x40) ; uint64
 
   ;; Precomputed function IDs.
@@ -48,18 +48,11 @@
       code-body))
 
   ;; --------------------------------------------------------------------------
-  ;; @notice Calculates record location for node passed in.
-  ;; @param node Return the record location of this node.
-
-  (def 'get-record (node)
-      node)
-
-  ;; --------------------------------------------------------------------------
   ;; @notice Calculates record location for the node and label passed in.
   ;; @param node The parent node.
   ;; @param label The hash of the subnode label.
 
-  (def 'get-subrecord (node label)
+  (def 'get-record (node label)
     (seq
       (mstore node-bytes node)
       (mstore label-bytes label)
@@ -70,7 +63,7 @@
   ;; @param node Get owner of this node.
 
   (def 'get-owner (node)
-    (sload (+ (get-record node) owner)))
+    (sload (+ node owner)))
 
   ;; --------------------------------------------------------------------------
   ;; @notice Stores new owner in node record.
@@ -78,7 +71,7 @@
   ;; @param new-owner New owner of this node.
 
   (def 'set-owner (node new-owner)
-    (sstore (+ (get-record node) owner) new-owner))
+    (sstore (+ node owner) new-owner))
 
   ;; --------------------------------------------------------------------------
   ;; @notice Stores new subnode owner in node record.
@@ -87,14 +80,14 @@
   ;; @param new-owner New owner of the subnode.
 
   (def 'set-subowner (node label new-owner)
-    (sstore (+ (get-subrecord node label) owner) new-owner))
+    (sstore (+ (get-record node label) owner) new-owner))
 
   ;; --------------------------------------------------------------------------
   ;; @notice Retrieves resolver from node record.
   ;; @param node Get resolver of this node.
 
   (def 'get-resolver (node)
-    (sload (+ (get-record node) resolver)))
+    (sload node))
 
   ;; --------------------------------------------------------------------------
   ;; @notice Stores new resolver in node record.
@@ -102,14 +95,14 @@
   ;; @param new-resolver New resolver for this node.
 
   (def 'set-resolver (node new-resolver)
-    (sstore (+ (get-record node) resolver) new-resolver))
+    (sstore node new-resolver))
 
   ;; --------------------------------------------------------------------------
   ;; @notice Retrieves TTL From node record.
   ;; @param node Get TTL of this node.
 
   (def 'get-ttl (node)
-    (sload (+ (get-record node) ttl)))
+    (sload (+ node ttl)))
 
   ;; --------------------------------------------------------------------------
   ;; @notice Stores new TTL in node record.
@@ -117,7 +110,7 @@
   ;; @param new-resolver New TTL for this node.
 
   (def 'set-ttl (node new-ttl)
-    (sstore (+ (get-record node) ttl) new-ttl))
+    (sstore (+ node ttl) new-ttl))
 
   ;; --------------------------------------------------------------------------
   ;; @notice Checks that the caller is the node owner.
