@@ -15,7 +15,7 @@ The plan is to test the basic features and then move to a new contract in at mos
 */
 
 
-import 'ENS.sol';
+import 'interface.sol';
 
 
 /**
@@ -94,7 +94,7 @@ contract Deed {
  * @dev The registrar handles the auction process for each subnode of the node it owns.
  */
 contract Registrar {
-    ENS public ens;
+    AbstractENS public ens;
     bytes32 public rootNode;
 
     mapping (bytes32 => entry) public entries;
@@ -134,7 +134,7 @@ contract Registrar {
      * @param _rootNode The hash of the rootnode.
      */
     function Registrar(address _ens, bytes32 _rootNode) {
-        ens = ENS(_ens);
+        ens = AbstractENS(_ens);
         rootNode = _rootNode;
         registryCreated = now;
     }
