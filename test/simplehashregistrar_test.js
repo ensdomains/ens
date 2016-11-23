@@ -64,7 +64,7 @@ describe('SimpleHashRegistrar', function() {
 					assert.equal(err, null, err);
 					assert.equal(result[0], 1); // status == Auction
 					assert.equal(result[1], 0); // deed == 0x00
-					var dateDiff = Math.abs(result[2].toNumber() - new Date().getTime() / 1000 - 28 * 24 * 60 * 60);
+					var dateDiff = Math.abs(result[2].toNumber() - new Date().getTime() / 1000 - 14 * 24 * 60 * 60);
 					assert.ok(dateDiff < 5, dateDiff); // registrationDate
 					assert.equal(result[3], 0); // value = 0
 					assert.equal(result[4], 0); // highestBid = 0
@@ -139,7 +139,7 @@ describe('SimpleHashRegistrar', function() {
 			function(done) { web3.currentProvider.sendAsync({
 				jsonrpc: "2.0",
 				"method": "evm_increaseTime",
-				params: [27 * 24 * 60 * 60 + 1]}, done);
+				params: [13 * 24 * 60 * 60 + 1]}, done);
 			},
 			// Reveal all the bids
 			function(done) {
@@ -228,7 +228,7 @@ describe('SimpleHashRegistrar', function() {
 			function(done) { web3.currentProvider.sendAsync({
 				jsonrpc: "2.0",
 				"method": "evm_increaseTime",
-				params: [27 * 24 * 60 * 60 + 1]}, done);
+				params: [13 * 24 * 60 * 60 + 1]}, done);
 			},
 			// Reveal the bid
 			function(done) {
