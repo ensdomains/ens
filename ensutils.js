@@ -212,7 +212,7 @@ var ensContract = web3.eth.contract([
 ]);
 var ens = ensContract.at('0x112234455c3a32fd11230c42e7bccd4a84e02010');
 
-var auctionRegistrarContract = eth.contract([
+var auctionRegistrarContract = web3.eth.contract([
   {
     "constant": false,
     "inputs": [
@@ -833,3 +833,76 @@ var fifsRegistrarContract = eth.contract([
   }
 ]);
 var testRegistrar = fifsRegistrarContract.at(ens.owner(namehash('test')));
+
+var resolverContract = web3.eth.contract([
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "node",
+        "type": "bytes32"
+      }
+    ],
+    "name": "addr",
+    "outputs": [
+      {
+        "name": "ret",
+        "type": "address"
+      }
+    ],
+    "payable": false,
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "node",
+        "type": "bytes32"
+      },
+      {
+        "name": "kind",
+        "type": "bytes32"
+      }
+    ],
+    "name": "has",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "payable": false,
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "node",
+        "type": "bytes32"
+      },
+      {
+        "name": "addr",
+        "type": "address"
+      }
+    ],
+    "name": "setAddr",
+    "outputs": [],
+    "payable": false,
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "name": "ensAddr",
+        "type": "address"
+      }
+    ],
+    "type": "constructor"
+  },
+  {
+    "payable": false,
+    "type": "fallback"
+  }
+]);
