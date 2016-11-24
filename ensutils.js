@@ -906,3 +906,4 @@ var resolverContract = web3.eth.contract([
     "type": "fallback"
   }
 ]);
+var publicResolver = resolverContract.at('0x71e122fc87aa184b966dfaaa81f9f37f45da9bae');
