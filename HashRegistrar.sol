@@ -40,7 +40,7 @@ things, never the things themselves, to increase privacy and extensibility.
 
 */
 
-import 'ENS.sol';
+import 'interface.sol';
 
 contract Deed {
     /* 
@@ -101,7 +101,7 @@ contract Deed {
 }
 
 contract Registrar {
-    ENS public ens;
+    AbstractENS public ens;
     bytes32 public rootNode;
 
     mapping (bytes32 => entry) public entries;
@@ -144,7 +144,7 @@ contract Registrar {
     }
     
     function Registrar(address _ens, bytes32 _rootNode) {
-        ens = ENS(_ens);
+        ens = AbstractENS(_ens);
         rootNode = _rootNode;
 
         lastSinceNewRegistry = now;

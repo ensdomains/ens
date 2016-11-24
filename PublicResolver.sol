@@ -1,13 +1,13 @@
 pragma solidity ^0.4.0;
 
-import 'ENS.sol';
+import 'interface.sol';
 
 /**
  * A simple resolver anyone can use; only allows the owner of a node to set its
  * address.
  */
 contract PublicResolver {
-    ENS ens;
+    AbstractENS ens;
     mapping(bytes32=>address) addresses;
 
     modifier only_owner(bytes32 node) {
@@ -20,7 +20,7 @@ contract PublicResolver {
      * @param ensAddr The ENS registrar contract.
      */
     function PublicResolver(address ensAddr) {
-        ens = ENS(ensAddr);
+        ens = AbstractENS(ensAddr);
     }
 
     /**

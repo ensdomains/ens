@@ -1,12 +1,12 @@
 pragma solidity ^0.4.0;
 
-import 'ENS.sol';
+import 'interface.sol';
 
 /**
  * A registrar that allocates subdomains to the first person to claim them.
  */
 contract FIFSRegistrar {
-    ENS ens;
+    AbstractENS ens;
     bytes32 rootNode;
     
     modifier only_owner(bytes32 subnode) {
@@ -23,7 +23,7 @@ contract FIFSRegistrar {
      * @param node The node that this registrar administers.
      */
     function FIFSRegistrar(address ensAddr, bytes32 node) {
-        ens = ENS(ensAddr);
+        ens = AbstractENS(ensAddr);
         rootNode = node;
     }
 
