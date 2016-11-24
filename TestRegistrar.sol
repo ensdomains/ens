@@ -11,7 +11,7 @@ contract TestRegistrar {
     
     AbstractENS public ens;
     bytes32 public rootNode;
-    mapping(bytes32=>uint) public expiries;
+    mapping(bytes32=>uint) public expiryTimes;
     
     /**
      * Constructor.
@@ -29,10 +29,10 @@ contract TestRegistrar {
      * @param owner The address of the new owner.
      */    
     function register(bytes32 subnode, address owner) {
-        if(expiries[subnode] >= now)
+        if(expiryTimes[subnode] >= now)
             throw;
 
-        expiries[subnode] = now + registrationPeriod;
+        expiryTimes[subnode] = now + registrationPeriod;
         ens.setSubnodeOwner(rootNode, subnode, owner);
     }
 }
