@@ -756,7 +756,7 @@ var deedContract = web3.eth.contract([
   }
 ]);
 
-var fifsRegistrarContract = eth.contract([
+var fifsRegistrarContract = web3.eth.contract([
   {
     "constant": true,
     "inputs": [],
