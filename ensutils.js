@@ -907,3 +907,13 @@ var resolverContract = web3.eth.contract([
   }
 ]);
 var publicResolver = resolverContract.at('0x71e122fc87aa184b966dfaaa81f9f37f45da9bae');
+
+
+function getAddr(name) {
+  var node = namehash(name)
+  var resolverAddress = ens.resolver(node);
+  if(resolverAddress == '0x0000000000000000000000000000000000000000') {
+    return resolverAddress;
+  }
+  return resolverContract.at(resolverAddress).addr(node);
+}
