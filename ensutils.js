@@ -846,11 +846,27 @@ var resolverContract = web3.eth.contract([
     "name": "addr",
     "outputs": [
       {
-        "name": "ret",
+        "name": "",
         "type": "address"
       }
     ],
-    "payable": false,
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "node",
+        "type": "bytes32"
+      }
+    ],
+    "name": "hash",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
     "type": "function"
   },
   {
@@ -872,7 +888,6 @@ var resolverContract = web3.eth.contract([
         "type": "bool"
       }
     ],
-    "payable": false,
     "type": "function"
   },
   {
@@ -889,21 +904,23 @@ var resolverContract = web3.eth.contract([
     ],
     "name": "setAddr",
     "outputs": [],
-    "payable": false,
     "type": "function"
   },
   {
+    "constant": false,
     "inputs": [
       {
-        "name": "ensAddr",
-        "type": "address"
+        "name": "node",
+        "type": "bytes32"
+      },
+      {
+        "name": "hash",
+        "type": "bytes32"
       }
     ],
-    "type": "constructor"
-  },
-  {
-    "payable": false,
-    "type": "fallback"
+    "name": "setHash",
+    "outputs": [],
+    "type": "function"
   }
 ]);
 var publicResolver = resolverContract.at('0x71e122fc87aa184b966dfaaa81f9f37f45da9bae');
