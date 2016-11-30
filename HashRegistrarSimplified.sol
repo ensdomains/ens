@@ -223,6 +223,7 @@ contract Registrar {
             || newAuction.status == Mode.Forbidden
             || now > registryCreated + 4 years)
             throw;
+            
         // for the first month of the registry, make longer auctions
         newAuction.registrationDate = max(now + auctionLength, registryCreated + initialAuctionPeriod);
         newAuction.status = Mode.Auction;  
@@ -230,6 +231,7 @@ contract Registrar {
         newAuction.highestBid = 0;
         AuctionStarted(_hash, newAuction.registrationDate);      
     }
+
     /**
      * @dev Start multiple auctions for better anonymity
      * @param _hashes An array of hashes, at least one of which you presumably want to bid on
