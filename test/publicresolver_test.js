@@ -21,7 +21,7 @@ describe('PublicResolver', function() {
 
 	before(function() {
 		this.timeout(10000);
-		resolverCode = utils.compileContract(['ENS.sol', 'PublicResolver.sol'], 'PublicResolver');
+		resolverCode = utils.compileContract(['interface.sol', 'PublicResolver.sol']).contracts['PublicResolver'];
 	});
 
 	beforeEach(function(done) {
@@ -47,9 +47,9 @@ describe('PublicResolver', function() {
 
 	it('permits setting addresses', function(done) {
 		async.series([
-			function(done) { resolver.has(utils.node, "addr", function(err, result) {
+			function(done) { resolver.has(utils.node, "0x3b3b57de", function(err, result) {
 					assert.equal(err, null, err);
-					assert.equal(result, false);
+					assert.equal(result, true);
 					done();
 				});
 			},
@@ -61,12 +61,6 @@ describe('PublicResolver', function() {
 			function(done) { resolver.addr(utils.node, function(err, address) {
 					assert.equal(err, null, err);
 					assert.equal(address, accounts[1]);
-					done();
-				});
-			},
-			function(done) { resolver.has(utils.node, "addr", function(err, result) {
-					assert.equal(err, null, err);
-					assert.equal(result, true);
 					done();
 				});
 			}],

@@ -1,10 +1,15 @@
+pragma solidity ^0.4.0;
+
+import 'interface.sol';
+
 /**
  * The ENS registry contract.
  */
-contract ENS {
+contract ENS is AbstractENS {
     struct Record {
         address owner;
         address resolver;
+        uint64 ttl;
     }
     
     mapping(bytes32=>Record) records;
@@ -15,20 +20,23 @@ contract ENS {
     // Logged when the owner of a node transfers ownership to a new account.
     event Transfer(bytes32 indexed node, address owner);
 
-    // Logged when the owner of a node changes the resolver for that node.
+    // Logged when the resolver for a node changes.
     event NewResolver(bytes32 indexed node, address resolver);
+
+    // Logged when the TTL of a node changes
+    event NewTTL(bytes32 indexed node, uint64 ttl);
     
     // Permits modifications only by the owner of the specified node.
     modifier only_owner(bytes32 node) {
         if(records[node].owner != msg.sender) throw;
-        _
+        _;
     }
     
     /**
-     * Constructs a new ENS registrar, with the provided address as the owner of the root node.
+     * Constructs a new ENS registrar.
      */
-    function ENS(address owner) {
-        records[0].owner = owner;
+    function ENS() {
+        records[0].owner = msg.sender;
     }
     
     /**
@@ -43,6 +51,13 @@ contract ENS {
      */
     function resolver(bytes32 node) constant returns (address) {
         return records[node].resolver;
+    }
+
+    /**
+     * Returns the TTL of a node, and any records associated with it.
+     */
+    function ttl(bytes32 node) constant returns (uint64) {
+        return records[node].ttl;
     }
 
     /**
@@ -77,5 +92,15 @@ contract ENS {
     function setResolver(bytes32 node, address resolver) only_owner(node) {
         NewResolver(node, resolver);
         records[node].resolver = resolver;
+    }
+
+    /**
+     * Sets the TTL for the specified node.
+     * @param node The node to update.
+     * @param ttl The TTL in seconds.
+     */
+    function setTTL(bytes32 node, uint64 ttl) only_owner(node) {
+        NewTTL(node, ttl);
+        records[node].ttl = ttl;
     }
 }

@@ -1,0 +1,178 @@
+;;; ---------------------------------------------------------------------------
+;;; @title The Ethereum Name Service registry.
+;;; @author Daniel Ellison <daniel@syrinx.net>
+
+(seq
+
+  ;; --------------------------------------------------------------------------
+  ;; INIT
+
+  (include "macros.lll")
+
+  ;; Set the owner of the root node (0x00) to the deploying account.
+  (set-owner 0x00 (caller))
+
+  ;; --------------------------------------------------------------------------
+  ;; CODE
+
+  (returnlll
+    (seq
+
+      ;; ----------------------------------------------------------------------
+      ;; @notice Returns the address of the resolver for the specified node.
+      ;; @dev Signature: resolver(bytes32)
+      ;; @param node Return this node's resolver.
+      ;; @return The associated resolver.
+
+      (def 'node (calldataload 0x04))
+
+      (function get-node-resolver
+        (seq
+
+          ;; Get the node's resolver and save it.
+          (mstore call-result (get-resolver node))
+
+          ;; Return result.
+          (return call-result 32)))
+
+      ;; ----------------------------------------------------------------------
+      ;; @notice Returns the address that owns the specified node.
+      ;; @dev Signature: owner(bytes32)
+      ;; @param node Return this node's owner.
+      ;; @return The associated address.
+
+      (def 'node (calldataload 0x04))
+
+      (function get-node-owner
+        (seq
+
+          ;; Get the node's owner and save it.
+          (mstore call-result (get-owner node))
+
+          ;; Return result.
+          (return call-result 32)))
+
+      ;; ----------------------------------------------------------------------
+      ;; @notice Returns the TTL of a node and any records associated with it.
+      ;; @dev Signature: ttl(bytes32)
+      ;; @param node Return this node's TTL.
+      ;; @return The node's TTL.
+
+      (def 'node (calldataload 0x04))
+
+      (function get-node-ttl
+        (seq
+
+          ;; Get the node's TTL and save it.
+          (mstore call-result (get-ttl node))
+
+          ;; Return result.
+          (return call-result 32)))
+
+      ;; ----------------------------------------------------------------------
+      ;; @notice Transfers ownership of a node to a new address. May only be
+      ;;         called by the current owner of the node.
+      ;; @dev Signature: setOwner(bytes32,address)
+      ;; @param node The node to transfer ownership of.
+      ;; @param new-owner The address of the new owner.
+
+      (def 'node (calldataload 0x04))
+      (def 'new-owner (calldataload 0x24))
+
+      (function set-node-owner
+        (seq (only-node-owner node)
+
+          ;; Transfer ownership by storing passed-in address.
+          (set-owner node new-owner)
+
+          ;; Emit an event about the transfer.
+          ;; Transfer(bytes32 indexed node, address owner);
+          (mstore call-result new-owner)
+          (log2 call-result 32
+              (sha3 0x00 (lit 0x00 "Transfer(bytes32,address)")) node)
+
+          ;; Nothing to return.
+          (stop)))
+
+      ;; ----------------------------------------------------------------------
+      ;; @notice Transfers ownership of a subnode to a new address. May only be
+      ;;         called by the owner of the parent node.
+      ;; @dev Signature: setSubnodeOwner(bytes32,bytes32,address)
+      ;; @param node The parent node.
+      ;; @param label The hash of the label specifying the subnode.
+      ;; @param new-owner The address of the new owner.
+
+      (def 'node (calldataload 0x04))
+      (def 'label (calldataload 0x24))
+      (def 'new-owner (calldataload 0x44))
+
+      (function set-subnode-owner
+        (seq (only-node-owner node)
+
+          ;; Transfer ownership by storing passed-in address.
+          (set-subowner node label new-owner)
+
+          ;; Emit an event about the transfer.
+          ;; NewOwner(bytes32 indexed node, bytes32 indexed label, address owner);
+          (mstore call-result new-owner)
+          (log3 call-result 32
+              (sha3 0x00 (lit 0x00 "NewOwner(bytes32,bytes32,address)"))
+              node label)
+
+          ;; Nothing to return.
+          (stop)))
+
+      ;; ----------------------------------------------------------------------
+      ;; @notice Sets the resolver address for the specified node.
+      ;; @dev Signature: setResolver(bytes32,address)
+      ;; @param node The node to update.
+      ;; @param new-resolver The address of the resolver.
+
+      (def 'node (calldataload 0x04))
+      (def 'new-resolver (calldataload 0x24))
+
+      (function set-node-resolver
+        (seq (only-node-owner node)
+
+          ;; Transfer ownership by storing passed-in address.
+          (set-resolver node new-resolver)
+
+          ;; Emit an event about the change of resolver.
+          ;; NewResolver(bytes32 indexed node, address resolver);
+          (mstore call-result new-resolver)
+          (log2 call-result 32
+              (sha3 0x00 (lit 0x00 "NewResolver(bytes32,address)")) node)
+
+          ;; Nothing to return.
+          (stop)))
+
+      ;; ----------------------------------------------------------------------
+      ;; @notice Sets the TTL for the specified node.
+      ;; @dev Signature: setTTL(bytes32,uint64)
+      ;; @param node The node to update.
+      ;; @param ttl The TTL in seconds.
+
+      (def 'node (calldataload 0x04))
+      (def 'new-ttl (calldataload 0x24))
+
+      (function set-node-ttl
+        (seq (only-node-owner node)
+
+          ;; Set new TTL by storing passed-in time.
+          (set-ttl node new-ttl)
+
+          ;; Emit an event about the change of TTL.
+          ;; NewTTL(bytes32 indexed node, uint64 ttl);
+          (mstore call-result new-ttl)
+          (log2 call-result 32
+              (sha3 0x00 (lit 0x00 "NewTTL(bytes32,uint64)")) node)
+
+          ;; Nothing to return.
+          (stop)))
+
+      ;; ----------------------------------------------------------------------
+      ;; @notice Fallback: No functions matched the function ID provided.
+
+      (jump invalid-location)))
+
+)

@@ -1,3 +1,5 @@
+pragma solidity ^0.4.0;
+
 /*
 
 Hash Registrar using only Deposits
@@ -38,7 +40,7 @@ things, never the things themselves, to increase privacy and extensibility.
 
 */
 
-import 'ENS.sol';
+import 'interface.sol';
 
 contract Deed {
     /* 
@@ -55,12 +57,12 @@ contract Deed {
 
     modifier onlyRegistrar {
         if (msg.sender != address(registrar)) throw;
-        _
+        _;
     }
 
     modifier onlyActive {
         if (!active) throw;
-        _
+        _;
     }
     
     function Deed() {
@@ -74,7 +76,7 @@ contract Deed {
         OwnerChanged(newOwner);
     }
     
-    function setBalance(uint newValue) onlyRegistrar onlyActive {
+    function setBalance(uint newValue) onlyRegistrar onlyActive payable {
         // Check if it has enough balance to set the value
         if (this.balance < newValue) throw;
         // Send the difference to the owner
@@ -99,7 +101,7 @@ contract Deed {
 }
 
 contract Registrar {
-    ENS public ens;
+    AbstractENS public ens;
     bytes32 public rootNode;
 
     mapping (bytes32 => entry) public entries;
@@ -135,19 +137,14 @@ contract Registrar {
         uint averagePrice;
     }
     
-    modifier noEther {
-        if (msg.value > 0) throw;
-        _
-    }
-
     modifier onlyOwner(bytes32 _hash) {
         entry h = entries[_hash];
         if (msg.sender != h.deed.owner() || h.status != Mode.Owned) throw;
-        _
+        _;
     }
     
-    function Registrar(address _ens, bytes32 _rootNode) noEther {
-        ens = ENS(_ens);
+    function Registrar(address _ens, bytes32 _rootNode) {
+        ens = AbstractENS(_ens);
         rootNode = _rootNode;
 
         lastSinceNewRegistry = now;
@@ -177,7 +174,7 @@ contract Registrar {
     attacker from simply bidding on all new auctions blindly. Dummy auctions that are 
     open but not bid on are closed after a week. 
     */    
-    function startAuction(bytes32 _hash) noEther {
+    function startAuction(bytes32 _hash) {
         entry newAuction = entries[_hash];
         if ((newAuction.status == Mode.Owned && now < newAuction.renewalDate) 
             || (newAuction.status == Mode.Auction && now < newAuction.registrationDate))
@@ -200,7 +197,7 @@ contract Registrar {
     }
 
     // Allows you to open multiple for better anonimity
-    function startAuctions(bytes32[] _hashes) noEther {
+    function startAuctions(bytes32[] _hashes) {
         for (uint i = 0; i < _hashes.length; i ++ ) {
             startAuction(_hashes[i]);
         }
@@ -221,7 +218,7 @@ contract Registrar {
     be burned and the ether unrecoverable. Since this is an auction, it is expected that most 
     public hashes, like known domains and common dictionary words, will have multiple bidders pushing the price up. 
     */ 
-    function newBid(bytes32 sealedBid) {
+    function newBid(bytes32 sealedBid) payable {
         if (address(sealedBids[sealedBid]) > 0 ) throw;
         // creates a new hash contract with the owner
         Deed newBid = new Deed();
@@ -241,7 +238,7 @@ contract Registrar {
     calculated as ```averagePrice = averagePrice * 0.999 + newPrice * 0.001```**. The 
     averagePrice at the moment of purchase is also registered on the contract.
     */ 
-    function unsealBid(bytes32 _hash, address _owner, uint _value, bytes32 _salt) noEther  {
+    function unsealBid(bytes32 _hash, address _owner, uint _value, bytes32 _salt)  {
         bytes32 seal = shaBid(_hash, _owner, _value, _salt);
         Deed bid = sealedBids[seal];
         if (address(bid) == 0 ) throw;
@@ -300,7 +297,7 @@ contract Registrar {
         BidRevealed(seal, 0, 0, 5);
     }
     
-    function finalizeAuction(bytes32 _hash) noEther {
+    function finalizeAuction(bytes32 _hash) {
         entry h = entries[_hash];
         if (now < h.registrationDate 
             || h.highestBid == 0
@@ -343,7 +340,7 @@ contract Registrar {
         return h.value * averagePrice / h.averagePrice;
     } 
     
-    function renewDeed(bytes32 _hash) {
+    function renewDeed(bytes32 _hash) payable {
         entry h = entries[_hash];
         Deed deedContract = h.deed;
         uint difference = 0;
@@ -376,7 +373,7 @@ contract Registrar {
     /*
     ## The owner of a domain may transfer it to someone else at any time.
     */
-    function transfer(bytes32 _hash, address newOwner) onlyOwner(_hash) noEther {
+    function transfer(bytes32 _hash, address newOwner) onlyOwner(_hash) {
         entry h = entries[_hash];
         h.deed.setOwner(newOwner);
         ens.setSubnodeOwner(rootNode, _hash, newOwner);
@@ -392,7 +389,7 @@ contract Registrar {
     buyer will incur the same renewal cost/benefit analysis. 
     */ 
 
-    function releaseDeed(bytes32 _hash) onlyOwner(_hash) noEther  {
+    function releaseDeed(bytes32 _hash) onlyOwner(_hash)  {
         entry h = entries[_hash];
         Deed deedContract = h.deed;
         if (now < h.registrationDate + renewalPeriod/2 ) throw;

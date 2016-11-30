@@ -1,4 +1,4 @@
-
+pragma solidity ^0.4.0;
 
 
 /*
@@ -12,12 +12,16 @@ and all ether still locked after 8 years will become unreachable.
 
 The plan is to test the basic features and then move to a new contract in at most
 2 years, when some sort of renewal mechanism will be enabled.
-
 */
 
-import 'ENS.sol';
+
+import 'interface.sol';
 
 
+/**
+ * @title Deed to hold ether in exchange for ownership of a node
+ * @dev The deed can be controlled only by the registrar and can only send ether back to the owner.
+ */
 contract Deed {
     /* 
     The Deed is a contract intended simply to hold ether
@@ -32,16 +36,17 @@ contract Deed {
     event DeedClosed();
     bool active;
 
+
     modifier onlyRegistrar {
         if (msg.sender != registrar) throw;
-        _
+        _;
     }
 
     modifier onlyActive {
         if (!active) throw;
-        _
+        _;
     }
-    
+
     function Deed() {
         registrar = msg.sender;
         creationDate = now;
@@ -53,14 +58,22 @@ contract Deed {
         owner = newOwner;
         OwnerChanged(newOwner);
     }
+
+    function setRegistrar(address newRegistrar) onlyRegistrar {
+        registrar = newRegistrar;
+    }
     
-    function setBalance(uint newValue) onlyRegistrar onlyActive {
+    function setBalance(uint newValue) onlyRegistrar onlyActive payable {
         // Check if it has enough balance to set the value
         if (this.balance < newValue) throw;
         // Send the difference to the owner
         if (!owner.send(this.balance - newValue)) throw;
     }
 
+    /**
+     * @dev Close a deed and refund a specified fraction of the bid value
+     * @param refundRatio The amount*1/1000 to refund
+     */
     function closeDeed(uint refundRatio) onlyRegistrar onlyActive {
         active = false;            
         if (! burn.send(((1000 - refundRatio) * this.balance)/1000)) throw;
@@ -68,6 +81,9 @@ contract Deed {
         destroyDeed();
     }    
 
+    /**
+     * @dev Close a deed and refund a specified fraction of the bid value
+     */
     function destroyDeed() {
         if (active) throw;
         if(owner.send(this.balance)) 
@@ -75,12 +91,16 @@ contract Deed {
         else throw;
     }
 
-    /* The default function just receives an amount */
-    function () {}
+    // The default function just receives an amount
+    function () payable {}
 }
 
+/**
+ * @title Registrar
+ * @dev The registrar handles the auction process for each subnode of the node it owns.
+ */
 contract Registrar {
-    ENS public ens;
+    AbstractENS public ens;
     bytes32 public rootNode;
 
     mapping (bytes32 => entry) public entries;
@@ -89,6 +109,7 @@ contract Registrar {
     enum Mode { Open, Auction, Owned, Forbidden }
     uint32 constant auctionLength = 7 days;
     uint32 constant revealPeriod = 24 hours;
+    uint32 constant initialAuctionPeriod = 2 weeks;
     uint constant minPrice = 0.01 ether;
     uint public registryCreated;
 
@@ -110,16 +131,26 @@ contract Registrar {
     modifier onlyOwner(bytes32 _hash) {
         entry h = entries[_hash];
         if (msg.sender != h.deed.owner() || h.status != Mode.Owned) throw;
-        _
+        _;
     }
     
+    /**
+     * @dev Constructs a new Registrar, with the provided address as the owner of the root node.
+     * @param _ens The address of the ENS
+     * @param _rootNode The hash of the rootnode.
+     */
     function Registrar(address _ens, bytes32 _rootNode) {
-        ens = ENS(_ens);
+        ens = AbstractENS(_ens);
         rootNode = _rootNode;
-
         registryCreated = now;
     }
 
+    /**
+     * @dev Returns the maximum of two unsigned integers
+     * @param a A number to compare
+     * @param b A number to compare
+     * @return The maximum of two unsigned integers
+     */
     function max(uint a, uint b) internal constant returns (uint max) {
         if (a > b)
             return a;
@@ -127,6 +158,12 @@ contract Registrar {
             return b;
     }
 
+    /**
+     * @dev Returns the minimum of two unsigned integers
+     * @param a A number to compare
+     * @param b A number to compare
+     * @return The minimum of two unsigned integers
+     */
     function  min(uint a, uint b) internal constant returns (uint min) {
         if (a < b)
             return a;
@@ -134,6 +171,11 @@ contract Registrar {
             return b;
     }
 
+    /**
+     * @dev Returns the length of a given string
+     * @param s The string to measure the length of
+     * @return The length of the input string
+     */
     function strlen(string s) internal constant returns (uint) {
         // Starting here means the LSB will be the byte we care about
         uint ptr;
@@ -162,17 +204,21 @@ contract Registrar {
         return len;
     }
 
-    /*
-    ## Start Auction for available hash
 
-    Anyone can start an auction by sending an array of hashes that they want to bid for. 
-    Arrays are sent so that someone can open up an auction for X dummy hashes when they 
-    are only really interested in bidding for one. This will increase the cost for an 
-    attacker from simply bidding on all new auctions blindly. Dummy auctions that are 
-    open but not bid on are closed after a week. 
-    */    
+    /**
+     * @dev Start an auction for an available hash
+     * 
+     * Anyone can start an auction by sending an array of hashes that they want to bid for. 
+     * Arrays are sent so that someone can open up an auction for X dummy hashes when they 
+     * are only really interested in bidding for one. This will increase the cost for an 
+     * attacker to simply bid blindly on all new auctions. Dummy auctions that are 
+     * open but not bid on are closed after a week. 
+     *
+     * @param _hash The hash to start an auction on
+     */    
     function startAuction(bytes32 _hash) {
         entry newAuction = entries[_hash];
+        // Ensure the hash is available, and no auction is currently underway
         if ((newAuction.status == Mode.Auction && now < newAuction.registrationDate)
             || newAuction.status == Mode.Owned 
             || newAuction.status == Mode.Forbidden
@@ -180,35 +226,48 @@ contract Registrar {
             throw;
         
         // for the first month of the registry, make longer auctions
-        newAuction.registrationDate = max(now + auctionLength, registryCreated + 4 weeks);
+        newAuction.registrationDate = max(now + auctionLength, registryCreated + initialAuctionPeriod);
         newAuction.status = Mode.Auction;  
         newAuction.value = 0;
         newAuction.highestBid = 0;
         AuctionStarted(_hash, newAuction.registrationDate);      
     }
-
-    // Allows you to open multiple for better anonimity
+    /**
+     * @dev Start multiple auctions for better anonymity
+     * @param _hashes An array of hashes, at least one of which you presumably want to bid on
+     */
     function startAuctions(bytes32[] _hashes)  {
         for (uint i = 0; i < _hashes.length; i ++ ) {
             startAuction(_hashes[i]);
         }
     }
     
+    /**
+     * @dev Hash the values required for a secret bid
+     * @param hash The node corresponding to the desired namehash
+     * @param owner The address which will own the 
+     * @param value The bid amount
+     * @param salt A random value to ensure secrecy of the bid
+     * @return The hash of the bid values
+     */
     function shaBid(bytes32 hash, address owner, uint value, bytes32 salt) constant returns (bytes32 sealedBid) {
         return sha3(hash, owner, value, salt);
     }
     
-    /*
-    ## Blind auction for the desired hash
 
-    Bids are sent by sending a message to the main contract with a hash and an amount. The hash 
-    contains information about the bid, including the bidded hash, the bid amount, and a random 
-    salt. Bids are not tied to any one auction until they are revealed. The value of the bid 
-    itself can be masqueraded by changing the required period or sending more than what you are 
-    bidding for. This is followed by a 24h reveal period. Bids revealed after this period will 
-    be burned and the ether unrecoverable. Since this is an auction, it is expected that most 
-    public hashes, like known domains and common dictionary words, will have multiple bidders pushing the price up. 
-    */ 
+    /**
+     * @dev Submit a new sealed bid on a desired hash in a blind auction
+     * 
+     * Bids are sent by sending a message to the main contract with a hash and an amount. The hash 
+     * contains information about the bid, including the bidded hash, the bid amount, and a random 
+     * salt. Bids are not tied to any one auction until they are revealed. The value of the bid 
+     * itself can be masqueraded by sending more than the value of your actual bid. This is 
+     * followed by a 24h reveal period. Bids revealed after this period will be burned and the ether unrecoverable. 
+     * Since this is an auction, it is expected that most public hashes, like known domains and common dictionary 
+     * words, will have multiple bidders pushing the price up. 
+     *
+     * @param sealedBid A sealedBid, created by the shaBid function
+     */
     function newBid(bytes32 sealedBid) payable {
         if (address(sealedBids[sealedBid]) > 0 ) throw;
         // creates a new hash contract with the owner
@@ -217,10 +276,14 @@ contract Registrar {
         NewBid(sealedBid, msg.value);
         if (!newBid.send(msg.value)) throw;
     } 
-    
-    /*
-    ## Winning bids are locked
-    */ 
+
+    /**
+     * @dev Submit the properties of a bid to reveal them
+     * @param _hash The node in the sealedBid
+     * @param _owner The address in the sealedBid
+     * @param _value The bid amount in the sealedBid
+     * @param _salt The sale in the sealedBid
+     */ 
     function unsealBid(bytes32 _hash, address _owner, uint _value, bytes32 _salt) {
         bytes32 seal = shaBid(_hash, _owner, _value, _salt);
         Deed bid = sealedBids[seal];
@@ -228,24 +291,35 @@ contract Registrar {
         sealedBids[seal] = Deed(0);
         bid.setOwner(_owner);
         entry h = entries[_hash];
+
         
         if (h.status == Mode.Forbidden) {
-            // Bid was found to be on a short name, refund fully
+            /* 
+            If during the auction process someone reveals that the name being bidded
+            on is invalid (shorter than 7 chars) then all bids will be fully refunded
+            */
             bid.closeDeed(1000);
-        } else if (bid.creationDate() > h.registrationDate - revealPeriod
+        } if (bid.creationDate() > h.registrationDate - revealPeriod
             || now > h.registrationDate 
             || _value < minPrice) {
-            // bid is invalid, burn 99%
+            /* 
+            A penalty (99%) is applied for submitting unrevealed bids, which could otherwise
+            be used as a threat of revealing a bid higher than the second-highest 
+            bid, to extort the winner into paying them.
+            */
             bid.closeDeed(10);
             BidRevealed(_hash, _owner, _value, 0);
             
         } else if (_value > h.highestBid) {
             // new winner
             // cancel the other bid, refund 99.9%
-            Deed previousWinner = h.deed;
-            previousWinner.closeDeed(999);
+            if(address(h.deed) != 0) {
+                Deed previousWinner = h.deed;
+                previousWinner.closeDeed(999);
+            }
             
             // set new winner
+            // per the rules of a vickery auction, the value becomes the previous highestBid
             h.value = h.highestBid;
             h.highestBid = _value;
             h.deed = bid;
@@ -265,17 +339,28 @@ contract Registrar {
         }
     }
     
+    /**
+     * @dev Cancel a bid
+     * @param seal The value returned by the shaBid function
+     */ 
     function cancelBid(bytes32 seal) {
         Deed bid = sealedBids[seal];
         // If the bid hasn't been revealed long after any possible auction date, then close it
-        if (address(bid) == 0 || now < bid.creationDate() + auctionLength * 12 || bid.owner() > 0) throw; 
-        // There is a fee for cleaning an old bid, but it's smaller than revealing it
+        if (address(bid) == 0 
+            || now < bid.creationDate() + auctionLength * 12 
+            || bid.owner() > 0) throw; 
+
+        // There is a fee for cancelling an old bid, but it's smaller than revealing it
         bid.setOwner(msg.sender);
         bid.closeDeed(5);
         sealedBids[seal] = Deed(0);
         BidRevealed(seal, 0, 0, 5);
     }
-    
+
+    /**
+     * @dev Finalize an auction after the registration date has passed
+     * @param _hash The hash of the name the auction is for
+     */ 
     function finalizeAuction(bytes32 _hash) {
         entry h = entries[_hash];
         if (now < h.registrationDate 
@@ -294,24 +379,26 @@ contract Registrar {
         HashRegistered(_hash, deedContract.owner(), h.value, now);
     }
 
-    /*
-    ## The owner of a domain may transfer it to someone else at any time.
-    */
+    /**
+     * @dev The owner of a domain may transfer it to someone else at any time.
+     * @param _hash The node to transfer
+     * @param newOwner The address to transfer ownership to
+     */
     function transfer(bytes32 _hash, address newOwner) onlyOwner(_hash) {
         entry h = entries[_hash];
         h.deed.setOwner(newOwner);
         ens.setSubnodeOwner(rootNode, _hash, newOwner);
     }
 
-    /*
-    ## After some time, you can release the property and get your ether back
-    */ 
-
+    /**
+     * @dev After some time, the owner can release the property and get their ether back
+     * @param _hash The node to release
+     */
     function releaseDeed(bytes32 _hash) onlyOwner(_hash) {
         entry h = entries[_hash];
         Deed deedContract = h.deed;
         if (now < h.registrationDate + 1 years 
-        || now > registryCreated + 8 years) throw;
+            || now > registryCreated + 8 years) throw;
         
         h.status = Mode.Open;
         ens.setSubnodeOwner(rootNode, _hash, 0);
@@ -319,10 +406,14 @@ contract Registrar {
         HashReleased(_hash, h.value);
     }  
 
-    /*
-    Names on the simplified registrar can't be six letters or less. We are purposefully
-    handicapping its usefulness as a way to force it into being restructured in a few years
-    */
+    /**
+     * @dev Submit a name 6 characters long or less. If it has been registered, 
+     * the submitter will earn 10% of the deed value. We are purposefully
+     * handicapping the simplified registrar as a way to force it into being restructured
+     * in a few years.
+     * @param unhashedName An invalid name to search for in the registry.
+     * 
+     */
     function invalidateName(string unhashedName) {
         if (strlen(unhashedName) > 6 ) throw;
         bytes32 hash = sha3(unhashedName);
@@ -332,11 +423,25 @@ contract Registrar {
         ens.setSubnodeOwner(rootNode, hash, 0);
         if(address(h.deed) != 0) {
             // Reward the discoverer with 10% of the deed
+            // The previous owner gets nothing
             h.deed.setOwner(msg.sender);
             h.deed.closeDeed(100);
         }
         HashInvalidated(hash, unhashedName, h.value, now);
     }
 
+    /**
+     * @dev Transfers the deed to the current registrar, if different from this one.
+     * Used during the upgrade process to a permanent registrar.
+     * @param _hash The name hash to transfer.
+     */
+    function transferRegistrars(bytes32 _hash) onlyOwner(_hash) {
+        var registrar = ens.owner(rootNode);
+        if(registrar == address(this))
+            throw;
 
+        entry h = entries[_hash];
+        h.deed.setRegistrar(registrar);
+        h.status = Mode.Forbidden;
+    }
 }

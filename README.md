@@ -1,51 +1,73 @@
 # ENS
-Implementations for registrars and local resolvers for the Ethereum Name Service
+Implementations for registrars and local resolvers for the Ethereum Name Service.
 
-## Resolver.sol
-Provides an abstract interface for the methods all ENS resolvers are expected to implement. For details, see the [ENS specification](https://github.com/Arachnid/EIPs/blob/ens/EIPS/eip-XXX.md).
+For documentation of the ENS system, see [the wiki](https://github.com/ethereum/ens/wiki).
 
-## OwnedRegistrar.sol
-Provides a functionally complete implementation of an ENS resolver and registrar for individual use. The account that deploys the contract is considered the owner, and is the only party that can update ENS mappings. Simple methods are provided for inserting and updating mappings, as well, as iterating over existing names.
+## ENS.sol
+Implementation of the ENS Registry, the central contract used to look up resolvers and owners for domains.
 
-Note that for simplicity, transactions in this implementation include the unhashed names being updated, and these are stored in the state, so it would be straightforward for someone to enumerate your domain.
+## FIFSRegistrar.sol
+Implementation of a simple first-in-first-served registrar, which issues (sub-)domains to the first account to request them.
 
-### appendRR(string name, bytes16 rtype, uint32 ttl, address data)
-### appendRR(string name, bytes16 rtype, uint32 ttl, bytes data)
+## HashRegistrar.sol
+Implementation of a registrar based on second-price blind auctions and funds held on deposit, with a renewal process that weights renewal costs according to the change in mean price of registering a domain. Largely untested!
 
-Appends a resource record to a given name. rtype specifies the record type, such as "HA" (which represents an Ethereum address). ttl specifies the time to live for caching of this record, and data specifies the data to associate with the record.
+## HashRegistrarSimplified.sol
+Simplified version of the above, with no support for renewals. This is the current proposal for interim registrar of the ENS system until a permanent registrar is decided on.
 
-For example, calling `appendRR("foo.bar", "HA", 3600, "0x1234...")` will insert a record that can be returned by the simple `addr` function under the name "foo.bar".
+## PublicResolver.sol
+Simple resolver implementation that allows the owner of any domain to configure how its name should resolve. One deployment of this contract allows any number of people to use it, by setting it as their resolver in the registry.
 
-### updateRR(string name, uint idx, bytes16 rtype, uint32 ttl, address data)
-### updateRR(string name, uint idx, bytes16 rtype, uint32 ttl, bytes data)
+# ENS Registry interface
 
-Replaces a resource record on a given name. idx specifies the zero-based index of the resource record to replace. All other arguments are as described in `appendRR`.
+The ENS registry is a single central contract that provides a mapping from domain names to owners and resolvers, as described in [EIP 137](https://github.com/ethereum/EIPs/issues/137). 
 
-### deleteRR(string name, uint idx)
+The ENS operates on 'nodes' instead of human-readable names; a human readable name is converted to a node using the namehash algorithm, which is as follows:
 
-Deletes a resource record under the specified name and zero-based index.
+	def namehash(name):
+	  if name == '':
+	    return '\0' * 32
+	  else:
+	    label, _, remainder = name.partition('.')
+	    return sha3(namehash(remainder) + sha3(label))
 
-### setSubresolver(string name, uint32 ttl, address addr, bytes12 nodeId)
+The registry's interface is as follows:
 
-Adds a node from another ENS resolver as a subresolver under this one. `ttl` specifies the time to live for caching this record; `addr` specifies the address of the target resolver, and `nodeId` specifies the node in the target resolver to reference.
+## owner(bytes32 node) constant returns (address)
+Returns the owner of the specified node.
 
-### deleteSubresolver(string name)
+## resolver(bytes32 node) constant returns (address)
+Returns the resolver for the specified node.
 
-Deletes a subresolver record.
+## setOwner(bytes32 node, address owner)
+Updates the owner of a node. Only the current owner may call this function.
 
-### getName(bytes12 nodeId, uint idx)
+## setSubnodeOwner(bytes32 node, bytes32 label, address owner)
+Updates the owner of a subnode. For instance, the owner of "foo.com" may change the owner of "bar.foo.com" by calling `setSubnodeOwner(namehash("foo.com"), sha3("bar"), newowner)`. Only callable by the owner of `node`.
 
-Permits iteration over the names defined under a node. Returns the `idx`'th name under the specified node, or the empty string if `idx` extends beyond the end of the list.
+## setResolver(bytes32 node, address resolver)
+Sets the resolver address for the specified node.
 
-### getHash(bytes12 nodeId, uint idx)
+# Resolver interface
 
-Permits iteration over the name hashes defined under a node. Returns the `idx`th hash under the specified node, or the empty string if `idx` extends beyond the end of the list.
+Resolvers must implement one mandatory method, `has`, and may implement any number of other resource-type specific methods. Resolvers must `throw` when an unimplemented method is called.
 
-## LocalResolver.sol
-A simple local resolver library to allow contracts to look up other contracts. Gas cost is currently approximately 7000 gas plus 2000 gas per name component.
+## has(bytes32 node, bytes32 kind) constant returns (bool)
 
-### resolveOne(address root, string name, bytes16 qtype) returns (uint16 rcode, bytes16 rtype, uint16 len, bytes32 data)
-Resolves a name, returning the first matching record. `root` specifies the root resolver to use, `name` specifies the name to look up, and `qtype specifies the record type to query for. Returns the response code, length, and record data.
+Returns true iff the specified node has the specified record kind available. Record kinds are defined by each resolver type and standardised in EIPs; currently only "addr" is supported.
 
-### addr(address root, string name) returns (string)
-Resolves a name, returning the first "HA" record, or the empty string if no such name or record exists.
+`has()` must return false iff the corresponding record type specific methods will throw if called.
+
+## addr(bytes32 node) constant returns (address ret)
+
+Implements the addr resource type. Returns the Ethereum address associated with a node if it exists, or `throw`s if it does not.
+
+# Generating ABI and binary data
+
+ens.lll.bin was generated with the following command, using the lllc packaged with Solidity 0.4.4:
+
+    lllc ens.lll > ens.lll.bin
+
+The files in the abi directory were generated with the following command:
+
+    solc --abi -o abi interface.sol FIFSRegistrar.sol HashRegistrarSimplified.sol PublicResolver.sol
