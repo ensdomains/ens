@@ -7,7 +7,7 @@
   ;; --------------------------------------------------------------------------
   ;; INIT
 
-  (include "macros.lll")
+  (include "registry-macros.lll")
 
   ;; Set the owner of the root node (0x00) to the deploying account.
   (set-owner 0x00 (caller))

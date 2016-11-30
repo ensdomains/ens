@@ -42,7 +42,7 @@ module.exports = {
 	deployENSLLL: function(account, done) {
 		if(ensLLLCode == null) {
 			ensLLLCode = {
-				bytecode: fs.readFileSync('ens.lll.bin').toString().trim(),
+				bytecode: fs.readFileSync('ens-registry.lll.bin').toString().trim(),
 				interface: fs.readFileSync('abi/AbstractENS.abi').toString()
 			}
 		}
