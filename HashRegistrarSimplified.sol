@@ -54,6 +54,7 @@ contract Deed {
     }
         
     function setOwner(address newOwner) onlyRegistrar {
+        // so contracts can check who sent them the ownership
         previousOwner = owner;
         owner = newOwner;
         OwnerChanged(newOwner);
@@ -223,7 +224,7 @@ contract Registrar {
             || newAuction.status == Mode.Forbidden
             || now > registryCreated + 4 years)
             throw;
-            
+
         // for the first month of the registry, make longer auctions
         newAuction.registrationDate = max(now + auctionLength, registryCreated + initialAuctionPeriod);
         newAuction.status = Mode.Auction;  
