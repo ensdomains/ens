@@ -32,7 +32,7 @@
   (def 'get-node-owner     0x02571be3) ; owner(bytes32)
 
   ;; Jumping here causes an EVM error.
-  (def 'invalid-location 0x02)  ; Jumping here causes an EVM panic.
+  (def 'invalid-location 0x02)
 
   ;; --------------------------------------------------------------------------
   ;; @notice Shifts the rightmost 4 bytes of a 32-byte number left by 28 bytes.
@@ -108,7 +108,8 @@
       ;; Call ens.owner(node).
       (mstore (+ call-data 0x00) (shift-left get-node-owner))
       (mstore (+ call-data 0x04) node)
-      (call (- (gas) 1000) 0 @@ens-registry call-data 36 return-data 32)
+      (mstore return-code (call (- (gas) 1000) 0 @@ens-registry
+          call-data 36 return-data 32))
 
       ;; If the call failed or the caller isn't the current node owner,
       ;; throw an exception.
