@@ -839,17 +839,18 @@ var resolverContract = web3.eth.contract([
     "constant": true,
     "inputs": [
       {
-        "name": "node",
-        "type": "bytes32"
+        "name": "interfaceID",
+        "type": "bytes4"
       }
     ],
-    "name": "addr",
+    "name": "supportsInterface",
     "outputs": [
       {
         "name": "",
-        "type": "address"
+        "type": "bool"
       }
     ],
+    "payable": false,
     "type": "function"
   },
   {
@@ -860,13 +861,14 @@ var resolverContract = web3.eth.contract([
         "type": "bytes32"
       }
     ],
-    "name": "hash",
+    "name": "addr",
     "outputs": [
       {
-        "name": "",
-        "type": "bytes32"
+        "name": "ret",
+        "type": "address"
       }
     ],
+    "payable": false,
     "type": "function"
   },
   {
@@ -888,6 +890,7 @@ var resolverContract = web3.eth.contract([
         "type": "bool"
       }
     ],
+    "payable": false,
     "type": "function"
   },
   {
@@ -904,6 +907,25 @@ var resolverContract = web3.eth.contract([
     ],
     "name": "setAddr",
     "outputs": [],
+    "payable": false,
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "node",
+        "type": "bytes32"
+      }
+    ],
+    "name": "hash",
+    "outputs": [
+      {
+        "name": "ret",
+        "type": "bytes32"
+      }
+    ],
+    "payable": false,
     "type": "function"
   },
   {
@@ -918,12 +940,26 @@ var resolverContract = web3.eth.contract([
         "type": "bytes32"
       }
     ],
-    "name": "setHash",
+    "name": "setAddr",
     "outputs": [],
+    "payable": false,
     "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "name": "ensAddr",
+        "type": "address"
+      }
+    ],
+    "type": "constructor"
+  },
+  {
+    "payable": false,
+    "type": "fallback"
   }
 ]);
-var publicResolver = resolverContract.at('0x71e122fc87aa184b966dfaaa81f9f37f45da9bae');
+var publicResolver = resolverContract.at('0xBbe3fD189D18C8b73BA54e9dD01F89E6b3Ee71f0');
 
 
 function getAddr(name) {
