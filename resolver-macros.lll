@@ -1,0 +1,117 @@
+;;; ---------------------------------------------------------------------------
+;;; @title Macros for the public resolver.
+;;; @author Daniel Ellison <daniel@syrinx.net>
+
+(seq
+
+  ;; --------------------------------------------------------------------------
+  ;; Constant definitions.
+
+  ;; Booleans.
+  (def 'true 1)
+  (def 'false 0)
+
+  ;; Memory layout.
+  (def 'scratch-one 0x00) ; Scratch space.
+  (def 'scratch-two 0x20) ; More scratch space.
+  (def 'return-code 0x40) ; Boolean returned to calling contract.
+  (def 'return-data 0x60) ; Data returned to calling contract.
+  (def 'call-result 0x80) ; Data returned from called contract.
+  (def 'call-data   0xa0) ; Data provided to called contract.
+
+  ;; Storage layout.
+  (def 'ens-registry 0x00) ; Address of ens registry.
+
+  ;; Precomputed function IDs.
+  (def 'has-record-type    0x41b9dc2b) ; has(bytes32,bytes32)
+  (def 'supports-interface 0x01ffc9a7) ; supportsInterface(bytes4)
+  (def 'get-node-address   0x3b3b57de) ; addr(bytes32)
+  (def 'set-node-address   0xd5fa2b00) ; setAddr(bytes32,address)
+  (def 'get-content-hash   0xd8389dc5) ; hash(bytes32)
+  (def 'set-content-hash   0xd7fa1007) ; setHash(bytes32,bytes32)
+  (def 'get-node-owner     0x02571be3) ; owner(bytes32)
+
+  ;; Jumping here causes an EVM error.
+  (def 'invalid-location 0x02)  ; Jumping here causes an EVM panic.
+
+  ;; --------------------------------------------------------------------------
+  ;; @notice Shifts the rightmost 4 bytes of a 32-byte number left by 28 bytes.
+  ;; @param input A 32-byte number.
+
+  (def 'shift-left (input)
+    (mul input (exp 2 224)))
+
+  ;; --------------------------------------------------------------------------
+  ;; @notice Shifts the leftmost 4 bytes of a 32-byte number right by 28 bytes.
+  ;; @param input A 32-byte number.
+
+  (def 'shift-right (input)
+    (div input (exp 2 224)))
+
+  ;; --------------------------------------------------------------------------
+  ;; @notice Determines whether the supplied function ID matches a known
+  ;;         function hash and executes <code-body> if so.
+  ;; @dev The function ID is in the leftmost four bytes of the call data.
+  ;; @param function-hash The four-byte hash of a known function signature.
+  ;; @param code-body The code to run in the case of a match.
+
+  (def 'function (function-hash code-body)
+    (when (= (shift-right (calldataload 0x00)) function-hash)
+      code-body))
+
+  ;; --------------------------------------------------------------------------
+  ;; @notice Hashes a given node to determine its actual storage location.
+  ;; @param node Hash this node address.
+
+  (def 'hash-location (node)
+    (seq
+      (mstore scratch-one node)
+      (sha3 scratch-one 32)))
+
+  ;; --------------------------------------------------------------------------
+  ;; @notice Looks up the address for the node passed in.
+  ;; @param node Get the address for this node.
+
+  (def 'get-address (node)
+    (sload (hash-location node)))
+
+  ;; --------------------------------------------------------------------------
+  ;; @notice Stores the address for the node passed in.
+  ;; @param node Set the address for this node.
+  ;; @param addr The address to set.
+
+  (def 'set-address (node addr)
+    (sstore (hash-location node) addr))
+
+  ;; --------------------------------------------------------------------------
+  ;; @notice Looks up the content hash for the node passed in.
+  ;; @param node Get the content hash for this node.
+
+  (def 'get-hash (node)
+    (sload (+ (hash-location node) 1)))
+
+  ;; --------------------------------------------------------------------------
+  ;; @notice Stores the content hash for the node passed in.
+  ;; @param node Set the content hash for this node.
+  ;; @param hash The content hash to set.
+
+  (def 'set-hash (node hash)
+    (sstore (+ (hash-location node) 1) hash))
+
+  ;; --------------------------------------------------------------------------
+  ;; @notice Checks that the caller is the node owner.
+
+  (def 'only-owner (node)
+    (seq
+
+      ;; Call ens.owner(node).
+      (mstore (+ call-data 0x00) (shift-left get-node-owner))
+      (mstore (+ call-data 0x04) node)
+      (call (- (gas) 1000) 0 @@ens-registry call-data 36 return-data 32)
+
+      ;; If the call failed or the caller isn't the current node owner,
+      ;; throw an exception.
+      (when (|| (= @return-code false) (!= @return-data (caller)))
+        (jump invalid-location))))
+
+)
