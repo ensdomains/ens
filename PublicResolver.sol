@@ -89,7 +89,7 @@ contract PublicResolver {
      * @param node The node to update.
      * @param hash The content hash to set
      */
-    function setAddr(bytes32 node, bytes32 hash) only_owner(node) {
+    function setHash(bytes32 node, bytes32 hash) only_owner(node) {
         hashes[node] = hash;
     }
 }
