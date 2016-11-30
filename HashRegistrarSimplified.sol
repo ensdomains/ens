@@ -229,7 +229,10 @@ contract Registrar {
         bid.setOwner(_owner);
         entry h = entries[_hash];
         
-        if (bid.creationDate() > h.registrationDate - revealPeriod
+        if (h.status == Mode.Forbidden) {
+            // Bid was found to be on a short name, refund fully
+            bid.closeDeed(1000);
+        } else if (bid.creationDate() > h.registrationDate - revealPeriod
             || now > h.registrationDate 
             || _value < minPrice) {
             // bid is invalid, burn 99%
