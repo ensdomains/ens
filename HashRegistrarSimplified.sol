@@ -23,10 +23,6 @@ import 'interface.sol';
  * @dev The deed can be controlled only by the registrar and can only send ether back to the owner.
  */
 contract Deed {
-    /* 
-    The Deed is a contract intended simply to hold ether
-    It can be controlled only by the registrar and can only send ether back to the owner.
-    */
     address public registrar;
     address constant burn = 0xdead;
     uint public creationDate;
