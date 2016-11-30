@@ -204,7 +204,6 @@ contract Registrar {
         return len;
     }
 
-
     /**
      * @dev Start an auction for an available hash
      * 
@@ -224,7 +223,6 @@ contract Registrar {
             || newAuction.status == Mode.Forbidden
             || now > registryCreated + 4 years)
             throw;
-        
         // for the first month of the registry, make longer auctions
         newAuction.registrationDate = max(now + auctionLength, registryCreated + initialAuctionPeriod);
         newAuction.status = Mode.Auction;  
@@ -254,7 +252,6 @@ contract Registrar {
         return sha3(hash, owner, value, salt);
     }
     
-
     /**
      * @dev Submit a new sealed bid on a desired hash in a blind auction
      * 
