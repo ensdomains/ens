@@ -970,3 +970,12 @@ function getAddr(name) {
   }
   return resolverContract.at(resolverAddress).addr(node);
 }
+
+function getHash(name) {
+  var node = namehash(name)
+  var resolverAddress = ens.resolver(node);
+  if(resolverAddress == '0x0000000000000000000000000000000000000000') {
+    return "0x0000000000000000000000000000000000000000000000000000000000000000";
+  }
+  return resolverContract.at(resolverAddress).hash(node);
+}
