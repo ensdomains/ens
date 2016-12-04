@@ -940,7 +940,7 @@ var resolverContract = web3.eth.contract([
         "type": "bytes32"
       }
     ],
-    "name": "setAddr",
+    "name": "setHash",
     "outputs": [],
     "payable": false,
     "type": "function"
