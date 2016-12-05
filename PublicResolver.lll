@@ -23,7 +23,6 @@
   (def 'ens-registry 0x00) ; Address of ens registry.
 
   ;; Precomputed function IDs.
-  (def 'has-record-type    0x41b9dc2b) ; has(bytes32,bytes32)
   (def 'supports-interface 0x01ffc9a7) ; supportsInterface(bytes4)
   (def 'get-node-address   0x3b3b57de) ; addr(bytes32)
   (def 'set-node-address   0xd5fa2b00) ; setAddr(bytes32,address)
@@ -105,15 +104,16 @@
   (def 'only-owner (node)
     (seq
 
-      ;; Call ens.owner(node).
+      ;; Set up the call data.
       (mstore (+ call-data 0x00) (shift-left get-node-owner))
       (mstore (+ call-data 0x04) node)
-      (mstore return-code (call (- (gas) 1000) 0 @@ens-registry
-          call-data 36 return-data 32))
 
-      ;; If the call failed or the caller isn't the current node owner,
-      ;; throw an exception.
-      (when (|| (= @return-code false) (!= @return-data (caller)))
+      ;; Call ens.owner(node). Bail on fail.
+      (when (= false (call (gas) 0 @@ens-registry call-data 36 return-data 32))
+        (jump invalid-location))
+
+      ;; If the caller isn't the current node owner, throw an exception.
+      (when (!= @return-data (caller))
         (jump invalid-location))))
 
   ;; --------------------------------------------------------------------------
@@ -128,28 +128,6 @@
 
   (returnlll
     (seq
-
-      ;; ----------------------------------------------------------------------
-      ;; @notice Returns true if specified node has specified record type.
-      ;; @param node The ENS node to query.
-      ;; @param kind The record type name, as specified in EIP137.
-      ;; @return True if this resolver has a record of the provided type on the
-      ;;         provided node.
-
-      (def 'node (calldataload 0x04))
-      (def 'kind (calldataload 0x24))
-
-      (function has-record-type
-        (seq
-
-          ;; Do the required comparisons and store for return.
-          (mstore call-result (|| (&& (= kind "addr")
-                                      (!= (get-address node) 0))
-                                  (&& (= kind "hash")
-                                      (!= (get-hash node) 0))))
-
-          ;; Return boolean result.
-          (return call-result 32)))
 
       ;; ----------------------------------------------------------------------
       ;; @notice Returns true if the resolver implements the interface
