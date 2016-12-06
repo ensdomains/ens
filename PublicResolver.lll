@@ -11,13 +11,14 @@
   (def 'true 1)
   (def 'false 0)
 
+  ;; Miscellaneous constants.
+  (def 'content-hash     0x01) ; Offset into node record for content hash.
+  (def 'invalid-location 0x02) ; Jumping here causes an EVM error.
+
   ;; Memory layout.
-  (def 'scratch-one 0x00) ; Scratch space.
-  (def 'scratch-two 0x20) ; More scratch space.
-  (def 'return-code 0x40) ; Boolean returned to calling contract.
-  (def 'return-data 0x60) ; Data returned to calling contract.
-  (def 'call-result 0x80) ; Data returned from called contract.
-  (def 'call-data   0xa0) ; Data provided to called contract.
+  (def 'scratch     0x00) ; Scratch space.
+  (def 'call-data   0x20) ; Data provided to called contract.
+  (def 'return-data 0x40) ; Data returned from called contract.
 
   ;; Storage layout.
   (def 'ens-registry 0x00) ; Address of ens registry.
@@ -29,9 +30,6 @@
   (def 'get-content-hash   0xd8389dc5) ; hash(bytes32)
   (def 'set-content-hash   0xd7fa1007) ; setHash(bytes32,bytes32)
   (def 'get-node-owner     0x02571be3) ; owner(bytes32)
-
-  ;; Jumping here causes an EVM error.
-  (def 'invalid-location 0x02)
 
   ;; --------------------------------------------------------------------------
   ;; @notice Shifts the rightmost 4 bytes of a 32-byte number left by 28 bytes.
@@ -64,8 +62,8 @@
 
   (def 'hash-location (node)
     (seq
-      (mstore scratch-one node)
-      (sha3 scratch-one 32)))
+      (mstore scratch node)
+      (sha3 scratch 32)))
 
   ;; --------------------------------------------------------------------------
   ;; @notice Looks up the address for the node passed in.
@@ -87,7 +85,7 @@
   ;; @param node Get the content hash for this node.
 
   (def 'get-hash (node)
-    (sload (+ (hash-location node) 1)))
+    (sload (+ (hash-location node) content-hash)))
 
   ;; --------------------------------------------------------------------------
   ;; @notice Stores the content hash for the node passed in.
@@ -95,7 +93,7 @@
   ;; @param hash The content hash to set.
 
   (def 'set-hash (node hash)
-    (sstore (+ (hash-location node) 1) hash))
+    (sstore (+ (hash-location node) content-hash) hash))
 
   ;; --------------------------------------------------------------------------
   ;; @notice Checks that the caller is the node owner.
@@ -120,8 +118,8 @@
   ;; INIT
 
   ;; Store the constructor parameter.
-  (codecopy scratch-one (bytecodesize) 32)
-  (sstore ens-registry @scratch-one)
+  (codecopy scratch (bytecodesize) 32)
+  (sstore ens-registry @scratch)
 
   ;; --------------------------------------------------------------------------
   ;; CODE
@@ -141,11 +139,11 @@
         (seq
 
           ;; Do the required comparisons and store for return.
-          (mstore call-result (|| (= interface-id 0x3b3b57de)
-                                  (= interface-id 0xd8389dc5)))
+          (mstore scratch (|| (= interface-id 0x3b3b57de)
+                              (= interface-id 0xd8389dc5)))
 
           ;; Return boolean result.
-          (return call-result 32)))
+          (return scratch 32)))
 
       ;; ----------------------------------------------------------------------
       ;; @notice Returns the address associated with an ENS node.
@@ -158,10 +156,10 @@
         (seq
 
           ;; Retrieve the node's address.
-          (mstore call-result (get-address node))
+          (mstore scratch (get-address node))
 
           ;; Return result.
-          (return call-result 32)))
+          (return scratch 32)))
 
       ;; ----------------------------------------------------------------------
       ;; @notice Sets the address associated with an ENS node. May only be
@@ -193,10 +191,10 @@
         (seq
 
           ;; Retrieve the node's content hash.
-          (mstore call-result (get-hash node))
+          (mstore scratch (get-hash node))
 
           ;; Return result.
-          (return call-result 32)))
+          (return scratch 32)))
 
       ;; ----------------------------------------------------------------------
       ;; @notice Sets the hash associated with an ENS node. May only be
