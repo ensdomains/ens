@@ -64,9 +64,9 @@ Implements the addr resource type. Returns the Ethereum address associated with 
 
 # Generating ABI and binary data
 
-ens.lll.bin was generated with the following command, using the lllc packaged with Solidity 0.4.4:
+ENS.lll.bin was generated with the following command, using the lllc packaged with Solidity 0.4.4:
 
-    lllc ens.lll > ens.lll.bin
+    lllc ENS.lll > ENS.lll.bin
 
 The files in the abi directory were generated with the following command:
 

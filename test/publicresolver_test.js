@@ -47,7 +47,7 @@ describe('PublicResolver', function() {
 
 	it('permits setting addresses', function(done) {
 		async.series([
-			function(done) { resolver.has(utils.node, "0x3b3b57de", function(err, result) {
+			function(done) { resolver.supportsInterface("0x3b3b57de", function(err, result) {
 					assert.equal(err, null, err);
 					assert.equal(result, true);
 					done();
@@ -75,9 +75,10 @@ describe('PublicResolver', function() {
 		});
 	});
 
-	it('throws when fetching nonexistent addresses', function(done) {
+	it('returns zero when fetching nonexistent addresses', function(done) {
 		resolver.addr(utils.node, function(err, result) {
-			assert.ok(err.toString().indexOf(utils.INVALID_JUMP) != -1, err);
+			assert.equal(err, null, err);
+			assert.equal(result, "0x0000000000000000000000000000000000000000");
 			done();
 		});
 	});
