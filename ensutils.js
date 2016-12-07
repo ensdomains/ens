@@ -959,7 +959,7 @@ var resolverContract = web3.eth.contract([
     "type": "fallback"
   }
 ]);
-var publicResolver = resolverContract.at('0x76418d593a5618788b9a31d1c389c2f67e3aaecd');
+var publicResolver = resolverContract.at('0x4c641fb9bad9b60ef180c31f56051ce826d21a9a');
 
 
 function getAddr(name) {
