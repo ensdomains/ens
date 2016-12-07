@@ -918,7 +918,7 @@ var resolverContract = web3.eth.contract([
         "type": "bytes32"
       }
     ],
-    "name": "hash",
+    "name": "content",
     "outputs": [
       {
         "name": "ret",
@@ -940,7 +940,7 @@ var resolverContract = web3.eth.contract([
         "type": "bytes32"
       }
     ],
-    "name": "setHash",
+    "name": "setContent",
     "outputs": [],
     "payable": false,
     "type": "function"
@@ -971,11 +971,11 @@ function getAddr(name) {
   return resolverContract.at(resolverAddress).addr(node);
 }
 
-function getHash(name) {
+function getContent(name) {
   var node = namehash(name)
   var resolverAddress = ens.resolver(node);
   if(resolverAddress == '0x0000000000000000000000000000000000000000') {
     return "0x0000000000000000000000000000000000000000000000000000000000000000";
   }
-  return resolverContract.at(resolverAddress).hash(node);
+  return resolverContract.at(resolverAddress).content(node);
 }
