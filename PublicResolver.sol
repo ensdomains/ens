@@ -77,7 +77,7 @@ contract PublicResolver {
      * @param node The ENS node to query.
      * @return The associated content hash.
      */
-    function hash(bytes32 node) constant returns (bytes32 ret) {
+    function content(bytes32 node) constant returns (bytes32 ret) {
         ret = hashes[node];
     }
     
@@ -89,7 +89,7 @@ contract PublicResolver {
      * @param node The node to update.
      * @param hash The content hash to set
      */
-    function setHash(bytes32 node, bytes32 hash) only_owner(node) {
+    function setContent(bytes32 node, bytes32 hash) only_owner(node) {
         hashes[node] = hash;
     }
 }
