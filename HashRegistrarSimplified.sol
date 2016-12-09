@@ -287,6 +287,8 @@ contract Registrar {
         sealedBids[seal] = Deed(0);
         bid.setOwner(_owner);
         entry h = entries[_hash];
+        uint actualValue = min(_value, bid.balance);
+        bid.setBalance(actualValue);            
 
         
         if (h.status == Mode.Forbidden) {
@@ -295,18 +297,19 @@ contract Registrar {
             on is invalid (shorter than 7 chars) then all bids will be fully refunded
             */
             bid.closeDeed(1000);
-        } if (bid.creationDate() > h.registrationDate - revealPeriod
+            BidRevealed(_hash, _owner, actualValue, 4);
+        } else if (bid.creationDate() > h.registrationDate - revealPeriod
             || now > h.registrationDate 
-            || _value < minPrice) {
+            || actualValue < minPrice) {
             /* 
             A penalty (99%) is applied for submitting unrevealed bids, which could otherwise
             be used as a threat of revealing a bid higher than the second-highest 
             bid, to extort the winner into paying them.
             */
             bid.closeDeed(10);
-            BidRevealed(_hash, _owner, _value, 0);
+            BidRevealed(_hash, _owner, actualValue, 0);
             
-        } else if (_value > h.highestBid) {
+        } else if (actualValue > h.highestBid) {
             // new winner
             // cancel the other bid, refund 99.9%
             if(address(h.deed) != 0) {
@@ -317,21 +320,20 @@ contract Registrar {
             // set new winner
             // per the rules of a vickery auction, the value becomes the previous highestBid
             h.value = h.highestBid;
-            h.highestBid = _value;
+            h.highestBid = actualValue;
             h.deed = bid;
-            bid.setBalance(_value);
-            BidRevealed(_hash, _owner, _value, 2);
+            BidRevealed(_hash, _owner, actualValue, 2);
         
-        } else if (_value > h.value) {
+        } else if (actualValue > h.value) {
             // not winner, but affects second place
-            h.value = _value;
+            h.value = actualValue;
             bid.closeDeed(999);
-            BidRevealed(_hash, _owner, _value, 3);
+            BidRevealed(_hash, _owner, actualValue, 3);
             
         } else {
             // bid doesn't affect auction
             bid.closeDeed(999);
-            BidRevealed(_hash, _owner, _value, 4);
+            BidRevealed(_hash, _owner, actualValue, 4);
         }
     }
     
@@ -420,8 +422,9 @@ contract Registrar {
         if(address(h.deed) != 0) {
             // Reward the discoverer with 10% of the deed
             // The previous owner gets nothing
+            h.deed.setBalance(h.deed.balance/2);
             h.deed.setOwner(msg.sender);
-            h.deed.closeDeed(100);
+            h.deed.closeDeed(1000);
         }
         HashInvalidated(hash, unhashedName, h.value, now);
     }
