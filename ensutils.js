@@ -918,7 +918,7 @@ var resolverContract = web3.eth.contract([
         "type": "bytes32"
       }
     ],
-    "name": "hash",
+    "name": "content",
     "outputs": [
       {
         "name": "ret",
@@ -940,7 +940,7 @@ var resolverContract = web3.eth.contract([
         "type": "bytes32"
       }
     ],
-    "name": "setHash",
+    "name": "setContent",
     "outputs": [],
     "payable": false,
     "type": "function"
@@ -959,7 +959,7 @@ var resolverContract = web3.eth.contract([
     "type": "fallback"
   }
 ]);
-var publicResolver = resolverContract.at('0x76418d593a5618788b9a31d1c389c2f67e3aaecd');
+var publicResolver = resolverContract.at('0x4c641fb9bad9b60ef180c31f56051ce826d21a9a');
 
 
 function getAddr(name) {
@@ -971,11 +971,11 @@ function getAddr(name) {
   return resolverContract.at(resolverAddress).addr(node);
 }
 
-function getHash(name) {
+function getContent(name) {
   var node = namehash(name)
   var resolverAddress = ens.resolver(node);
   if(resolverAddress == '0x0000000000000000000000000000000000000000') {
     return "0x0000000000000000000000000000000000000000000000000000000000000000";
   }
-  return resolverContract.at(resolverAddress).hash(node);
+  return resolverContract.at(resolverAddress).content(node);
 }

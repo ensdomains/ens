@@ -27,8 +27,8 @@
   (def 'supports-interface 0x01ffc9a7) ; supportsInterface(bytes4)
   (def 'get-node-address   0x3b3b57de) ; addr(bytes32)
   (def 'set-node-address   0xd5fa2b00) ; setAddr(bytes32,address)
-  (def 'get-content-hash   0xd8389dc5) ; hash(bytes32)
-  (def 'set-content-hash   0xd7fa1007) ; setHash(bytes32,bytes32)
+  (def 'get-content-hash   0x2dff6941) ; hash(bytes32)
+  (def 'set-content-hash   0xc3d014d6) ; setHash(bytes32,bytes32)
   (def 'get-node-owner     0x02571be3) ; owner(bytes32)
 
   ;; --------------------------------------------------------------------------
