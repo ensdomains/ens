@@ -16,6 +16,7 @@ Welcome to ENS's documentation!
    interacting
    resolving
    deploying
+   dns
    faq
 
 
