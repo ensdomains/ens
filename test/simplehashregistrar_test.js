@@ -117,7 +117,7 @@ describe('SimpleHashRegistrar', function() {
 			// Deposit smaller than value
 			{description: 'Bid with deposit less than claimed value', account: accounts[4], value: 1.3e18, deposit: 1.0e17, salt: 5, expectedFee: 0.001 },
 			// Invalid - doesn't reveal
-			{description: 'Bid that wasn\'t revealed in time', account: accounts[5], value: 1.4e18, deposit: 2.0e18, salt: 6, expectedFee: 0.99 }
+			{description: 'Bid that wasn\'t revealed in time', account: accounts[5], value: 1.4e18, deposit: 2.0e18, salt: 6, expectedFee: 1.4285 }
 		];
 		async.series([
 			// Save initial balances 
@@ -174,13 +174,13 @@ describe('SimpleHashRegistrar', function() {
 			function(done) {
 				bid = bidData[5];
 				registrar.unsealBid(web3.sha3('name'), bid.account, bid.value, bid.salt, {from: bid.account}, function(err, txid) {
-					assert.equal(err, null, err);
+					assert.ok(err.toString().indexOf(utils.INVALID_JUMP) != -1, err);
 					done();
 				});
 			},
 			// Finalize the auction
 			function(done) {
-				registrar.finalizeAuction(web3.sha3('name'), {from: accounts[0]}, function(err, txid) {
+				registrar.finalizeAuction(web3.sha3('name'), {from: accounts[1]}, function(err, txid) {
 					assert.equal(err, null, err);
 					done();
 				});
@@ -217,14 +217,10 @@ describe('SimpleHashRegistrar', function() {
 			function(done) {
 				async.each(bidData, function(bid, done) {
 					web3.eth.getBalance(bid.account, function(err, balance){
-						// Sleep sort is Best sort
-						// setTimeout(function() {
 						var spentFee = Math.floor(10000*(bid.startingBalance - balance.toFixed()) / Math.min(bid.value, bid.deposit))/10000;
 						console.log('\t Bidder #' + bid.salt, bid.description + '. Spent:', 100*spentFee + '%; Expected:', 100*bid.expectedFee + '%;');
 						assert.equal(spentFee, bid.expectedFee);
 						done();
-						// }, Number(bid.salt)*100);
-						
 					});
 				}, done);
 			},
@@ -281,13 +277,16 @@ describe('SimpleHashRegistrar', function() {
 			},
 			// Have someone else call startAuction
 			function(done) {
-				registrar.startAuction(web3.sha3('name'), {from: accounts[0]}, done);
+				registrar.startAuction(web3.sha3('name'), {from: accounts[0]}, function(err, result) {
+					assert.ok(err.toString().indexOf(utils.INVALID_JUMP) != -1, err);
+					done();
+				});
 			},
 			// Check that the deed is still set correctly
 			function(done) {
 				registrar.entries(web3.sha3('name'), function(err, result) {
 					assert.equal(err, null, err);
-					assert.deepEqual(auctionStatus, result);
+					assert.deepEqual(auctionStatus.slice(1), result.slice(1));
 					done();
 				});
 			}
@@ -339,12 +338,12 @@ describe('SimpleHashRegistrar', function() {
 				});
 			},
 			function(done) {
-				registrar.unsealBid(web3.sha3('name'), accounts[0], 4e18, 1, {from: accounts[0]}, function(err, txid) {
+				registrar.unsealBid(web3.sha3('name'), accounts[1], 4e18, 1, {from: accounts[1]}, function(err, txid) {
 					assert.equal(err, null, err);
 					registrar.entries(web3.sha3('name'), function(err, result) {
 						assert.equal(err, null, err);
 						assert.equal(result[3], 1e18);
-						assert.equal(result[4], 2e18);
+						assert.equal(result[4], 3e18);
 						auctionStatus = result;
 						done();
 					});
@@ -354,18 +353,15 @@ describe('SimpleHashRegistrar', function() {
 	});
 
 	it('Invalidate short name', function(done) {
-		let bidData = [ {account: accounts[0], value: 1.5e18, deposit: 2e18, salt: 1, description: 'bidded before invalidation' },
-						{account: accounts[1], value: 1.0e18, deposit: 2e18, salt: 2, description: 'bidded after invalidation' }]
+		let bid = {account: accounts[0], value: 1.5e18, deposit: 2e18, salt: 1, description: 'bidded before invalidation' };
 		let invalidator = {account: accounts[2]};
 		async.series([
 			// Save initial balances 
 			function(done) {
-				async.each(bidData, function(bid, done) {
-					web3.eth.getBalance(bid.account, function(err, balance){
-						bid.startingBalance = balance.toFixed();
-						done();
-					});
-				}, done);
+				web3.eth.getBalance(bid.account, function(err, balance){
+					bid.startingBalance = balance.toFixed();
+					done();
+				});
 			},
 			// Save initial invalidator balances 
 			function(done) {
@@ -394,16 +390,14 @@ describe('SimpleHashRegistrar', function() {
 			},
 			// Place each of the bids
 			function(done) {
-				async.each(bidData, function(bid, done) {
-					registrar.shaBid(web3.sha3('name'), bid.account, bid.value, bid.salt, function(err, result) {
-						bid.sealedBid = result;
+				registrar.shaBid(web3.sha3('name'), bid.account, bid.value, bid.salt, function(err, result) {
+					bid.sealedBid = result;
+					assert.equal(err, null, err);
+					registrar.newBid(bid.sealedBid, {from: bid.account, value: bid.deposit}, function(err, txid) {
 						assert.equal(err, null, err);
-						registrar.newBid(bid.sealedBid, {from: bid.account, value: bid.deposit}, function(err, txid) {
-							assert.equal(err, null, err);
-							done();
-						});
+						done();
 					});
-				}, done);
+				});
 			},
 			// Advance 27 days to the reveal period
 			function(done) { web3.currentProvider.sendAsync({
@@ -411,13 +405,18 @@ describe('SimpleHashRegistrar', function() {
 				"method": "evm_increaseTime",
 				params: [13 * 24 * 60 * 60 + 1]}, done);
 			},
-			// Reveal the first bid
+			// Reveal the bid
 			function(done) {
-				bid = bidData[0];
 				registrar.unsealBid(web3.sha3('name'), bid.account, bid.value, bid.salt, {from: bid.account}, function(err, txid) {
 					assert.equal(err, null, err);
 					done();
-				});		
+				});
+			},
+			// Advance to the end of the auction
+			function(done) { web3.currentProvider.sendAsync({
+				jsonrpc: "2.0",
+				"method": "evm_increaseTime",
+				params: [1 * 24 * 60 * 60 + 1]}, done);
 			},
 			// Invalidate Name
 			function(done) {
@@ -433,30 +432,14 @@ describe('SimpleHashRegistrar', function() {
 					done();
 				});
 			},
-			// Reveal the second bid
-			function(done) {
-				bid = bidData[1];
-				registrar.unsealBid(web3.sha3('name'), bid.account, bid.value, bid.salt, {from: bid.account}, function(err, txid) {
-						assert.equal(err, null);
-						done();
-				});		
-			},
 			// Check balances
 			function(done) {
-				async.each(bidData, function(bid, done) {
-					web3.eth.getBalance(bid.account, function(err, balance){
-						// Sleep sort is Best sort
-						var spentFee = Math.floor(web3.fromWei(bid.startingBalance - balance.toFixed(), 'finney'));
-						
-						console.log('\t Bidder #'+ bid.salt, bid.description, 'spent:', spentFee, 'finney;');
-
-						assert.equal(spentFee, (bid.salt == 1 ? 750 : 0));
-						// console.log(spentFee == (bid.salt == 1 ? 750 : 0));
-
-						done();
-						
-					});
-				}, done);
+				web3.eth.getBalance(bid.account, function(err, balance){
+					var spentFee = Math.floor(web3.fromWei(bid.startingBalance - balance.toFixed(), 'finney'));
+					console.log('\t Bidder #'+ bid.salt, bid.description, 'spent:', spentFee, 'finney;');
+					assert.equal(spentFee, 750);
+					done();
+				});
 			},
 			// Get current invalidator balances 
 			function(done) {
