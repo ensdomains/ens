@@ -203,6 +203,120 @@ describe('SimpleHashRegistrar', function() {
 		], done);
 	});
 
+	it('calling startAuction on a finished auction has no effect', function(done) {
+		var auctionStatus = null;
+		async.series([
+			// Start an auction for 'name'
+			function(done) {
+				registrar.startAuction(web3.sha3('name'), {from: accounts[0]}, done);
+			},
+			// Place a bid on it
+			function(done) {
+				registrar.shaBid(web3.sha3('name'), accounts[0], 1e18, 1, function(err, result) {
+					assert.equal(err, null, err);
+					registrar.newBid(result, {from: accounts[0], value: 1e18}, function(Err, txid) {
+						assert.equal(err, null, err);
+						done();
+					});
+				});
+			},
+			// Advance 13 days to the reveal period
+			function(done) { web3.currentProvider.sendAsync({
+				jsonrpc: "2.0",
+				"method": "evm_increaseTime",
+				params: [13 * 24 * 60 * 60 + 1]}, done);
+			},
+			// Reveal the bid
+			function(done) {
+				registrar.unsealBid(web3.sha3('name'), accounts[0], 1e18, 1, {from: accounts[0]}, function(err, txid) {
+					assert.equal(err, null, err);
+					registrar.entries(web3.sha3('name'), function(err, result) {
+						assert.equal(err, null, err);
+						auctionStatus = result;
+						done();
+					});
+				});
+			},
+			// Advance another day to the end of the auction
+			function(done) { web3.currentProvider.sendAsync({
+				jsonrpc: "2.0",
+				"method": "evm_increaseTime",
+				params: [1 * 24 * 60 * 60]}, done);
+			},
+			// Have someone else call startAuction
+			function(done) {
+				registrar.startAuction(web3.sha3('name'), {from: accounts[0]}, done);
+			},
+			// Check that the deed is still set correctly
+			function(done) {
+				registrar.entries(web3.sha3('name'), function(err, result) {
+					assert.equal(err, null, err);
+					assert.deepEqual(auctionStatus, result);
+					done();
+				});
+			}
+		], done);
+	});
+
+	it('takes the max of declared and provided value', function(done) {
+		async.series([
+			// Start an auction for 'name'
+			function(done) {
+				registrar.startAuction(web3.sha3('name'), {from: accounts[0]}, done);
+			},
+			// Place some bids
+			function(done) {
+				registrar.shaBid(web3.sha3('name'), accounts[0], 2e18, 1, function(err, result) {
+					assert.equal(err, null, err);
+					registrar.newBid(result, {from: accounts[0], value: 1e18}, function(Err, txid) {
+						assert.equal(err, null, err);
+						done();
+					});
+				});
+			},
+			function(done) {
+				registrar.shaBid(web3.sha3('name'), accounts[1], 4e18, 1, function(err, result) {
+					assert.equal(err, null, err);
+					registrar.newBid(result, {from: accounts[1], value: 3e18}, function(Err, txid) {
+						assert.equal(err, null, err);
+						done();
+					});
+				});
+			},
+			// Advance 13 days to the reveal period
+			function(done) { web3.currentProvider.sendAsync({
+				jsonrpc: "2.0",
+				"method": "evm_increaseTime",
+				params: [13 * 24 * 60 * 60 + 1]}, done);
+			},
+			// Reveal the bids and check they're processed correctly.
+			function(done) {
+				registrar.unsealBid(web3.sha3('name'), accounts[0], 2e18, 1, {from: accounts[0]}, function(err, txid) {
+					assert.equal(err, null, err);
+					registrar.entries(web3.sha3('name'), function(err, result) {
+						assert.equal(err, null, err);
+						assert.equal(result[3], 0);
+						assert.equal(result[4], 1e18);
+						auctionStatus = result;
+						done();
+					});
+				});
+			},
+			function(done) {
+				registrar.unsealBid(web3.sha3('name'), accounts[0], 4e18, 1, {from: accounts[0]}, function(err, txid) {
+					assert.equal(err, null, err);
+					registrar.entries(web3.sha3('name'), function(err, result) {
+						assert.equal(err, null, err);
+						assert.equal(result[3], 1e18);
+						assert.equal(result[4], 2e18);
+						auctionStatus = result;
+						done();
+					});
+				});
+			}
+		], done);
+	});
+
 	it('supports transferring deeds to another registrar', function(done) {
 		var bidData = [
 			{account: accounts[0], value: 1e18, deposit: 2e18, salt: 1},
