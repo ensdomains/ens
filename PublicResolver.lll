@@ -27,8 +27,8 @@
   (def 'supports-interface 0x01ffc9a7) ; supportsInterface(bytes4)
   (def 'get-node-address   0x3b3b57de) ; addr(bytes32)
   (def 'set-node-address   0xd5fa2b00) ; setAddr(bytes32,address)
-  (def 'get-content-hash   0x2dff6941) ; hash(bytes32)
-  (def 'set-content-hash   0xc3d014d6) ; setHash(bytes32,bytes32)
+  (def 'get-content-hash   0x2dff6941) ; content(bytes32)
+  (def 'set-content-hash   0xc3d014d6) ; setContent(bytes32,bytes32)
   (def 'get-node-owner     0x02571be3) ; owner(bytes32)
 
   ;; --------------------------------------------------------------------------
@@ -84,7 +84,7 @@
   ;; @notice Looks up the content hash for the node passed in.
   ;; @param node Get the content hash for this node.
 
-  (def 'get-hash (node)
+  (def 'get-content (node)
     (sload (+ (hash-location node) content-hash)))
 
   ;; --------------------------------------------------------------------------
@@ -92,7 +92,7 @@
   ;; @param node Set the content hash for this node.
   ;; @param hash The content hash to set.
 
-  (def 'set-hash (node hash)
+  (def 'set-content (node hash)
     (sstore (+ (hash-location node) content-hash) hash))
 
   ;; --------------------------------------------------------------------------
@@ -191,7 +191,7 @@
         (seq
 
           ;; Retrieve the node's content hash.
-          (mstore scratch (get-hash node))
+          (mstore scratch (get-content node))
 
           ;; Return result.
           (return scratch 32)))
@@ -210,8 +210,8 @@
       (function set-content-hash
         (seq (only-owner node)
 
-          ;; Store the node's new hash.
-          (set-hash node hash)
+          ;; Store the node's new content hash.
+          (set-content node hash)
 
           (stop)))
 
