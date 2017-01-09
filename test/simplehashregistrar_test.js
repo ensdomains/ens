@@ -117,7 +117,7 @@ describe('SimpleHashRegistrar', function() {
 			// Deposit smaller than value
 			{description: 'Bid with deposit less than claimed value', account: accounts[4], value: 1.3e18, deposit: 1.0e17, salt: 5, expectedFee: 0.001 },
 			// Invalid - doesn't reveal
-			{description: 'Bid that wasn\'t revealed in time', account: accounts[5], value: 1.4e18, deposit: 2.0e18, salt: 6, expectedFee: 1.4285 }
+			{description: 'Bid that wasn\'t revealed in time', account: accounts[5], value: 1.4e18, deposit: 2.0e18, salt: 6, expectedFee: 1.0 }
 		];
 		async.series([
 			// Save initial balances 
@@ -128,7 +128,8 @@ describe('SimpleHashRegistrar', function() {
 						done();
 					});
 				}, done);
-			},			// Start an auction for 'name'
+			},
+			// Start an auction for 'name'
 			function(done) {
 				registrar.startAuction(web3.sha3('name'), {from: accounts[0]}, done);
 			},
@@ -174,7 +175,7 @@ describe('SimpleHashRegistrar', function() {
 			function(done) {
 				bid = bidData[5];
 				registrar.unsealBid(web3.sha3('name'), bid.account, bid.value, bid.salt, {from: bid.account}, function(err, txid) {
-					assert.ok(err.toString().indexOf(utils.INVALID_JUMP) != -1, err);
+					assert.equal(err, null, err);
 					done();
 				});
 			},

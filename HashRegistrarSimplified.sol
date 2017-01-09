@@ -312,7 +312,7 @@ contract Registrar {
      * @param _value The bid amount in the sealedBid
      * @param _salt The sale in the sealedBid
      */ 
-    function unsealBid(bytes32 _hash, address _owner, uint _value, bytes32 _salt) inState(_hash, Mode.Reveal) {
+    function unsealBid(bytes32 _hash, address _owner, uint _value, bytes32 _salt) {
         bytes32 seal = shaBid(_hash, _owner, _value, _salt);
         Deed bid = sealedBids[seal];
         if (address(bid) == 0 ) throw;
@@ -320,9 +320,17 @@ contract Registrar {
         bid.setOwner(_owner);
         entry h = _entries[_hash];
         uint actualValue = min(_value, bid.balance);
-        bid.setBalance(actualValue);            
+        bid.setBalance(actualValue);
 
-        if (_value < minPrice) {
+        var auctionState = state(_hash);
+        if(auctionState == Mode.Owned) {
+            // Too late! Bidder loses their bid.
+            bid.closeDeed(0);
+            BidRevealed(_hash, _owner, actualValue, 1);
+        } else if(auctionState != Mode.Reveal) {
+            // Invalid phase
+            throw;
+        } else if (_value < minPrice) {
             // Bid too low, refund 99.9%
             bid.closeDeed(999);
             BidRevealed(_hash, _owner, actualValue, 0);
