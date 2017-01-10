@@ -162,6 +162,7 @@ contract Registrar {
     
     modifier registryOpen() {
         if(now > registryCreated + 4 years) throw;
+        if(ens.owner(rootNode) != address(this)) throw;
         _;
     }
     
@@ -251,7 +252,11 @@ contract Registrar {
      *
      * @param _hash The hash to start an auction on
      */    
-    function startAuction(bytes32 _hash) inState(_hash, Mode.Open) registryOpen() {
+    function startAuction(bytes32 _hash) registryOpen() {
+        _startAuction(_hash);
+    }
+
+    function _startAuction(bytes32 _hash) inState(_hash, Mode.Open) {
         entry newAuction = _entries[_hash];
 
         // for the first month of the registry, make longer auctions
@@ -265,7 +270,7 @@ contract Registrar {
      * @dev Start multiple auctions for better anonymity
      * @param _hashes An array of hashes, at least one of which you presumably want to bid on
      */
-    function startAuctions(bytes32[] _hashes)  {
+    function startAuctions(bytes32[] _hashes) registryOpen() {
         for (uint i = 0; i < _hashes.length; i ++ ) {
             startAuction(_hashes[i]);
         }

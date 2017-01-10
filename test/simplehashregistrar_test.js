@@ -530,4 +530,18 @@ describe('SimpleHashRegistrar', function() {
 			}
 		], done);		
 	});
+
+	it("doesn't allow opening auctions if it's not the owner of the node in ENS", function(done) {
+		async.series([
+			function(done) {
+				ens.setSubnodeOwner(0, web3.sha3('eth'), accounts[0], {from: accounts[0]}, done);
+			},
+			function(done) {
+				registrar.startAuction(web3.sha3('foobar'), {from: accounts[0]}, function(err, result) {
+					assert.ok(err.toString().indexOf(utils.INVALID_JUMP) != -1, err);
+					done();
+				});
+			}
+		], done);
+	});
 });
