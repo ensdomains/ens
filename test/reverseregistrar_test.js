@@ -5,10 +5,14 @@ var utils = require('./utils.js');
 var web3 = utils.web3;
 
 var accounts = null;
+var node = null;
 
 before(function(done) {
     web3.eth.getAccounts(function(err, acct) {
         accounts = acct
+        node = web3.sha3('0000000000000000000000000000000000000000000000000000000000000000'
+                         + web3.sha3(accounts[0].slice(2).toLowerCase()).slice(2),
+                         {encoding: 'hex'});
         done();
     });
 });
@@ -44,10 +48,10 @@ describe('ReverseRegistrar', function() {
         );
     });
 
-    it('calculates hashes correctly', function(done) {
-        registrar.sha3HexAddress(accounts[0], function(err, hash) {
+    it('calculates node hashes correctly', function(done) {
+        registrar.node(accounts[0], function(err, hash) {
             assert.equal(err, null, err);
-            assert.equal(hash, web3.sha3(accounts[0].slice(2).toLowerCase()));
+            assert.equal(hash, node);
             done();
         });
     });
@@ -58,9 +62,6 @@ describe('ReverseRegistrar', function() {
                 registrar.claim(accounts[1], {from: accounts[0]}, done);
             },
             function(done) {
-                var node = web3.sha3('0000000000000000000000000000000000000000000000000000000000000000'
-                                     + web3.sha3(accounts[0].slice(2).toLowerCase()).slice(2),
-                                     {encoding: 'hex'});
                 ens.owner(node, function(err, result) {
                     assert.equal(err, null, err);
                     assert.equal(result, accounts[1]);

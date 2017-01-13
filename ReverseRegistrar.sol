@@ -29,13 +29,22 @@ contract ReverseRegistrar {
     }
 
     /**
+     * @dev Returns the node hash for a given account's reverse records.
+     * @param addr The address to hash
+     * @return The ENS node hash.
+     */
+    function node(address addr) constant returns (bytes32 ret) {
+        return sha3(rootNode, sha3HexAddress(addr));
+    }
+
+    /**
      * @dev An optimised function to compute the sha3 of the lower-case
      *      hexadecimal representation of an Ethereum address.
      * @param addr The address to hash
      * @return The SHA3 hash of the lower-case hexadecimal encoding of the
      *         input address.
      */
-    function sha3HexAddress(address addr) constant returns (bytes32 ret) {
+    function sha3HexAddress(address addr) private returns (bytes32 ret) {
         assembly {
             let lookup := 0x3031323334353637383961626364656600000000000000000000000000000000
             let i := 40
