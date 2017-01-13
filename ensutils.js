@@ -962,6 +962,86 @@ var resolverContract = web3.eth.contract([
 var publicResolver = resolverContract.at('0x4c641fb9bad9b60ef180c31f56051ce826d21a9a');
 
 
+var reverseRegistrarContract = web3.eth.contract([
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "owner",
+        "type": "address"
+      }
+    ],
+    "name": "claim",
+    "outputs": [
+      {
+        "name": "node",
+        "type": "bytes32"
+      }
+    ],
+    "payable": false,
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "ens",
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "payable": false,
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "addr",
+        "type": "address"
+      }
+    ],
+    "name": "node",
+    "outputs": [
+      {
+        "name": "ret",
+        "type": "bytes32"
+      }
+    ],
+    "payable": false,
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "rootNode",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "payable": false,
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "name": "ensAddr",
+        "type": "address"
+      },
+      {
+        "name": "node",
+        "type": "bytes32"
+      }
+    ],
+    "payable": false,
+    "type": "constructor"
+  }
+]);
+var reverseRegistrar = reverseRegistrarContract.at(ens.owner(namehash('addr.reverse')));
+
 function getAddr(name) {
   var node = namehash(name)
   var resolverAddress = ens.resolver(node);

@@ -15,6 +15,7 @@ Welcome to ENS's documentation!
    testnames
    interacting
    resolving
+   reverse
    deploying
    dns
    faq
