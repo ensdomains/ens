@@ -168,9 +168,9 @@ contract Registrar {
             if(entry.highestBid == 0 && now < registryCreated + upgradeDeadline) {
                 // If it seems open, check the previous registrar 
                 var (previousStatus, , previousRegistration, , ) = previousRegistrar.entries(_hash);
-                // Only valid one week after this registry was started
+                // Only valid one week after this registry was started (maybe replace with .eth ownership check?)
                 if (previousRegistration < registryCreated + auctionLength) {
-                    return previousStatus;
+                    return Mode(previousStatus);
                 } else {
                     return Mode.Open;
                 }
@@ -195,7 +195,8 @@ contract Registrar {
     }
     
     modifier registryOpen() {
-        if(now > registryCreated + 4 years) throw;
+        if(now > registryCreated + 4 years
+            || this !== ens.owner(rootNode) ) throw;
         _;
     }
     
