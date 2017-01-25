@@ -94,8 +94,8 @@ contract Deed {
 
 
 /**
- * @title Registrar
- * @dev The registrar handles the auction process for each subnode of the node it owns.
+ * @title Previous Registrar
+ * @dev The old registrar interface, for an upgrade path.
  */
 contract PreviousRegistrar {
     mapping (bytes32 => entry) public entries;
@@ -134,6 +134,7 @@ contract Registrar {
     uint32 constant upgradeDeadline = 52 weeks;
     uint constant minPrice = 0.01 ether;
     uint public registryCreated;
+    uint public activationDate;
 
     event AuctionStarted(bytes32 indexed hash, uint auctionExpiryDate);
     event NewBid(bytes32 indexed hash, uint deposit);
@@ -169,7 +170,7 @@ contract Registrar {
                 // If it seems open, check the previous registrar 
                 var (previousStatus, , previousRegistration, , ) = previousRegistrar.entries(_hash);
                 // Only valid one week after this registry was started (maybe replace with .eth ownership check?)
-                if (previousRegistration < registryCreated + auctionLength) {
+                if (previousRegistration < activationDate) {
                     return Mode(previousStatus);
                 } else {
                     return Mode.Open;
@@ -215,6 +216,17 @@ contract Registrar {
         rootNode = _rootNode;
         previousRegistrar = PreviousRegistrar(ens.owner(rootNode));
         registryCreated = now;
+    }
+
+    /**
+     * @dev Activate it once it's the rootnode owner.
+     * @param _ens The address of the ENS
+     * @param _rootNode The hash of the rootnode.
+     */
+    function activateRegistrar() {
+        if (this !== ens.owner(rootNode)
+            || activationDate !== 0) throw;
+        activationDate = now + 7 days;
     }
 
     /**
