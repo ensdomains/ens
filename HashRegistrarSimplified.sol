@@ -169,7 +169,7 @@ contract Registrar {
             if(entry.highestBid == 0 && now < registryCreated + upgradeDeadline) {
                 // If it seems open, check the previous registrar 
                 var (previousStatus, , previousRegistration, , ) = previousRegistrar.entries(_hash);
-                // Only valid one week after this registry was started (maybe replace with .eth ownership check?)
+                // Checks the activation date
                 if (previousRegistration < activationDate) {
                     return Mode(previousStatus);
                 } else {
