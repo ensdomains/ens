@@ -92,6 +92,30 @@ contract Deed {
     function () payable {}
 }
 
+
+/**
+ * @title Registrar
+ * @dev The registrar handles the auction process for each subnode of the node it owns.
+ */
+contract PreviousRegistrar {
+    mapping (bytes32 => entry) public entries;
+
+    struct entry {
+        uint status;
+        Deed deed;
+        uint registrationDate;
+        uint value;
+        uint highestBid;
+    }
+
+    // Only exists for testing purposes
+    function register (bytes32 _hash) {
+        entry e = entries[_hash];
+        e.status = 2;
+        e.registrationDate = now;
+    }
+}
+
 /**
  * @title Registrar
  * @dev The registrar handles the auction process for each subnode of the node it owns.
@@ -99,6 +123,7 @@ contract Deed {
 contract Registrar {
     AbstractENS public ens;
     bytes32 public rootNode;
+    PreviousRegistrar public previousRegistrar;
 
     mapping (bytes32 => entry) _entries;
     mapping (bytes32 => Deed) public sealedBids;
@@ -106,7 +131,7 @@ contract Registrar {
     enum Mode { Open, Auction, Owned, Forbidden, Reveal }
     uint32 constant auctionLength = 7 days;
     uint32 constant revealPeriod = 24 hours;
-    uint32 constant initialAuctionPeriod = 2 weeks;
+    uint32 constant upgradeDeadline = 52 weeks;
     uint constant minPrice = 0.01 ether;
     uint public registryCreated;
 
@@ -140,7 +165,16 @@ contract Registrar {
                 return Mode.Reveal;
             }
         } else {
-            if(entry.highestBid == 0) {
+            if(entry.highestBid == 0 && now < registryCreated + upgradeDeadline) {
+                // If it seems open, check the previous registrar 
+                var (previousStatus, , previousRegistration, , ) = previousRegistrar.entries(_hash);
+                // Only valid one week after this registry was started
+                if (previousRegistration < registryCreated + auctionLength) {
+                    return previousStatus;
+                } else {
+                    return Mode.Open;
+                }
+            } else if(entry.highestBid == 0) {
                 return Mode.Open;
             } else if(entry.deed == Deed(0)) {
                 return Mode.Forbidden;
@@ -175,9 +209,10 @@ contract Registrar {
      * @param _ens The address of the ENS
      * @param _rootNode The hash of the rootnode.
      */
-    function Registrar(address _ens, bytes32 _rootNode) {
+    function Registrar(address _ens, bytes32 _rootNode, address _previousRegistrar) {
         ens = AbstractENS(_ens);
         rootNode = _rootNode;
+        previousRegistrar = PreviousRegistrar(_previousRegistrar);
         registryCreated = now;
     }
 
@@ -255,7 +290,7 @@ contract Registrar {
         entry newAuction = _entries[_hash];
 
         // for the first month of the registry, make longer auctions
-        newAuction.registrationDate = max(now + auctionLength, registryCreated + initialAuctionPeriod);
+        newAuction.registrationDate = now + auctionLength;
         newAuction.value = 0;
         newAuction.highestBid = 0;
         AuctionStarted(_hash, newAuction.registrationDate);      
@@ -368,7 +403,7 @@ contract Registrar {
         Deed bid = sealedBids[seal];
         // If the bid hasn't been revealed after any possible auction date, then close it
         if (address(bid) == 0 
-            || now < bid.creationDate() + initialAuctionPeriod 
+            || now < bid.creationDate() + auctionLength * 2 
             || bid.owner() > 0) throw;
 
         // There is a fee for cancelling an old bid, but it's smaller than revealing it
