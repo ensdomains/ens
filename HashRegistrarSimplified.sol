@@ -210,10 +210,10 @@ contract Registrar {
      * @param _ens The address of the ENS
      * @param _rootNode The hash of the rootnode.
      */
-    function Registrar(address _ens, bytes32 _rootNode, address _previousRegistrar) {
+    function Registrar(address _ens, bytes32 _rootNode) {
         ens = AbstractENS(_ens);
         rootNode = _rootNode;
-        previousRegistrar = PreviousRegistrar(_previousRegistrar);
+        previousRegistrar = PreviousRegistrar(ens.owner(rootNode));
         registryCreated = now;
     }
 
