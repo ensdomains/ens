@@ -17,6 +17,6 @@
   "homepage": "https://github.com/Arachnid/ens#readme",
   "dependencies": {
     "ethereumjs-testrpc": "^2.2.4",
-    "solc": "^0.4.1"
+    "solc": "^0.4.9"
   }
 }
