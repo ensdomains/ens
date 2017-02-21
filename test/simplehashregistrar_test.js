@@ -514,7 +514,7 @@ describe('SimpleHashRegistrar', function() {
 			},
 			// Update ENS with a new registrar
 			function(done) {
-				ens.setSubnodeOwner(0, web3.sha3('eth'), accounts[0], {from: accounts[0]}, done);
+				ens.setSubnodeOwner(0, web3.sha3('eth'), accounts[2], {from: accounts[0]}, done);
 			},
 			// Transfer the deed
 			function(done) {
@@ -522,12 +522,81 @@ describe('SimpleHashRegistrar', function() {
 			},
 			// Check the deed was transferred as expected
 			function(done) {
-				web3.eth.contract(deedABI).at(deedAddress).owner(function(err, owner) {
+				web3.eth.contract(deedABI).at(deedAddress).registrar(function(err, owner) {
 					assert.equal(err, null, err);
-					assert.equal(accounts[0], owner);
+					assert.equal(accounts[2], owner);
 					done();
 				});
 			}
 		], done);		
+	});
+
+	it('supports transferring domains to another account', function(done) {
+		var bidData = [
+			{account: accounts[0], value: 1e18, deposit: 2e18, salt: 1},
+		];
+		var deedAddress = null;
+		async.series([
+			// Start an auction for 'name'
+			function(done) {
+				registrar.startAuction(web3.sha3('name'), {from: accounts[0]}, done);
+			},
+			// Place each of the bids
+			function(done) {
+				registrar.shaBid(web3.sha3('name'), accounts[0], 1e18, 1, function(err, result) {
+					var sealedBid = result;
+					assert.equal(err, null, err);
+					registrar.newBid(sealedBid, {from: accounts[0], value: 2e18}, function(err, txid) {
+						assert.equal(err, null, err);
+						done();
+					});
+				});
+			},
+			// Advance 27 days to the reveal period
+			function(done) { web3.currentProvider.sendAsync({
+				jsonrpc: "2.0",
+				"method": "evm_increaseTime",
+				params: [13 * 24 * 60 * 60 + 1]}, done);
+			},
+			// Reveal the bid
+			function(done) {
+				registrar.unsealBid(web3.sha3('name'), accounts[0], 1e18, 1, {from: accounts[0]}, function(err, txid) {
+					assert.equal(err, null, err);
+					done();
+				});
+			},
+			// Advance another day to the end of the auction
+			function(done) { web3.currentProvider.sendAsync({
+				jsonrpc: "2.0",
+				"method": "evm_increaseTime",
+				params: [1 * 24 * 60 * 60]}, done);
+			},
+			// Finalize the auction and get the deed address
+			function(done) {
+				registrar.finalizeAuction(web3.sha3('name'), {from: accounts[0]}, function(err, txid) {
+					assert.equal(err, null, err);
+					registrar.entries(web3.sha3('name'), function(err, result) {
+						assert.equal(err, null, err);
+						deedAddress = result[1];
+						done();
+					});
+				});
+			},
+			// Transfer ownership to another account
+			function(done) {
+				registrar.transfer(web3.sha3('name'), accounts[1], {from: accounts[0]}, function(err, txid) {
+					assert.equal(err, null, err);
+					done();
+				});
+			},
+			// Check the new owner was set on the deed
+			function(done) {
+				web3.eth.contract(deedABI).at(deedAddress).owner(function(err, owner) {
+					assert.equal(err, null, err);
+					assert.equal(accounts[1], owner);
+					done();
+				});
+			}
+		], done);
 	});
 });

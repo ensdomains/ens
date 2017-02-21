@@ -11,11 +11,9 @@ Welcome to ENS's documentation!
    :caption: Contents:
 
    introduction
-   auctions
-   testnames
-   interacting
-   resolving
-   reverse
+   quickstart
+   userguide
+   implementers
    deploying
    dns
    faq
