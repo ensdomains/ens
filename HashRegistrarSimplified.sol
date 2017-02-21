@@ -104,18 +104,18 @@ contract Registrar {
     mapping (bytes32 => Deed) public sealedBids;
     
     enum Mode { Open, Auction, Owned, Forbidden, Reveal }
-    uint32 constant auctionLength = 7 days;
-    uint32 constant revealPeriod = 24 hours;
-    uint32 constant initialAuctionPeriod = 2 weeks;
+    uint32 constant auctionLength = 5 days;
+    uint32 constant revealPeriod = 48 hours;
+    uint32 constant initialAuctionPeriod = 4 weeks;
     uint constant minPrice = 0.01 ether;
     uint public registryCreated;
 
-    event AuctionStarted(bytes32 indexed hash, uint auctionExpiryDate);
+    event AuctionStarted(bytes32 indexed hash, uint registrationDate);
     event NewBid(bytes32 indexed hash, uint deposit);
     event BidRevealed(bytes32 indexed hash, address indexed owner, uint value, uint8 status);
-    event HashRegistered(bytes32 indexed hash, address indexed owner, uint value, uint now);
+    event HashRegistered(bytes32 indexed hash, address indexed owner, uint value, uint registrationDate);
     event HashReleased(bytes32 indexed hash, uint value);
-    event HashInvalidated(bytes32 indexed hash, string indexed name, uint value, uint now);
+    event HashInvalidated(bytes32 indexed hash, string indexed name, uint value, uint registrationDate);
 
     struct entry {
         Deed deed;
@@ -392,7 +392,7 @@ contract Registrar {
 
         Deed deedContract = h.deed;
         deedContract.setBalance(h.value);
-        HashRegistered(_hash, deedContract.owner(), h.value, now);
+        HashRegistered(_hash, deedContract.owner(), h.value, h.registrationDate);
     }
 
     /**
@@ -447,7 +447,7 @@ contract Registrar {
             h.deed.setOwner(msg.sender);
             h.deed.closeDeed(1000);
         }
-        HashInvalidated(hash, unhashedName, h.value, now);
+        HashInvalidated(hash, unhashedName, h.value, h.registrationDate);
         h.deed = Deed(0);
     }
 
