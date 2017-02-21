@@ -64,7 +64,7 @@ describe('SimpleHashRegistrar', function() {
 					assert.equal(err, null, err);
 					assert.equal(result[0], 1); // status == Auction
 					assert.equal(result[1], 0); // deed == 0x00
-					var dateDiff = Math.abs(result[2].toNumber() - new Date().getTime() / 1000 - 14 * 24 * 60 * 60);
+					var dateDiff = Math.abs(result[2].toNumber() - new Date().getTime() / 1000 - 28 * 24 * 60 * 60);
 					assert.ok(dateDiff < 5, dateDiff); // registrationDate
 					assert.equal(result[3], 0); // value = 0
 					assert.equal(result[4], 0); // highestBid = 0
@@ -146,11 +146,11 @@ describe('SimpleHashRegistrar', function() {
 					});
 				}, done);
 			},
-			// Advance 27 days to the reveal period
+			// Advance 26 days to the reveal period
 			function(done) { web3.currentProvider.sendAsync({
 				jsonrpc: "2.0",
 				"method": "evm_increaseTime",
-				params: [13 * 24 * 60 * 60 + 1]}, done);
+				params: [26 * 24 * 60 * 60 + 1]}, done);
 			},
 			// Reveal all the bids
 			function(done) {
@@ -165,11 +165,11 @@ describe('SimpleHashRegistrar', function() {
 					}
 				}, done);
 			},
-			// Advance another day to the end of the auction
+			// Advance another two days to the end of the auction
 			function(done) { web3.currentProvider.sendAsync({
 				jsonrpc: "2.0",
 				"method": "evm_increaseTime",
-				params: [1 * 24 * 60 * 60]}, done);
+				params: [48 * 60 * 60]}, done);
 			},
 			// Reveal last bid
 			function(done) {
@@ -253,11 +253,11 @@ describe('SimpleHashRegistrar', function() {
 					});
 				});
 			},
-			// Advance 13 days to the reveal period
+			// Advance 26 days to the reveal period
 			function(done) { web3.currentProvider.sendAsync({
 				jsonrpc: "2.0",
 				"method": "evm_increaseTime",
-				params: [13 * 24 * 60 * 60 + 1]}, done);
+				params: [26 * 24 * 60 * 60 + 1]}, done);
 			},
 			// Reveal the bid
 			function(done) {
@@ -270,11 +270,11 @@ describe('SimpleHashRegistrar', function() {
 					});
 				});
 			},
-			// Advance another day to the end of the auction
+			// Advance another two days to the end of the auction
 			function(done) { web3.currentProvider.sendAsync({
 				jsonrpc: "2.0",
 				"method": "evm_increaseTime",
-				params: [1 * 24 * 60 * 60]}, done);
+				params: [48 * 60 * 60]}, done);
 			},
 			// Have someone else call startAuction
 			function(done) {
@@ -319,11 +319,11 @@ describe('SimpleHashRegistrar', function() {
 					});
 				});
 			},
-			// Advance 13 days to the reveal period
+			// Advance 26 days to the reveal period
 			function(done) { web3.currentProvider.sendAsync({
 				jsonrpc: "2.0",
 				"method": "evm_increaseTime",
-				params: [13 * 24 * 60 * 60 + 1]}, done);
+				params: [26 * 24 * 60 * 60 + 1]}, done);
 			},
 			// Reveal the bids and check they're processed correctly.
 			function(done) {
@@ -400,11 +400,11 @@ describe('SimpleHashRegistrar', function() {
 					});
 				});
 			},
-			// Advance 27 days to the reveal period
+			// Advance 26 days to the reveal period
 			function(done) { web3.currentProvider.sendAsync({
 				jsonrpc: "2.0",
 				"method": "evm_increaseTime",
-				params: [13 * 24 * 60 * 60 + 1]}, done);
+				params: [26 * 24 * 60 * 60 + 1]}, done);
 			},
 			// Reveal the bid
 			function(done) {
@@ -417,7 +417,7 @@ describe('SimpleHashRegistrar', function() {
 			function(done) { web3.currentProvider.sendAsync({
 				jsonrpc: "2.0",
 				"method": "evm_increaseTime",
-				params: [1 * 24 * 60 * 60 + 1]}, done);
+				params: [48 * 60 * 60 + 1]}, done);
 			},
 			// Invalidate Name
 			function(done) {
@@ -482,11 +482,11 @@ describe('SimpleHashRegistrar', function() {
 					});
 				});
 			},
-			// Advance 27 days to the reveal period
+			// Advance 26 days to the reveal period
 			function(done) { web3.currentProvider.sendAsync({
 				jsonrpc: "2.0",
 				"method": "evm_increaseTime",
-				params: [13 * 24 * 60 * 60 + 1]}, done);
+				params: [26 * 24 * 60 * 60 + 1]}, done);
 			},
 			// Reveal the bid
 			function(done) {
@@ -495,11 +495,11 @@ describe('SimpleHashRegistrar', function() {
 					done();
 				});
 			},
-			// Advance another day to the end of the auction
+			// Advance another two days to the end of the auction
 			function(done) { web3.currentProvider.sendAsync({
 				jsonrpc: "2.0",
 				"method": "evm_increaseTime",
-				params: [1 * 24 * 60 * 60]}, done);
+				params: [48 * 60 * 60]}, done);
 			},
 			// Finalize the auction and get the deed address
 			function(done) {
@@ -552,11 +552,11 @@ describe('SimpleHashRegistrar', function() {
 					});
 				});
 			},
-			// Advance 27 days to the reveal period
+			// Advance 26 days to the reveal period
 			function(done) { web3.currentProvider.sendAsync({
 				jsonrpc: "2.0",
 				"method": "evm_increaseTime",
-				params: [13 * 24 * 60 * 60 + 1]}, done);
+				params: [26 * 24 * 60 * 60 + 1]}, done);
 			},
 			// Reveal the bid
 			function(done) {
@@ -565,11 +565,11 @@ describe('SimpleHashRegistrar', function() {
 					done();
 				});
 			},
-			// Advance another day to the end of the auction
+			// Advance another two days to the end of the auction
 			function(done) { web3.currentProvider.sendAsync({
 				jsonrpc: "2.0",
 				"method": "evm_increaseTime",
-				params: [1 * 24 * 60 * 60]}, done);
+				params: [48 * 60 * 60]}, done);
 			},
 			// Finalize the auction and get the deed address
 			function(done) {
