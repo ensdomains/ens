@@ -21,7 +21,7 @@ describe('FIFSRegistrar', function() {
 
 	before(function() {
 		this.timeout(10000);
-		registrarCode = utils.compileContract(['interface.sol', 'FIFSRegistrar.sol']).contracts['FIFSRegistrar'];
+		registrarCode = utils.compileContract(['interface.sol', 'FIFSRegistrar.sol']).contracts['FIFSRegistrar.sol:FIFSRegistrar'];
 	});
 
 	beforeEach(function(done) {
