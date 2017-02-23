@@ -108,7 +108,7 @@ contract Registrar {
     uint32 constant revealPeriod = 48 hours;
     uint32 constant initialAuctionPeriod = 4 weeks;
     uint constant minPrice = 0.01 ether;
-    uint public registryCreated;
+    uint public registryStarted;
 
     event AuctionStarted(bytes32 indexed hash, uint registrationDate);
     event NewBid(bytes32 indexed hash, uint deposit);
@@ -161,7 +161,7 @@ contract Registrar {
     }
     
     modifier registryOpen() {
-        if(now > registryCreated + 4 years) throw;
+        if(now < registryStarted  || now > registryStarted + 4 years) throw;
         _;
     }
     
@@ -175,10 +175,10 @@ contract Registrar {
      * @param _ens The address of the ENS
      * @param _rootNode The hash of the rootnode.
      */
-    function Registrar(address _ens, bytes32 _rootNode) {
+    function Registrar(address _ens, bytes32 _rootNode, uint _startDate) {
         ens = AbstractENS(_ens);
         rootNode = _rootNode;
-        registryCreated = now;
+        registryStarted = _startDate > 0 ? _startDate : now;
     }
 
     /**
@@ -255,7 +255,7 @@ contract Registrar {
         entry newAuction = _entries[_hash];
 
         // for the first month of the registry, make longer auctions
-        newAuction.registrationDate = max(now + auctionLength, registryCreated + initialAuctionPeriod);
+        newAuction.registrationDate = max(now + auctionLength, registryStarted + initialAuctionPeriod);
         newAuction.value = 0;
         newAuction.highestBid = 0;
         AuctionStarted(_hash, newAuction.registrationDate);      
@@ -414,7 +414,7 @@ contract Registrar {
         entry h = _entries[_hash];
         Deed deedContract = h.deed;
         if (now < h.registrationDate + 1 years 
-            || now > registryCreated + 8 years) throw;
+            || now > registryStarted + 8 years) throw;
 
         HashReleased(_hash, h.value);
         
