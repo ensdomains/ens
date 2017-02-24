@@ -83,9 +83,8 @@ contract Deed {
      */
     function destroyDeed() {
         if (active) throw;
-        if(owner.send(this.balance)) 
+        if(owner.send(this.balance))
             selfdestruct(burn);
-        else throw;
     }
 
     // The default function just receives an amount
@@ -371,7 +370,7 @@ contract Registrar {
             || now < bid.creationDate() + initialAuctionPeriod 
             || bid.owner() > 0) throw;
 
-        // There is a fee for cancelling an old bid, but it's smaller than revealing it
+        // Send the canceller 0.5% of the bid, and burn the rest.
         bid.setOwner(msg.sender);
         bid.closeDeed(5);
         sealedBids[seal] = Deed(0);
