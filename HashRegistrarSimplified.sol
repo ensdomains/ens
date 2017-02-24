@@ -88,7 +88,7 @@ contract Deed {
     }
 
     // The default function just receives an amount
-    function () payable {}
+    function () payable onlyRegistrar {}
 }
 
 /**
@@ -297,6 +297,7 @@ contract Registrar {
      */
     function newBid(bytes32 sealedBid) payable {
         if (address(sealedBids[sealedBid]) > 0 ) throw;
+        if (msg.value < minPrice) throw;
         // creates a new hash contract with the owner
         Deed newBid = new Deed();
         sealedBids[sealedBid] = newBid;
