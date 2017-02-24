@@ -599,4 +599,66 @@ describe('SimpleHashRegistrar', function() {
 			}
 		], done);
 	});
+
+	it('prohibits late funding of bids', function(done) {
+		let bid = {account: accounts[0], value: 1.5e18, deposit: 1e17, salt: 1, description: 'underfunded bid' };
+		async.series([
+			// Save initial balances 
+			function(done) {
+				web3.eth.getBalance(bid.account, function(err, balance){
+					bid.startingBalance = balance.toFixed();
+					done();
+				});
+			},
+			function(done) {
+				// Start auction
+				registrar.startAuction(web3.sha3('longname'), {from: accounts[0]}, done);
+			},
+			// Place the bid
+			function(done) {
+				registrar.shaBid(web3.sha3('longname'), bid.account, bid.value, bid.salt, function(err, result) {
+					bid.sealedBid = result;
+					assert.equal(err, null, err);
+					registrar.newBid(bid.sealedBid, {from: bid.account, value: bid.deposit}, function(err, txid) {
+						assert.equal(err, null, err);
+						done();
+					});
+				});
+			},
+			// Advance 26 days to the reveal period
+			function(done) { web3.currentProvider.sendAsync({
+				jsonrpc: "2.0",
+				"method": "evm_increaseTime",
+				params: [26 * 24 * 60 * 60 + 1]}, done);
+			},
+			// Sneakily top up the bid
+			function(done) {
+				registrar.sealedBids(bid.sealedBid, function(err, result) {
+					assert.equal(err, null, err);
+					web3.eth.sendTransaction({from: accounts[0], to: result, value: 2e18}, function(err, txid) {
+						web3.eth.getBalance(result, function(err, balance) {
+							console.log("Balance: " + balance);
+							done();
+						});
+					});
+				});
+			},
+			// Reveal the bid
+			function(done) {
+				registrar.unsealBid(web3.sha3('longname'), bid.account, bid.value, bid.salt, {from: bid.account}, function(err, txid) {
+					assert.equal(err, null, err);
+					done();
+				});
+			},
+			// Check balance
+			function(done) {
+				web3.eth.getBalance(bid.account, function(err, balance){
+					var spentFee = Math.floor(web3.fromWei(bid.startingBalance - balance.toFixed(), 'finney'));
+					console.log('\t Bidder #'+ bid.salt, bid.description, 'spent:', spentFee, 'finney;');
+					assert.equal(spentFee, 100);
+					done();
+				});
+			}
+		], done);
+	});
 });

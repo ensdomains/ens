@@ -28,6 +28,7 @@ contract Deed {
     uint public creationDate;
     address public owner;
     address public previousOwner;
+    uint public value;
     event OwnerChanged(address newOwner);
     event DeedClosed();
     bool active;
@@ -43,10 +44,11 @@ contract Deed {
         _;
     }
 
-    function Deed() {
+    function Deed(uint _value) {
         registrar = msg.sender;
         creationDate = now;
         active = true;
+        value = _value;
     }
         
     function setOwner(address newOwner) onlyRegistrar {
@@ -62,7 +64,8 @@ contract Deed {
     
     function setBalance(uint newValue) onlyRegistrar onlyActive payable {
         // Check if it has enough balance to set the value
-        if (this.balance < newValue) throw;
+        if (value < newValue) throw;
+        value = newValue;
         // Send the difference to the owner
         if (!owner.send(this.balance - newValue)) throw;
     }
@@ -88,7 +91,7 @@ contract Deed {
     }
 
     // The default function just receives an amount
-    function () payable onlyRegistrar {}
+    function () payable {}
 }
 
 /**
@@ -299,7 +302,7 @@ contract Registrar {
         if (address(sealedBids[sealedBid]) > 0 ) throw;
         if (msg.value < minPrice) throw;
         // creates a new hash contract with the owner
-        Deed newBid = new Deed();
+        Deed newBid = new Deed(msg.value);
         sealedBids[sealedBid] = newBid;
         NewBid(sealedBid, msg.value);
         if (!newBid.send(msg.value)) throw;
@@ -319,7 +322,7 @@ contract Registrar {
         sealedBids[seal] = Deed(0);
         bid.setOwner(_owner);
         entry h = _entries[_hash];
-        uint actualValue = min(_value, bid.balance);
+        uint actualValue = min(_value, bid.value());
         bid.setBalance(actualValue);
 
         var auctionState = state(_hash);
@@ -443,7 +446,7 @@ contract Registrar {
         if(address(h.deed) != 0) {
             // Reward the discoverer with 50% of the deed
             // The previous owner gets nothing
-            h.deed.setBalance(h.deed.balance/2);
+            h.deed.setBalance(h.deed.value()/2);
             h.deed.setOwner(msg.sender);
             h.deed.closeDeed(1000);
         }
