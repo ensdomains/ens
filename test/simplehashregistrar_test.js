@@ -353,7 +353,7 @@ describe('SimpleHashRegistrar', function() {
 		], done);
 	});
 
-	it('Invalidate short name', function(done) {
+	it('invalidate short names', function(done) {
 		let bid = {account: accounts[0], value: 1.5e18, deposit: 2e18, salt: 1, description: 'bidded before invalidation' };
 		let invalidator = {account: accounts[2]};
 		async.series([
