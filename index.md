@@ -13,6 +13,6 @@ ENS domains exist under the ".eth" top level domain, and anyone can register one
  - [Register a domain](http://registrar.ens.domains/)
  - [Developer documentation](http://docs.ens.domains/)
  
- ## Contact
+## Contact
 
  For more information about ENS, or to help us develop and expand it, join our [Gitter channel](https://gitter.im/ethereum/go-ethereum/name-registry).
