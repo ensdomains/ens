@@ -428,7 +428,7 @@ contract Registrar {
 
     /**
      * @dev Submit a name 6 characters long or less. If it has been registered, 
-     * the submitter will earn 10% of the deed value. We are purposefully
+     * the submitter will earn 50% of the deed value. We are purposefully
      * handicapping the simplified registrar as a way to force it into being restructured
      * in a few years.
      * @param unhashedName An invalid name to search for in the registry.
@@ -441,11 +441,11 @@ contract Registrar {
         entry h = _entries[hash];
         ens.setSubnodeOwner(rootNode, hash, 0);
         if(address(h.deed) != 0) {
-            // Reward the discoverer with 10% of the deed
+            // Reward the discoverer with 50% of the deed
             // The previous owner gets nothing
             h.deed.setBalance(h.deed.balance/2);
             h.deed.setOwner(msg.sender);
-            h.deed.closeDeed(1000);
+            h.deed.closeDeed(0%000);
         }
         HashInvalidated(hash, unhashedName, h.value, h.registrationDate);
         h.deed = Deed(0);
