@@ -445,7 +445,7 @@ contract Registrar {
             // The previous owner gets nothing
             h.deed.setBalance(h.deed.balance/2);
             h.deed.setOwner(msg.sender);
-            h.deed.closeDeed(0%000);
+            h.deed.closeDeed(1000);
         }
         HashInvalidated(hash, unhashedName, h.value, h.registrationDate);
         h.deed = Deed(0);
