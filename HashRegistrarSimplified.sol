@@ -101,7 +101,7 @@ contract Registrar {
     bytes32 public rootNode;
 
     mapping (bytes32 => entry) _entries;
-    mapping (bytes32 => Deed) public sealedBids;
+    mapping (address => mapping(bytes32 => Deed)) public sealedBids;
     
     enum Mode { Open, Auction, Owned, Forbidden, Reveal }
     uint32 constant auctionLength = 5 days;
@@ -111,7 +111,7 @@ contract Registrar {
     uint public registryCreated;
 
     event AuctionStarted(bytes32 indexed hash, uint registrationDate);
-    event NewBid(bytes32 indexed hash, uint deposit);
+    event NewBid(bytes32 indexed hash, address indexed bidder, uint deposit);
     event BidRevealed(bytes32 indexed hash, address indexed owner, uint value, uint8 status);
     event HashRegistered(bytes32 indexed hash, address indexed owner, uint value, uint registrationDate);
     event HashReleased(bytes32 indexed hash, uint value);
@@ -297,11 +297,11 @@ contract Registrar {
      * @param sealedBid A sealedBid, created by the shaBid function
      */
     function newBid(bytes32 sealedBid) payable {
-        if (address(sealedBids[sealedBid]) > 0 ) throw;
+        if (address(sealedBids[msg.sender][sealedBid]) > 0 ) throw;
         // creates a new hash contract with the owner
         Deed newBid = new Deed();
-        sealedBids[sealedBid] = newBid;
-        NewBid(sealedBid, msg.value);
+        sealedBids[msg.sender][sealedBid] = newBid;
+        NewBid(sealedBid, msg.sender, msg.value);
         if (!newBid.send(msg.value)) throw;
     } 
 
@@ -314,9 +314,9 @@ contract Registrar {
      */ 
     function unsealBid(bytes32 _hash, address _owner, uint _value, bytes32 _salt) {
         bytes32 seal = shaBid(_hash, _owner, _value, _salt);
-        Deed bid = sealedBids[seal];
+        Deed bid = sealedBids[msg.sender][seal];
         if (address(bid) == 0 ) throw;
-        sealedBids[seal] = Deed(0);
+        sealedBids[msg.sender][seal] = Deed(0);
         bid.setOwner(_owner);
         entry h = _entries[_hash];
         uint actualValue = min(_value, bid.balance);
@@ -364,8 +364,8 @@ contract Registrar {
      * @dev Cancel a bid
      * @param seal The value returned by the shaBid function
      */ 
-    function cancelBid(bytes32 seal) {
-        Deed bid = sealedBids[seal];
+    function cancelBid(address bidder, bytes32 seal) {
+        Deed bid = sealedBids[bidder][seal];
         // If the bid hasn't been revealed after any possible auction date, then close it
         if (address(bid) == 0 
             || now < bid.creationDate() + initialAuctionPeriod 
@@ -374,8 +374,8 @@ contract Registrar {
         // There is a fee for cancelling an old bid, but it's smaller than revealing it
         bid.setOwner(msg.sender);
         bid.closeDeed(5);
-        sealedBids[seal] = Deed(0);
-        BidRevealed(seal, 0, 0, 5);
+        sealedBids[bidder][seal] = Deed(0);
+        BidRevealed(seal, bidder, 0, 5);
     }
 
     /**
