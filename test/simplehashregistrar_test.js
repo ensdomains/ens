@@ -39,6 +39,7 @@ describe('SimpleHashRegistrar', function() {
 				registrar = web3.eth.contract(registrarABI).new(
 				    ens.address,
 				    dotEth,
+				    0,
 				    {
 				    	from: accounts[0],
 				     	data: registrarBytecode,
