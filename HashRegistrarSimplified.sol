@@ -28,6 +28,7 @@ contract Deed {
     uint public creationDate;
     address public owner;
     address public previousOwner;
+    uint public value;
     event OwnerChanged(address newOwner);
     event DeedClosed();
     bool active;
@@ -43,10 +44,11 @@ contract Deed {
         _;
     }
 
-    function Deed() {
+    function Deed(uint _value) {
         registrar = msg.sender;
         creationDate = now;
         active = true;
+        value = _value;
     }
         
     function setOwner(address newOwner) onlyRegistrar {
@@ -62,7 +64,8 @@ contract Deed {
     
     function setBalance(uint newValue) onlyRegistrar onlyActive payable {
         // Check if it has enough balance to set the value
-        if (this.balance < newValue) throw;
+        if (value < newValue) throw;
+        value = newValue;
         // Send the difference to the owner
         if (!owner.send(this.balance - newValue)) throw;
     }
@@ -83,9 +86,8 @@ contract Deed {
      */
     function destroyDeed() {
         if (active) throw;
-        if(owner.send(this.balance)) 
+        if(owner.send(this.balance))
             selfdestruct(burn);
-        else throw;
     }
 
     // The default function just receives an amount
@@ -108,7 +110,7 @@ contract Registrar {
     uint32 constant revealPeriod = 48 hours;
     uint32 constant initialAuctionPeriod = 4 weeks;
     uint constant minPrice = 0.01 ether;
-    uint public registryCreated;
+    uint public registryStarted;
 
     event AuctionStarted(bytes32 indexed hash, uint registrationDate);
     event NewBid(bytes32 indexed hash, address indexed bidder, uint deposit);
@@ -161,7 +163,7 @@ contract Registrar {
     }
     
     modifier registryOpen() {
-        if(now > registryCreated + 4 years) throw;
+        if(now < registryStarted  || now > registryStarted + 4 years) throw;
         _;
     }
     
@@ -175,10 +177,10 @@ contract Registrar {
      * @param _ens The address of the ENS
      * @param _rootNode The hash of the rootnode.
      */
-    function Registrar(address _ens, bytes32 _rootNode) {
+    function Registrar(address _ens, bytes32 _rootNode, uint _startDate) {
         ens = AbstractENS(_ens);
         rootNode = _rootNode;
-        registryCreated = now;
+        registryStarted = _startDate > 0 ? _startDate : now;
     }
 
     /**
@@ -255,7 +257,7 @@ contract Registrar {
         entry newAuction = _entries[_hash];
 
         // for the first month of the registry, make longer auctions
-        newAuction.registrationDate = max(now + auctionLength, registryCreated + initialAuctionPeriod);
+        newAuction.registrationDate = max(now + auctionLength, registryStarted + initialAuctionPeriod);
         newAuction.value = 0;
         newAuction.highestBid = 0;
         AuctionStarted(_hash, newAuction.registrationDate);      
@@ -298,10 +300,12 @@ contract Registrar {
      */
     function newBid(bytes32 sealedBid) payable {
         if (address(sealedBids[msg.sender][sealedBid]) > 0 ) throw;
+        if (msg.value < minPrice) throw;
         // creates a new hash contract with the owner
-        Deed newBid = new Deed();
+        Deed newBid = new Deed(msg.value);
         sealedBids[msg.sender][sealedBid] = newBid;
         NewBid(sealedBid, msg.sender, msg.value);
+
         if (!newBid.send(msg.value)) throw;
     } 
 
@@ -319,7 +323,7 @@ contract Registrar {
         sealedBids[msg.sender][seal] = Deed(0);
         bid.setOwner(_owner);
         entry h = _entries[_hash];
-        uint actualValue = min(_value, bid.balance);
+        uint actualValue = min(_value, bid.value());
         bid.setBalance(actualValue);
 
         var auctionState = state(_hash);
@@ -371,7 +375,7 @@ contract Registrar {
             || now < bid.creationDate() + initialAuctionPeriod 
             || bid.owner() > 0) throw;
 
-        // There is a fee for cancelling an old bid, but it's smaller than revealing it
+        // Send the canceller 0.5% of the bid, and burn the rest.
         bid.setOwner(msg.sender);
         bid.closeDeed(5);
         sealedBids[bidder][seal] = Deed(0);
@@ -414,7 +418,7 @@ contract Registrar {
         entry h = _entries[_hash];
         Deed deedContract = h.deed;
         if (now < h.registrationDate + 1 years 
-            || now > registryCreated + 8 years) throw;
+            || now > registryStarted + 8 years) throw;
 
         HashReleased(_hash, h.value);
         
@@ -443,7 +447,7 @@ contract Registrar {
         if(address(h.deed) != 0) {
             // Reward the discoverer with 50% of the deed
             // The previous owner gets nothing
-            h.deed.setBalance(h.deed.balance/2);
+            h.deed.setBalance(h.deed.value()/2);
             h.deed.setOwner(msg.sender);
             h.deed.closeDeed(1000);
         }
