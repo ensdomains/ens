@@ -92,7 +92,7 @@ describe('SimpleHashRegistrar', function() {
 				});
 			},
 			function(done) {
-				registrar.sealedBids(bid, function(err, deedAddress) {
+				registrar.sealedBids(accounts[0], bid, function(err, deedAddress) {
 					assert.equal(err, null, err);
 					web3.eth.getBalance(deedAddress, function(err, balance) {
 						assert.equal(err, null, err);
