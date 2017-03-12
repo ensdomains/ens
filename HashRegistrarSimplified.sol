@@ -446,7 +446,7 @@ contract Registrar {
         ens.setSubnodeOwner(rootNode, hash, 0);
         if(address(h.deed) != 0) {
             // Reward the discoverer with 50% of the deed
-            // The previous owner gets nothing
+            // The previous owner gets 50%
             h.deed.setBalance(h.deed.value()/2);
             h.deed.setOwner(msg.sender);
             h.deed.closeDeed(1000);
