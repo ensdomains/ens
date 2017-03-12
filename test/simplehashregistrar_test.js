@@ -118,7 +118,7 @@ describe('SimpleHashRegistrar', function() {
 			// Deposit smaller than value
 			{description: 'Bid with deposit less than claimed value', account: accounts[4], value: 1.3e18, deposit: 1.0e17, salt: 5, expectedFee: 0.005 },
 			// Invalid - doesn't reveal
-			{description: 'Bid that wasn\'t revealed in time', account: accounts[5], value: 1.4e18, deposit: 2.0e18, salt: 6, expectedFee: 1.0 }
+			{description: 'Bid that wasn\'t revealed in time', account: accounts[5], value: 1.4e18, deposit: 2.0e18, salt: 6, expectedFee: 0.995 }
 		];
 		async.series([
 			// Save initial balances 
@@ -634,11 +634,10 @@ describe('SimpleHashRegistrar', function() {
 			},
 			// Sneakily top up the bid
 			function(done) {
-				registrar.sealedBids(bid.sealedBid, function(err, result) {
+				registrar.sealedBids(bid.account, bid.sealedBid, function(err, result) {
 					assert.equal(err, null, err);
 					web3.eth.sendTransaction({from: accounts[0], to: result, value: 2e18}, function(err, txid) {
 						web3.eth.getBalance(result, function(err, balance) {
-							console.log("Balance: " + balance);
 							done();
 						});
 					});
