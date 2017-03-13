@@ -4,7 +4,7 @@ Quickstart
 
 Just want to get a name and make it resolve to something? Here's how.
 
-First, download `ensutils.js`_ to your local machine, and import it into a running Ethereum console:
+First, download `ensutils.js`_ or `ensutils-ropsten.js`_ to your local machine, and import it into a running Ethereum console:
 
 ::
 
@@ -59,3 +59,4 @@ which is shorthand for:
     resolverContract.at(ens.resolver(namehash('myname.eth'))).addr(namehash('myname.eth'))
 
 .. _ensutils.js: https://github.com/ethereum/ens/blob/master/ensutils.js
+.. _ensutils-ropsten.js: https://github.com/ethereum/ens/blob/master/ensutils-ropsten.js
