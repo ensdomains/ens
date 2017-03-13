@@ -71,7 +71,7 @@ You can also start auctions for several names simultaneously, to disguise which 
 
     ethRegistrar.startAuctions([web3.sha3('decoy1'), web3.sha3('name'), web3.sha3('decoy2')], {from: eth.accounts[0], gas: 1000000});
 
-Auctions normally run for 1 week, but auctions that start in the first week after deployment of ENS are extended to end 2 weeks after initial deployment.
+Auctions normally run for 1 week, but auctions that start in the first week after deployment of ENS are extended to end 4 weeks after initial deployment.
 
 When a name is available for auction, you can check the end time of the auction as follows:
 
