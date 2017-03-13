@@ -180,7 +180,7 @@ contract Registrar {
     function Registrar(address _ens, bytes32 _rootNode, uint _startDate) {
         ens = AbstractENS(_ens);
         rootNode = _rootNode;
-        registryStarted = _startDate > 0 ? _startDate : now;
+        registryStarted = _startDate;
     }
 
     /**
