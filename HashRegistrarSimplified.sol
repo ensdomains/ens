@@ -334,8 +334,8 @@ contract Registrar {
         } else if(auctionState != Mode.Reveal) {
             // Invalid phase
             throw;
-        } else if (_value < minPrice) {
-            // Bid too low, refund 99.5%
+        } else if (_value < minPrice || bid.creationDate() > h.registrationDate - revealPeriod) {
+            // Bid too low or too late, refund 99.5%
             bid.closeDeed(995);
             BidRevealed(_hash, _owner, actualValue, 0);
         } else if (_value > h.highestBid) {

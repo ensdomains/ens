@@ -661,4 +661,52 @@ describe('SimpleHashRegistrar', function() {
 			}
 		], done);
 	});
+
+	it('prohibits bids during the reveal period', function(done) {
+		let bid = {account: accounts[0], value: 1.5e18, deposit: 1e17, salt: 1, description: 'underfunded bid' };
+		async.series([
+			// Save initial balances 
+			function(done) {
+				web3.eth.getBalance(bid.account, function(err, balance){
+					bid.startingBalance = balance.toFixed();
+					done();
+				});
+			},
+			function(done) {
+				// Start auction
+				registrar.startAuction(web3.sha3('longname'), {from: accounts[0]}, done);
+			},
+			// Advance 26 days to the reveal period
+			function(done) { web3.currentProvider.sendAsync({
+				jsonrpc: "2.0",
+				"method": "evm_increaseTime",
+				params: [26 * 24 * 60 * 60 + 1]}, done);
+			},
+			// Place the bid
+			function(done) {
+				registrar.shaBid(web3.sha3('longname'), bid.account, bid.value, bid.salt, function(err, result) {
+					bid.sealedBid = result;
+					assert.equal(err, null, err);
+					registrar.newBid(bid.sealedBid, {from: bid.account, value: bid.deposit}, function(err, txid) {
+						assert.equal(err, null, err);
+						done();
+					});
+				});
+			},
+			// Reveal the bid
+			function(done) {
+				registrar.unsealBid(web3.sha3('longname'), bid.account, bid.value, bid.salt, {from: bid.account}, function(err, txid) {
+					assert.equal(err, null, err);
+					done();
+				});
+			},
+			function(done) {
+				registrar.entries(web3.sha3('longname'), function(err, result) {
+					assert.equal(err, null, err);
+					assert.equal(result[1], "0x0000000000000000000000000000000000000000");
+					done();
+				});
+			},
+		], done);		
+	});
 });
