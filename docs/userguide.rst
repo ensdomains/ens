@@ -82,7 +82,7 @@ When a name is available for auction, you can check the end time of the auction 
 Placing a bid
 -------------
 
-Bids can be placed at any time during an auction except in the last 24 hours (the 'reveal period'). Before trying to place a bid, make sure an auction is currently underway, as described above, and has more than 24 hours left to run.
+Bids can be placed at any time during an auction except in the last 48 hours (the 'reveal period'). Before trying to place a bid, make sure an auction is currently underway, as described above, and has more than 48 hours left to run.
 
 To bid on an open auction, you need several pieces of data:
 
@@ -111,7 +111,7 @@ Next, submit your bid to the registrar:
 
 In the example above, we're sending 2 ether, even though our maximum bid is 1 ether; this is to disguise the true value of our bid. When we reveal our bid later, we will get the extra 1 ether back; the most we can pay for the name is 1 ether, as we specified when generating the bid.
 
-Now it's a matter of waiting until the reveal period before revealing your bid. Run the command to check the expiration date of the auction again, and make sure to come back in the final 24 hours of the auction:
+Now it's a matter of waiting until the reveal period before revealing your bid. Run the command to check the expiration date of the auction again, and make sure to come back in the final 48 hours of the auction:
 
 ::
 
@@ -120,7 +120,7 @@ Now it's a matter of waiting until the reveal period before revealing your bid. 
 Revealing your bid
 ------------------
 
-In order to win an auction, you must 'reveal' your bid. This can be done at any time after you place your bid, but it's recommended you don't do so until the last 24 hours, at which point new bids are prohibited. If you don't reveal your bid by the time the auction ends, your deposit is forfeit - so make sure you store your salt in a safe place, and come back before the auction ends in order to reveal your bid.
+In order to win an auction, you must 'reveal' your bid. This can be done at any time after you place your bid, but it's recommended you don't do so until the last 48 hours, at which point new bids are prohibited. If you don't reveal your bid by the time the auction ends, your deposit is forfeit - so make sure you store your salt in a safe place, and come back before the auction ends in order to reveal your bid.
 
 To reveal, call the `unsealBid` function with the same values you provided earlier:
 
