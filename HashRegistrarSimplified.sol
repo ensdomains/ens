@@ -468,4 +468,15 @@ contract Registrar {
         entry h = _entries[_hash];
         h.deed.setRegistrar(registrar);
     }
+
+    /**
+     * @dev Returns a deed created by a previous instance of the registrar.
+     * @param deed The address of the deed.
+     */
+    function returnDeed(Deed deed) {
+        // Only return if we own the deed, and it was created before our start date.
+        if(deed.registrar() != address(this) || deed.creationDate() > registryStarted)
+            throw;
+        deed.closeDeed(1000);
+    }
 }

@@ -709,4 +709,102 @@ describe('SimpleHashRegistrar', function() {
 			},
 		], done);		
 	});
+
+	it('allows returning deeds from previous registrars', function(done) {
+		var bid = {account: accounts[0], value: 1e18, deposit: 2e18, salt: 1};
+		var deedAddress = null;
+		var newRegistrar = null;
+		async.series([
+			// Save initial balances 
+			function(done) {
+				web3.eth.getBalance(bid.account, function(err, balance){
+					bid.startingBalance = balance.toFixed();
+					done();
+				});
+			},
+			// Start an auction for 'name'
+			function(done) {
+				registrar.startAuction(web3.sha3('name'), {from: accounts[0]}, done);
+			},
+			// Place each of the bids
+			function(done) {
+				registrar.shaBid(web3.sha3('name'), accounts[0], bid.value, 1, function(err, result) {
+					var sealedBid = result;
+					assert.equal(err, null, err);
+					registrar.newBid(sealedBid, {from: accounts[0], value: bid.deposit}, function(err, txid) {
+						assert.equal(err, null, err);
+						done();
+					});
+				});
+			},
+			// Advance 26 days to the reveal period
+			function(done) { web3.currentProvider.sendAsync({
+				jsonrpc: "2.0",
+				"method": "evm_increaseTime",
+				params: [26 * 24 * 60 * 60 + 1]}, done);
+			},
+			// Reveal the bid
+			function(done) {
+				registrar.unsealBid(web3.sha3('name'), accounts[0], bid.value, 1, {from: accounts[0]}, function(err, txid) {
+					assert.equal(err, null, err);
+					done();
+				});
+			},
+			// Advance another two days to the end of the auction
+			function(done) { web3.currentProvider.sendAsync({
+				jsonrpc: "2.0",
+				"method": "evm_increaseTime",
+				params: [48 * 60 * 60]}, done);
+			},
+			// Finalize the auction and get the deed address
+			function(done) {
+				registrar.entries(web3.sha3('name'), function(err, result) {
+					assert.equal(err, null, err);
+					deedAddress = result[1];
+					done();
+				});
+			},
+			// Deploy a new registrar
+			function(done) {
+				newRegistrar = web3.eth.contract(registrarABI).new(
+				    ens.address,
+				    dotEth,
+				    0,
+				    {
+				    	from: accounts[0],
+				     	data: registrarBytecode,
+				     	gas: 4700000
+				   	}, function(err, contract) {
+				   	    assert.equal(err, null, err);
+				   	    if(contract.address != undefined) {
+				   	    	done();
+					   	}
+				   });
+			},
+			function(done) { ens.setSubnodeOwner(0, web3.sha3('eth'), newRegistrar.address, {from: accounts[0]}, done);},
+			// Transfer the deed
+			function(done) {
+				registrar.transferRegistrars(web3.sha3('name'), {from: accounts[0]}, function(err, txid) {
+					assert.equal(err, null, err);
+					done();
+				});
+			},
+			// Return the deed
+			function(done) {
+				newRegistrar.returnDeed(deedAddress, {from: accounts[0]}, function(err, txid) {
+					assert.equal(err, null, err);
+					done();
+				});
+			},
+			// Check balance
+			function(done) {
+				web3.eth.getBalance(bid.account, function(err, balance){
+					var spentFee = Math.floor(web3.fromWei(bid.startingBalance - balance.toFixed(), 'finney'));
+					console.log('\t Bidder #'+ bid.salt, bid.description, 'spent:', spentFee, 'finney;');
+					assert.equal(spentFee, 0);
+					done();
+				});
+			}
+		], done);
+	})
 });
