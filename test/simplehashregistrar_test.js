@@ -92,7 +92,7 @@ describe('SimpleHashRegistrar', function() {
 				});
 			},
 			function(done) {
-				registrar.sealedBids(bid, function(err, deedAddress) {
+				registrar.sealedBids(accounts[0], bid, function(err, deedAddress) {
 					assert.equal(err, null, err);
 					web3.eth.getBalance(deedAddress, function(err, balance) {
 						assert.equal(err, null, err);
@@ -656,7 +656,7 @@ describe('SimpleHashRegistrar', function() {
 			},			
 			// Sneakily top up the bid
 			function(done) {
-				registrar.sealedBids(bid.sealedBid, function(err, result) {
+				registrar.sealedBids(bid.account, bid.sealedBid, function(err, result) {
 					assert.equal(err, null, err);
 					web3.eth.sendTransaction({from: accounts[0], to: result, value: 2e18}, function(err, txid) {
 						web3.eth.getBalance(result, function(err, balance) {

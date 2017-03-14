@@ -2,7 +2,7 @@
 User Guide
 **********
 
-This user guide is intended for anyone wanting to register, configure, and update ENS names using a Javascript console and web3.js. Before starting, open up a geth console, download ensutils.js_ to your local machine, and import it into a running Ethereum console:
+This user guide is intended for anyone wanting to register, configure, and update ENS names using a Javascript console and web3.js. Before starting, open up a geth console, download ensutils.js_ or `ensutils-ropsten.js`_ to your local machine, and import it into a running Ethereum console:
 
 ::
 
@@ -71,7 +71,7 @@ You can also start auctions for several names simultaneously, to disguise which 
 
     ethRegistrar.startAuctions([web3.sha3('decoy1'), web3.sha3('name'), web3.sha3('decoy2')], {from: eth.accounts[0], gas: 1000000});
 
-Auctions normally run for 1 week, but auctions that start in the first week after deployment of ENS are extended to end 2 weeks after initial deployment.
+Auctions normally run for 1 week, but auctions that start in the first week after deployment of ENS are extended to end 4 weeks after initial deployment.
 
 When a name is available for auction, you can check the end time of the auction as follows:
 
@@ -82,7 +82,7 @@ When a name is available for auction, you can check the end time of the auction 
 Placing a bid
 -------------
 
-Bids can be placed at any time during an auction except in the last 24 hours (the 'reveal period'). Before trying to place a bid, make sure an auction is currently underway, as described above, and has more than 24 hours left to run.
+Bids can be placed at any time during an auction except in the last 48 hours (the 'reveal period'). Before trying to place a bid, make sure an auction is currently underway, as described above, and has more than 48 hours left to run.
 
 To bid on an open auction, you need several pieces of data:
 
@@ -111,7 +111,7 @@ Next, submit your bid to the registrar:
 
 In the example above, we're sending 2 ether, even though our maximum bid is 1 ether; this is to disguise the true value of our bid. When we reveal our bid later, we will get the extra 1 ether back; the most we can pay for the name is 1 ether, as we specified when generating the bid.
 
-Now it's a matter of waiting until the reveal period before revealing your bid. Run the command to check the expiration date of the auction again, and make sure to come back in the final 24 hours of the auction:
+Now it's a matter of waiting until the reveal period before revealing your bid. Run the command to check the expiration date of the auction again, and make sure to come back in the final 48 hours of the auction:
 
 ::
 
@@ -120,7 +120,7 @@ Now it's a matter of waiting until the reveal period before revealing your bid. 
 Revealing your bid
 ------------------
 
-In order to win an auction, you must 'reveal' your bid. This can be done at any time after you place your bid, but it's recommended you don't do so until the last 24 hours, at which point new bids are prohibited. If you don't reveal your bid by the time the auction ends, your deposit is forfeit - so make sure you store your salt in a safe place, and come back before the auction ends in order to reveal your bid.
+In order to win an auction, you must 'reveal' your bid. This can be done at any time after you place your bid, but it's recommended you don't do so until the last 48 hours, at which point new bids are prohibited. If you don't reveal your bid by the time the auction ends, your deposit is forfeit - so make sure you store your salt in a safe place, and come back before the auction ends in order to reveal your bid.
 
 To reveal, call the `unsealBid` function with the same values you provided earlier:
 
@@ -312,7 +312,7 @@ Reverse name resolution
 
 ENS also supports reverse resolution of Ethereum addresses. This allows an account (contract or external) to associate metadata with itself, such as its canonical name.
 
-Reverse records are in the format `<ethereum address>.addr.reverse` - for instance, the official registry would have its reverse records at `112234455c3a32fd11230c42e7bccd4a84e02010.addr.reverse`.
+Reverse records are in the format `<ethereum address>.addr.reverse` - for instance, the official registry would have its reverse records at `314159265dd8dbb310642f98f50c066173c1259b.addr.reverse`.
 
 `addr.reverse` has a registrar with a `claim` function, which permits any account to take ownership of its reverse record in ENS. The claim function takes one argument, the Ethereum address that should own the reverse record.
 
@@ -338,4 +338,5 @@ After that transaction is mined, the appropriate reverse record is now owned by 
 .. _`ENS registry interface`: https://github.com/ethereum/ens/blob/master/interface.sol
 .. _EIP162: https://github.com/ethereum/EIPs/issues/162
 .. _ensutils.js: https://github.com/ethereum/ens/blob/master/ensutils.js
+.. _ensutils-ropsten.js: https://github.com/ethereum/ens/blob/master/ensutils-ropsten.js
 .. _random.org: https://www.random.org/strings/?num=1&len=20&digits=on&upperalpha=on&loweralpha=on&unique=off&format=html&rnd=new

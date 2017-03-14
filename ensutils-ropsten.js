@@ -210,7 +210,7 @@ var ensContract = web3.eth.contract([
     "type": "event"
   }
 ]);
-var ens = ensContract.at('0x314159265dd8dbb310642f98f50c066173c1259b');
+var ens = ensContract.at('0x112234455c3a32fd11230c42e7bccd4a84e02010');
 
 var auctionRegistrarContract = web3.eth.contract([
   {
@@ -270,50 +270,33 @@ var auctionRegistrarContract = web3.eth.contract([
     "type": "function"
   },
   {
-    "constant": false,
-    "inputs": [
-      {
-        "name": "bidder",
-        "type": "address"
-      },
-      {
-        "name": "seal",
-        "type": "bytes32"
-      }
-    ],
-    "name": "cancelBid",
-    "outputs": [],
-    "payable": false,
-    "type": "function"
-  },
-  {
     "constant": true,
     "inputs": [
       {
-        "name": "_hash",
+        "name": "",
         "type": "bytes32"
       }
     ],
     "name": "entries",
     "outputs": [
       {
-        "name": "",
+        "name": "status",
         "type": "uint8"
       },
       {
-        "name": "",
+        "name": "deed",
         "type": "address"
       },
       {
-        "name": "",
+        "name": "registrationDate",
         "type": "uint256"
       },
       {
-        "name": "",
+        "name": "value",
         "type": "uint256"
       },
       {
-        "name": "",
+        "name": "highestBid",
         "type": "uint256"
       }
     ],
@@ -351,10 +334,6 @@ var auctionRegistrarContract = web3.eth.contract([
     "inputs": [
       {
         "name": "",
-        "type": "address"
-      },
-      {
-        "name": "",
         "type": "bytes32"
       }
     ],
@@ -363,24 +342,6 @@ var auctionRegistrarContract = web3.eth.contract([
       {
         "name": "",
         "type": "address"
-      }
-    ],
-    "payable": false,
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [
-      {
-        "name": "_hash",
-        "type": "bytes32"
-      }
-    ],
-    "name": "state",
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint8"
       }
     ],
     "payable": false,
@@ -417,19 +378,6 @@ var auctionRegistrarContract = web3.eth.contract([
     "type": "function"
   },
   {
-    "constant": true,
-    "inputs": [],
-    "name": "registryStarted",
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "payable": false,
-    "type": "function"
-  },
-  {
     "constant": false,
     "inputs": [
       {
@@ -455,6 +403,19 @@ var auctionRegistrarContract = web3.eth.contract([
     "type": "function"
   },
   {
+    "constant": true,
+    "inputs": [],
+    "name": "registryCreated",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "type": "function"
+  },
+  {
     "constant": false,
     "inputs": [
       {
@@ -465,6 +426,19 @@ var auctionRegistrarContract = web3.eth.contract([
     "name": "newBid",
     "outputs": [],
     "payable": true,
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "seal",
+        "type": "bytes32"
+      }
+    ],
+    "name": "cancelBid",
+    "outputs": [],
+    "payable": false,
     "type": "function"
   },
   {
@@ -515,13 +489,8 @@ var auctionRegistrarContract = web3.eth.contract([
       {
         "name": "_rootNode",
         "type": "bytes32"
-      },
-      {
-        "name": "_startDate",
-        "type": "uint256"
       }
     ],
-    "payable": false,
     "type": "constructor"
   },
   {
@@ -534,7 +503,7 @@ var auctionRegistrarContract = web3.eth.contract([
       },
       {
         "indexed": false,
-        "name": "registrationDate",
+        "name": "auctionExpiryDate",
         "type": "uint256"
       }
     ],
@@ -548,11 +517,6 @@ var auctionRegistrarContract = web3.eth.contract([
         "indexed": true,
         "name": "hash",
         "type": "bytes32"
-      },
-      {
-        "indexed": true,
-        "name": "bidder",
-        "type": "address"
       },
       {
         "indexed": false,
@@ -610,7 +574,7 @@ var auctionRegistrarContract = web3.eth.contract([
       },
       {
         "indexed": false,
-        "name": "registrationDate",
+        "name": "now",
         "type": "uint256"
       }
     ],
@@ -654,7 +618,7 @@ var auctionRegistrarContract = web3.eth.contract([
       },
       {
         "indexed": false,
-        "name": "registrationDate",
+        "name": "now",
         "type": "uint256"
       }
     ],
@@ -868,6 +832,7 @@ var fifsRegistrarContract = web3.eth.contract([
     "type": "constructor"
   }
 ]);
+var testRegistrar = fifsRegistrarContract.at(ens.owner(namehash('test')));
 
 var resolverContract = web3.eth.contract([
   {
@@ -994,7 +959,8 @@ var resolverContract = web3.eth.contract([
     "type": "fallback"
   }
 ]);
-//var publicResolver = resolverContract.at('0x4c641fb9bad9b60ef180c31f56051ce826d21a9a');
+var publicResolver = resolverContract.at('0x4c641fb9bad9b60ef180c31f56051ce826d21a9a');
+
 
 var reverseRegistrarContract = web3.eth.contract([
   {
