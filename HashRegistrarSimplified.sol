@@ -327,22 +327,22 @@ contract Registrar {
 
         var auctionState = state(_hash);
         if(auctionState == Mode.Owned) {
-            // Too late! Bidder loses their bid.
-            bid.closeDeed(0);
+            // Too late! Bidder loses their bid. Get's 0.5% back.
+            bid.closeDeed(5);
             BidRevealed(_hash, _owner, actualValue, 1);
         } else if(auctionState != Mode.Reveal) {
             // Invalid phase
             throw;
-        } else if (_value < minPrice) {
-            // Bid too low, refund 99.9%
-            bid.closeDeed(999);
+        } else if (actualValue < minPrice) {
+            // Bid too low, refund 99.5%
+            bid.closeDeed(995);
             BidRevealed(_hash, _owner, actualValue, 0);
-        } else if (_value > h.highestBid) {
+        } else if (actualValue > h.highestBid) {
             // new winner
-            // cancel the other bid, refund 99.9%
+            // cancel the other bid, refund 99.5%
             if(address(h.deed) != 0) {
                 Deed previousWinner = h.deed;
-                previousWinner.closeDeed(999);
+                previousWinner.closeDeed(995);
             }
             
             // set new winner
@@ -351,14 +351,14 @@ contract Registrar {
             h.highestBid = actualValue;
             h.deed = bid;
             BidRevealed(_hash, _owner, actualValue, 2);
-        } else if (_value > h.value) {
+        } else if (actualValue > h.value) {
             // not winner, but affects second place
             h.value = actualValue;
-            bid.closeDeed(999);
+            bid.closeDeed(995);
             BidRevealed(_hash, _owner, actualValue, 3);
         } else {
             // bid doesn't affect auction
-            bid.closeDeed(999);
+            bid.closeDeed(995);
             BidRevealed(_hash, _owner, actualValue, 4);
         }
     }
