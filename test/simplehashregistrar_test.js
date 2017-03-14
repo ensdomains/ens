@@ -807,4 +807,20 @@ describe('SimpleHashRegistrar', function() {
 			}
 		], done);
 	})
+
+	it("prohibits starting auctions when it's not the registrar", function(done) {
+		var bid = {account: accounts[0], value: 1e18, deposit: 2e18, salt: 1};
+		var deedAddress = null;
+		var newRegistrar = null;
+		async.series([
+			// Start an auction for 'name'
+			function(done) { ens.setSubnodeOwner(0, web3.sha3('eth'), accounts[0], {from: accounts[0]}, done);},
+			function(done) {
+				registrar.startAuction(web3.sha3('name'), {from: accounts[0]}, function(err, txid) {
+					assert.ok(err.toString().indexOf(utils.INVALID_JUMP) != -1, err);
+					done();
+				});
+			},
+		], done);
+	});
 });

@@ -163,7 +163,7 @@ contract Registrar {
     }
     
     modifier registryOpen() {
-        if(now < registryStarted  || now > registryStarted + 4 years) throw;
+        if(now < registryStarted  || now > registryStarted + 4 years || ens.owner(rootNode) != address(this)) throw;
         _;
     }
     
