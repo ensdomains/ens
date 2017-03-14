@@ -737,6 +737,24 @@ describe('SimpleHashRegistrar', function() {
 					});
 				});
 			},
+			// Deploy a new registrar
+			function(done) {
+				newRegistrar = web3.eth.contract(registrarABI).new(
+				    ens.address,
+				    dotEth,
+				    0,
+				    {
+				    	from: accounts[0],
+				     	data: registrarBytecode,
+				     	gas: 4700000
+				   	}, function(err, contract) {
+				   	    assert.equal(err, null, err);
+				   	    if(contract.address != undefined) {
+				   	    	done();
+					   	}
+				   });
+			},
+			function(done) { ens.setSubnodeOwner(0, web3.sha3('eth'), newRegistrar.address, {from: accounts[0]}, done);},
 			// Advance 26 days to the reveal period
 			function(done) { web3.currentProvider.sendAsync({
 				jsonrpc: "2.0",
@@ -756,7 +774,7 @@ describe('SimpleHashRegistrar', function() {
 				"method": "evm_increaseTime",
 				params: [48 * 60 * 60]}, done);
 			},
-			// Finalize the auction and get the deed address
+			// Get the deed address
 			function(done) {
 				registrar.entries(web3.sha3('name'), function(err, result) {
 					assert.equal(err, null, err);
@@ -764,24 +782,6 @@ describe('SimpleHashRegistrar', function() {
 					done();
 				});
 			},
-			// Deploy a new registrar
-			function(done) {
-				newRegistrar = web3.eth.contract(registrarABI).new(
-				    ens.address,
-				    dotEth,
-				    0,
-				    {
-				    	from: accounts[0],
-				     	data: registrarBytecode,
-				     	gas: 4700000
-				   	}, function(err, contract) {
-				   	    assert.equal(err, null, err);
-				   	    if(contract.address != undefined) {
-				   	    	done();
-					   	}
-				   });
-			},
-			function(done) { ens.setSubnodeOwner(0, web3.sha3('eth'), newRegistrar.address, {from: accounts[0]}, done);},
 			// Transfer the deed
 			function(done) {
 				registrar.transferRegistrars(web3.sha3('name'), {from: accounts[0]}, function(err, txid) {
