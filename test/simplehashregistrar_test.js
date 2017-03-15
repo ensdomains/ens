@@ -436,6 +436,13 @@ describe('SimpleHashRegistrar', function() {
 					done();
 				});
 			},
+			// Save balance
+			function(done) {
+				web3.eth.getBalance(bid.account, function(err, balance){
+					bid.startingBalance = balance.toFixed();
+					done();
+				});
+			},
 			// Attempt to release the deed early
 			function(done) {
 				registrar.releaseDeed(web3.sha3('releasename'), {from: bid.account}, function(err, txid) {
@@ -455,14 +462,27 @@ describe('SimpleHashRegistrar', function() {
 				registrar.releaseDeed(web3.sha3('releasename'), {from: bid.account}, function(err, txid) {
 					assert.equal(err, null, err);
 					console.log("\t Deed released");
-					done();
+					web3.eth.getBalance(bid.account, function(err, balance){
+						assert.ok(balance.toFixed() > bid.startingBalance);
+						console.log("\t Balance before: "+bid.startingBalance+" after: "+balance.toFixed());
+						done();
+					});
 				});
 			},
-			// Release the deed twice
+			// Attempt to release the deed twice
 			function(done) {
 				registrar.releaseDeed(web3.sha3('releasename'), {from: bid.account}, function(err, txid) {
 					assert.notEqual(err, null, err);
 					console.log("\t Could not release deed twice");
+					done();
+				});
+			},
+			// Check the name has the correct state and owner
+			function(done) {
+				registrar.entries(web3.sha3('releasename'), function(err, result) {
+					assert.equal(err, null, err);
+					assert.equal(result[0], 0); // status == Open
+					console.log("\t Name is Open");
 					done();
 				});
 			},
