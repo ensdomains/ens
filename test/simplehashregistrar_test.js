@@ -117,7 +117,7 @@ describe('SimpleHashRegistrar', function() {
 			// No effect
 			{description: 'Losing bid that doesn\'t affect price', account: accounts[3], value: 1.2e18, deposit: 2.0e18, salt: 4, expectedFee: 0.005 },
 			// Deposit smaller than value
-			{description: 'Bid with deposit less than claimed value', account: accounts[4], value: 5.3e18, deposit: 1.0e17, salt: 5, expectedFee: 0.005 },
+			{description: 'Bid with deposit less than claimed value', account: accounts[4], value: 5.0e18, deposit: 1.0e17, salt: 5, expectedFee: 0.005 },
 			// Invalid - doesn't reveal
 			{description: 'Bid that wasn\'t revealed in time', account: accounts[5], value: 1.4e18, deposit: 2.0e18, salt: 6, expectedFee: 0.995 }
 		];
@@ -854,7 +854,10 @@ describe('SimpleHashRegistrar', function() {
 	});
 
 	it('prohibits late funding of bids', function(done) {
-		let bid = {account: accounts[0], value: 1.5e18, deposit: 1e17, salt: 1, description: 'underfunded bid' };
+		let bid = {account: accounts[0], value: 1.3e18, deposit: 1.0e17, salt: 1, description: 'underfunded bid' };
+		let bidWinner = {account: accounts[1], value: 1.2e18, deposit: 1.6e18, salt: 1, description: 'normally funded bid' };
+		let deedAddress = null;
+
 		async.series([
 			// Save initial balances 
 			function(done) {
@@ -867,12 +870,23 @@ describe('SimpleHashRegistrar', function() {
 				// Start auction
 				registrar.startAuction(web3.sha3('longname'), {from: accounts[0]}, done);
 			},
-			// Place the bid
+			// Place the underfunded bid
 			function(done) {
 				registrar.shaBid(web3.sha3('longname'), bid.account, bid.value, bid.salt, function(err, result) {
 					bid.sealedBid = result;
 					assert.equal(err, null, err);
 					registrar.newBid(bid.sealedBid, {from: bid.account, value: bid.deposit}, function(err, txid) {
+						assert.equal(err, null, err);
+						done();
+					});
+				});
+			},
+			// Place the normal bid
+			function(done) {
+				registrar.shaBid(web3.sha3('longname'), bidWinner.account, bidWinner.value, bidWinner.salt, function(err, result) {
+					bidWinner.sealedBid = result;
+					assert.equal(err, null, err);
+					registrar.newBid(bidWinner.sealedBid, {from: bidWinner.account, value: bidWinner.deposit}, function(err, txid) {
 						assert.equal(err, null, err);
 						done();
 					});
@@ -884,23 +898,34 @@ describe('SimpleHashRegistrar', function() {
 				"method": "evm_increaseTime",
 				params: [26 * 24 * 60 * 60 + 1]}, done);
 			},
+			// Reveal the normal bid
+			function(done) {
+				registrar.unsealBid(web3.sha3('longname'), bidWinner.account, bidWinner.value, bidWinner.salt, {from: bidWinner.account}, function(err, txid) {
+					assert.equal(err, null, err);
+					done();
+				});
+				
+			},			
 			// Sneakily top up the bid
 			function(done) {
 				registrar.sealedBids(bid.account, bid.sealedBid, function(err, result) {
 					assert.equal(err, null, err);
 					web3.eth.sendTransaction({from: accounts[0], to: result, value: 2e18}, function(err, txid) {
 						web3.eth.getBalance(result, function(err, balance) {
+							console.log("\t Balance: " + balance);
 							done();
 						});
 					});
 				});
+				// done();
 			},
-			// Reveal the bid
+			// Reveal the underfunded bid
 			function(done) {
 				registrar.unsealBid(web3.sha3('longname'), bid.account, bid.value, bid.salt, {from: bid.account}, function(err, txid) {
 					assert.equal(err, null, err);
 					done();
 				});
+				
 			},
 			// Check balance
 			function(done) {
@@ -908,6 +933,28 @@ describe('SimpleHashRegistrar', function() {
 					var spentFee = Math.floor(web3.fromWei(bid.startingBalance - balance.toFixed(), 'finney'));
 					console.log('\t Bidder #'+ bid.salt, bid.description, 'spent:', spentFee, 'finney;');
 					assert.equal(spentFee, 100);
+					// It sends 100 finney, and the bid is considered invalid and therefore is spent
+					done();
+				});
+			},
+			// Finalize the auction and get the deed address
+			function(done) {
+				registrar.finalizeAuction(web3.sha3('longname'), {from: bid.account}, function(err, txid) {
+					assert.equal(err, null, err);
+					registrar.entries(web3.sha3('longname'), function(err, result) {
+						assert.equal(err, null, err);
+						deedAddress = result[1];
+						done();
+					});
+				});
+			},
+			// Check the new owner was set on the deed
+			function(done) {
+				
+				web3.eth.contract(deedABI).at(deedAddress).owner(function(err, owner) {
+					console.log('\t',bid.account == owner? "underfunded bid wins" : "underfunded bid loses");
+					assert.equal(err, null, err);
+					assert.equal(accounts[1], owner);
 					done();
 				});
 			}

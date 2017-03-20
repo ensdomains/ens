@@ -334,11 +334,11 @@ contract Registrar {
         } else if(auctionState != Mode.Reveal) {
             // Invalid phase
             throw;
-        } else if (_value < minPrice || bid.creationDate() > h.registrationDate - revealPeriod) {
+        } else if (actualValue < minPrice || bid.creationDate() > h.registrationDate - revealPeriod) {
             // Bid too low or too late, refund 99.5%
             bid.closeDeed(995);
             BidRevealed(_hash, _owner, actualValue, 0);
-        } else if (_value > h.highestBid) {
+        } else if (actualValue > h.highestBid) {
             // new winner
             // cancel the other bid, refund 99.5%
             if(address(h.deed) != 0) {
@@ -352,7 +352,7 @@ contract Registrar {
             h.highestBid = actualValue;
             h.deed = bid;
             BidRevealed(_hash, _owner, actualValue, 2);
-        } else if (_value > h.value) {
+        } else if (actualValue > h.value) {
             // not winner, but affects second place
             h.value = actualValue;
             bid.closeDeed(995);
