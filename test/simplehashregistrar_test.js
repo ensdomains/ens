@@ -116,7 +116,7 @@ describe('SimpleHashRegistrar', function() {
 			{description: 'Losing bid that affects price', account: accounts[2], value: 1.5e18, deposit: 2.0e18, salt: 3, expectedFee: 0.005 },
 			// No effect
 			{description: 'Losing bid that doesn\'t affect price', account: accounts[3], value: 1.2e18, deposit: 2.0e18, salt: 4, expectedFee: 0.005 },
-			// Deposit smaller than value - UPDATED: To highest declared value
+			// Deposit smaller than value
 			{description: 'Bid with deposit less than claimed value', account: accounts[4], value: 5.3e18, deposit: 1.0e17, salt: 5, expectedFee: 0.005 },
 			// Invalid - doesn't reveal
 			{description: 'Bid that wasn\'t revealed in time', account: accounts[5], value: 1.4e18, deposit: 2.0e18, salt: 6, expectedFee: 0.995 }
