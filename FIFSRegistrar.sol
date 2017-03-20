@@ -22,8 +22,8 @@ contract FIFSRegistrar {
      * @param ensAddr The address of the ENS registry.
      * @param node The node that this registrar administers.
      */
-    function FIFSRegistrar(address ensAddr, bytes32 node) {
-        ens = AbstractENS(ensAddr);
+    function FIFSRegistrar(AbstractENS ensAddr, bytes32 node) {
+        ens = ensAddr;
         rootNode = node;
     }
 

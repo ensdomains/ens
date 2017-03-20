@@ -177,8 +177,8 @@ contract Registrar {
      * @param _ens The address of the ENS
      * @param _rootNode The hash of the rootnode.
      */
-    function Registrar(address _ens, bytes32 _rootNode, uint _startDate) {
-        ens = AbstractENS(_ens);
+    function Registrar(AbstractENS _ens, bytes32 _rootNode, uint _startDate) {
+        ens = _ens;
         rootNode = _rootNode;
         registryStarted = _startDate > 0 ? _startDate : now;
     }

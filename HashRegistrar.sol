@@ -143,8 +143,8 @@ contract Registrar {
         _;
     }
     
-    function Registrar(address _ens, bytes32 _rootNode) {
-        ens = AbstractENS(_ens);
+    function Registrar(AbstractENS _ens, bytes32 _rootNode) {
+        ens = _ens;
         rootNode = _rootNode;
 
         lastSinceNewRegistry = now;

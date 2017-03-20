@@ -18,8 +18,8 @@ contract TestRegistrar {
      * @param ensAddr The address of the ENS registry.
      * @param node The node that this registrar administers.
      */
-    function TestRegistrar(address ensAddr, bytes32 node) {
-        ens = AbstractENS(ensAddr);
+    function TestRegistrar(AbstractENS ensAddr, bytes32 node) {
+        ens = ensAddr;
         rootNode = node;
     }
 

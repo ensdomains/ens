@@ -11,8 +11,8 @@ contract ReverseRegistrar {
      * @param ensAddr The address of the ENS registry.
      * @param node The node hash that this registrar governs.
      */
-    function ReverseRegistrar(address ensAddr, bytes32 node) {
-        ens = AbstractENS(ensAddr);
+    function ReverseRegistrar(AbstractENS ensAddr, bytes32 node) {
+        ens = ensAddr;
         rootNode = node;
     }
 
