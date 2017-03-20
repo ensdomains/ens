@@ -163,7 +163,7 @@ contract Registrar {
     }
     
     modifier registryOpen() {
-        if(now < registryStarted  || now > registryStarted + 4 years) throw;
+        if(now < registryStarted  || now > registryStarted + 4 years || ens.owner(rootNode) != address(this)) throw;
         _;
     }
     
@@ -334,8 +334,8 @@ contract Registrar {
         } else if(auctionState != Mode.Reveal) {
             // Invalid phase
             throw;
-        } else if (actualValue < minPrice) {
-            // Bid too low, refund 99.5%
+        } else if (actualValue < minPrice || bid.creationDate() > h.registrationDate - revealPeriod) {
+            // Bid too low or too late, refund 99.5%
             bid.closeDeed(995);
             BidRevealed(_hash, _owner, actualValue, 0);
         } else if (actualValue > h.highestBid) {
@@ -467,5 +467,16 @@ contract Registrar {
 
         entry h = _entries[_hash];
         h.deed.setRegistrar(registrar);
+    }
+
+    /**
+     * @dev Returns a deed created by a previous instance of the registrar.
+     * @param deed The address of the deed.
+     */
+    function returnDeed(Deed deed) {
+        // Only return if we own the deed, and it was created before our start date.
+        if(deed.registrar() != address(this) || deed.creationDate() > registryStarted)
+            throw;
+        deed.closeDeed(1000);
     }
 }
