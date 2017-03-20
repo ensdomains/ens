@@ -464,7 +464,6 @@ describe('SimpleHashRegistrar', function() {
 					console.log("\t Deed released");
 					web3.eth.getBalance(bid.account, function(err, balance){
 						assert.ok(balance.toFixed() > bid.startingBalance);
-						console.log("\t Balance before: "+bid.startingBalance+" after: "+balance.toFixed());
 						done();
 					});
 				});
@@ -854,7 +853,7 @@ describe('SimpleHashRegistrar', function() {
 	});
 
 	it('prohibits late funding of bids', function(done) {
-		let bid = {account: accounts[0], value: 1.3e18, deposit: 1.0e17, salt: 1, description: 'underfunded bid' };
+		let bid = {account: accounts[0], value: 1.3e18, deposit: 1.0e18, salt: 1, description: 'underfunded bid' };
 		let bidWinner = {account: accounts[1], value: 1.2e18, deposit: 1.6e18, salt: 1, description: 'normally funded bid' };
 		let deedAddress = null;
 
@@ -912,7 +911,6 @@ describe('SimpleHashRegistrar', function() {
 					assert.equal(err, null, err);
 					web3.eth.sendTransaction({from: accounts[0], to: result, value: 2e18}, function(err, txid) {
 						web3.eth.getBalance(result, function(err, balance) {
-							console.log("\t Balance: " + balance);
 							done();
 						});
 					});
@@ -932,14 +930,20 @@ describe('SimpleHashRegistrar', function() {
 				web3.eth.getBalance(bid.account, function(err, balance){
 					var spentFee = Math.floor(web3.fromWei(bid.startingBalance - balance.toFixed(), 'finney'));
 					console.log('\t Bidder #'+ bid.salt, bid.description, 'spent:', spentFee, 'finney;');
-					assert.equal(spentFee, 100);
-					// It sends 100 finney, and the bid is considered invalid and therefore is spent
+					// Bid is considered equal to 1 ether and loses, costing 0.5%
+					assert.equal(spentFee, 5);
 					done();
 				});
 			},
+			// Advance another two days to the end of the auction
+			function(done) { web3.currentProvider.sendAsync({
+				jsonrpc: "2.0",
+				"method": "evm_increaseTime",
+				params: [48 * 60 * 60]}, done);
+			},
 			// Finalize the auction and get the deed address
 			function(done) {
-				registrar.finalizeAuction(web3.sha3('longname'), {from: bid.account}, function(err, txid) {
+				registrar.finalizeAuction(web3.sha3('longname'), {from: bidWinner.account}, function(err, txid) {
 					assert.equal(err, null, err);
 					registrar.entries(web3.sha3('longname'), function(err, result) {
 						assert.equal(err, null, err);
@@ -950,7 +954,6 @@ describe('SimpleHashRegistrar', function() {
 			},
 			// Check the new owner was set on the deed
 			function(done) {
-				
 				web3.eth.contract(deedABI).at(deedAddress).owner(function(err, owner) {
 					console.log('\t',bid.account == owner? "underfunded bid wins" : "underfunded bid loses");
 					assert.equal(err, null, err);
