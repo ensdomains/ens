@@ -932,7 +932,7 @@ describe('SimpleHashRegistrar', function() {
 				web3.eth.getBalance(bid.account, function(err, balance){
 					var spentFee = Math.floor(web3.fromWei(bid.startingBalance - balance.toFixed(), 'finney'));
 					console.log('\t Bidder #'+ bid.salt, bid.description, 'spent:', spentFee, 'finney;');
-					// assert.equal(spentFee, 100);
+					assert.equal(spentFee, 100);
 					// It sends 100 finney, and the bid is considered invalid and therefore is spent
 					done();
 				});
@@ -940,7 +940,7 @@ describe('SimpleHashRegistrar', function() {
 			// Finalize the auction and get the deed address
 			function(done) {
 				registrar.finalizeAuction(web3.sha3('longname'), {from: bid.account}, function(err, txid) {
-					// assert.equal(err, null, err);
+					assert.equal(err, null, err);
 					registrar.entries(web3.sha3('longname'), function(err, result) {
 						assert.equal(err, null, err);
 						deedAddress = result[1];
