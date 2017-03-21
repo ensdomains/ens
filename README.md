@@ -1,7 +1,12 @@
 # ENS
 Implementations for registrars and local resolvers for the Ethereum Name Service.
 
-For documentation of the ENS system, see [the wiki](https://github.com/ethereum/ens/wiki).
+For documentation of the ENS system, see [docs.ens.domains](http://docs.ens.domains/).
+
+To run unittests, clone this repository, and run:
+
+    npm install
+    npm test
 
 ## ENS.sol
 Implementation of the ENS Registry, the central contract used to look up resolvers and owners for domains.
