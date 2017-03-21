@@ -2,7 +2,7 @@
 Deploying ENS
 ***************
 
-If you'd like to deploy ENS on your own network, or deploy your own copy of ENS on a public network, this guide shows you how. If you want to use an existing ENS deployment, read `interacting with the ENS registry`_ instead. If you want to register a name on the Ropsten (testnet) ENS deployment, read `registering a name with the auction registrar`_ or `registering a name with the test registrar`_.
+If you'd like to deploy ENS on your own network, or deploy your own copy of ENS on a public network, this guide shows you how. If you want to use an existing ENS deployment, read :ref:`interacting` instead. If you want to register a name on the Ropsten (testnet) ENS deployment, read :ref:`fifs` or :ref:`auctions`.
 
 Deploy the registry
 -------------------
@@ -25,7 +25,7 @@ First, you need to deploy ENS's central component, the registry. To do so, paste
 
 Once successfully mined, you will have a fresh ENS registry, whose root node is owned by the account that created the transaction (in this case, the first account on your node). This account has total control over the ENS registry - it can create and replace any node in the entire tree.
 
-For instructions on how to interact with the registry, see `interacting with the ENS registry`_.
+For instructions on how to interact with the registry, see :ref:`interacting`.
 
 Deploying a registrar
 ---------------------
@@ -56,8 +56,4 @@ Once that transaction is mined, you can transfer ownership of the root node to t
 
     ens.setOwner(0, registrar.address, {from: eth.accounts[0]});
 
-Users can now register names with the registrar; for instructions read `registering a name with the test registrar`_.
-
-.. _`interacting with the ENS registry`: interacting.html
-.. _`registering a name with the auction registrar`: auctions.html
-.. _`registering a name with the test registrar`: testnames.html
+Users can now register names with the registrar; for instructions read :ref:`fifs`.
