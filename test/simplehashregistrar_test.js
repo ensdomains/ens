@@ -76,6 +76,11 @@ describe('SimpleHashRegistrar', function() {
 			function(done) {
 				registrar.startAuction(web3.sha3('name'), {from: accounts[0]}, done);
 			},
+			function(done) { advanceTime(48 * 60 * 60, done); },
+			// Starting the same auction again should have no effect
+			function(done) {
+				registrar.startAuction(web3.sha3('name'), {from: accounts[0]}, done);
+			},
 			function(done) {
 				registrar.entries(web3.sha3('name'), function(err, result) {
 					assert.equal(err, null, err);
