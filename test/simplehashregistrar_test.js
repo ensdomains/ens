@@ -210,13 +210,21 @@ describe('SimpleHashRegistrar', function() {
 					assert.equal(result[0], 2); // status == Owned
 					assert.equal(result[3], 1.5e18); // value = 1.5 ether
 					assert.equal(result[4], 2e18); // highestBid = 2 ether
+					var deed = web3.eth.contract(deedABI).at(result[1]);
 					async.series([
 						// Check the owner is correct
 						function(done) {
-							var deed = web3.eth.contract(deedABI).at(result[1]);
 							deed.owner(function(err, addr) {
 								assert.equal(err, null, err);
 								assert.equal(addr, accounts[1]);
+								done();
+							});
+						},
+						// Check the registrar is correct
+						function(done) {
+							deed.registrar(function(err, addr) {
+								assert.equal(err, null, err);
+								assert.equal(addr, registrar.address);
 								done();
 							});
 						},
@@ -225,6 +233,14 @@ describe('SimpleHashRegistrar', function() {
 							web3.eth.getBalance(result[1], function(err, balance) {
 								assert.equal(err, null, err);
 								assert.equal(balance.toNumber(), bidData[2].value);
+								done();
+							});
+						},
+						// Check the value is correct
+						function(done) {
+							deed.value(function(err, value) {
+								assert.equal(err, null, err);
+								assert.equal(value, bidData[2].value);
 								done();
 							});
 						}
