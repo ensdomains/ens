@@ -14,6 +14,13 @@ before(function(done) {
 	});
 });
 
+function advanceTime(delay, done) {
+	web3.currentProvider.sendAsync({
+		jsonrpc: "2.0",
+		"method": "evm_increaseTime",
+		params: [delay]}, done)
+}
+
 describe('SimpleHashRegistrar', function() {
 	var registrarABI = null;
 	var registrarBytecode = null;
@@ -75,11 +82,7 @@ describe('SimpleHashRegistrar', function() {
 				});
 			},
 			// Advance time 24 days
-			function(done) { web3.currentProvider.sendAsync({
-				jsonrpc: "2.0",
-				"method": "evm_increaseTime",
-				params: [24 * 24 * 60 * 60]}, done);
-			},
+			function(done) { advanceTime(24 * 24 * 60 * 60, done); },
 			function(done) {
 				registrar.startAuction(web3.sha3('anothername'), {from: accounts[0]}, done);
 			},
@@ -169,11 +172,7 @@ describe('SimpleHashRegistrar', function() {
 				}, done);
 			},
 			// Advance 26 days to the reveal period
-			function(done) { web3.currentProvider.sendAsync({
-				jsonrpc: "2.0",
-				"method": "evm_increaseTime",
-				params: [26 * 24 * 60 * 60 + 1]}, done);
-			},
+			function(done) { advanceTime(26 * 24 * 60 * 60 + 1, done); },
 			// Reveal all the bids
 			function(done) {
 				async.each(bidData, function(bid, done) {
@@ -188,11 +187,7 @@ describe('SimpleHashRegistrar', function() {
 				}, done);
 			},
 			// Advance another two days to the end of the auction
-			function(done) { web3.currentProvider.sendAsync({
-				jsonrpc: "2.0",
-				"method": "evm_increaseTime",
-				params: [48 * 60 * 60]}, done);
-			},
+			function(done) { advanceTime(48 * 60 * 60, done); },
 			// Reveal last bid
 			function(done) {
 				bid = bidData[5];
@@ -301,11 +296,7 @@ describe('SimpleHashRegistrar', function() {
 				});
 			},
 			// Advance 26 days to the reveal period
-			function(done) { web3.currentProvider.sendAsync({
-				jsonrpc: "2.0",
-				"method": "evm_increaseTime",
-				params: [26 * 24 * 60 * 60 + 1]}, done);
-			},
+			function(done) { advanceTime(26 * 24 * 60 * 60 + 1, done); },
 			
 			// Attempt to cancel the second bid and fail
 			function(done) {
@@ -349,11 +340,7 @@ describe('SimpleHashRegistrar', function() {
 				});
 			},	
 			// Advance another two days to the end of the auction
-			function(done) { web3.currentProvider.sendAsync({
-				jsonrpc: "2.0",
-				"method": "evm_increaseTime",
-				params: [48 * 60 * 60]}, done);
-			},
+			function(done) { advanceTime(48 * 60 * 60, done); },
 			// Finalize the auction and get the deed address
 			function(done) {
 				registrar.finalizeAuction(web3.sha3('cancelname'), {from: accounts[1]}, function(err, txid) {
@@ -378,11 +365,7 @@ describe('SimpleHashRegistrar', function() {
 				});
 			},
 			// Advance another four weeks
-			function(done) { web3.currentProvider.sendAsync({
-				jsonrpc: "2.0",
-				"method": "evm_increaseTime",
-				params: [4 * 7 * 24 * 60 * 60]}, done);
-			},
+			function(done) { advanceTime(4 * 7 * 24 * 60 * 60, done); },
 
 			// Cancel the third bid
 			function(done) {
@@ -431,11 +414,7 @@ describe('SimpleHashRegistrar', function() {
 				});
 			},
 			// Advance 26 days to the reveal period
-			function(done) { web3.currentProvider.sendAsync({
-				jsonrpc: "2.0",
-				"method": "evm_increaseTime",
-				params: [26 * 24 * 60 * 60 + 1]}, done);
-			},
+			function(done) { advanceTime(26 * 24 * 60 * 60 + 1, done); },
 			// Reveal the bid
 			function(done) {
 				registrar.unsealBid(web3.sha3('releasename'), bid.account, bid.value, bid.salt, {from: bid.account}, function(err, txid) {
@@ -444,11 +423,7 @@ describe('SimpleHashRegistrar', function() {
 				});
 			},
 			// Advance another two days to the end of the auction
-			function(done) { web3.currentProvider.sendAsync({
-				jsonrpc: "2.0",
-				"method": "evm_increaseTime",
-				params: [48 * 60 * 60]}, done);
-			},
+			function(done) { advanceTime(48 * 60 * 60, done); },
 			// Finalize the auction
 			function(done) {
 				registrar.finalizeAuction(web3.sha3('releasename'), {from: bid.account}, function(err, txid) {
@@ -472,11 +447,7 @@ describe('SimpleHashRegistrar', function() {
 				});
 			},
 			// Advance one year
-			function(done) { web3.currentProvider.sendAsync({
-				jsonrpc: "2.0",
-				"method": "evm_increaseTime",
-				params: [365 * 24 * 60 * 60]}, done);
-			},
+			function(done) { advanceTime(365 * 24 * 60 * 60, done); },
 			// Release the deed
 			function(done) {
 				registrar.releaseDeed(web3.sha3('releasename'), {from: bid.account}, function(err, txid) {
@@ -526,11 +497,7 @@ describe('SimpleHashRegistrar', function() {
 				});
 			},
 			// Advance 26 days to the reveal period
-			function(done) { web3.currentProvider.sendAsync({
-				jsonrpc: "2.0",
-				"method": "evm_increaseTime",
-				params: [26 * 24 * 60 * 60 + 1]}, done);
-			},
+			function(done) { advanceTime(26 * 24 * 60 * 60 + 1, done); },
 			// Reveal the bid
 			function(done) {
 				registrar.unsealBid(web3.sha3('name'), accounts[0], 1e18, 1, {from: accounts[0]}, function(err, txid) {
@@ -543,11 +510,7 @@ describe('SimpleHashRegistrar', function() {
 				});
 			},
 			// Advance another two days to the end of the auction
-			function(done) { web3.currentProvider.sendAsync({
-				jsonrpc: "2.0",
-				"method": "evm_increaseTime",
-				params: [48 * 60 * 60]}, done);
-			},
+			function(done) { advanceTime(48 * 60 * 60, done); },
 			// Have someone else call startAuction
 			function(done) {
 				registrar.startAuction(web3.sha3('name'), {from: accounts[0]}, function(err, result) {
@@ -592,11 +555,7 @@ describe('SimpleHashRegistrar', function() {
 				});
 			},
 			// Advance 26 days to the reveal period
-			function(done) { web3.currentProvider.sendAsync({
-				jsonrpc: "2.0",
-				"method": "evm_increaseTime",
-				params: [26 * 24 * 60 * 60 + 1]}, done);
-			},
+			function(done) { advanceTime(26 * 24 * 60 * 60 + 1, done); },
 			// Reveal the bids and check they're processed correctly.
 			function(done) {
 				registrar.unsealBid(web3.sha3('name'), accounts[0], 2e18, 1, {from: accounts[0]}, function(err, txid) {
@@ -673,11 +632,7 @@ describe('SimpleHashRegistrar', function() {
 				});
 			},
 			// Advance 26 days to the reveal period
-			function(done) { web3.currentProvider.sendAsync({
-				jsonrpc: "2.0",
-				"method": "evm_increaseTime",
-				params: [26 * 24 * 60 * 60 + 1]}, done);
-			},
+			function(done) { advanceTime(26 * 24 * 60 * 60 + 1, done); },
 			// Reveal the bid
 			function(done) {
 				registrar.unsealBid(web3.sha3('name'), bid.account, bid.value, bid.salt, {from: bid.account}, function(err, txid) {
@@ -686,11 +641,7 @@ describe('SimpleHashRegistrar', function() {
 				});
 			},
 			// Advance to the end of the auction
-			function(done) { web3.currentProvider.sendAsync({
-				jsonrpc: "2.0",
-				"method": "evm_increaseTime",
-				params: [48 * 60 * 60 + 1]}, done);
-			},
+			function(done) { advanceTime(48 * 24 * 60 * 60, done); },
 			// Invalidate Name
 			function(done) {
 				registrar.invalidateName('name', {from: invalidator.account}, function(err, txid) {
@@ -755,11 +706,7 @@ describe('SimpleHashRegistrar', function() {
 				});
 			},
 			// Advance 26 days to the reveal period
-			function(done) { web3.currentProvider.sendAsync({
-				jsonrpc: "2.0",
-				"method": "evm_increaseTime",
-				params: [26 * 24 * 60 * 60 + 1]}, done);
-			},
+			function(done) { advanceTime(26 * 24 * 60 * 60 + 1, done); },
 			// Reveal the bid
 			function(done) {
 				registrar.unsealBid(web3.sha3('name'), accounts[0], 1e18, 1, {from: accounts[0]}, function(err, txid) {
@@ -768,11 +715,7 @@ describe('SimpleHashRegistrar', function() {
 				});
 			},
 			// Advance another two days to the end of the auction
-			function(done) { web3.currentProvider.sendAsync({
-				jsonrpc: "2.0",
-				"method": "evm_increaseTime",
-				params: [48 * 60 * 60]}, done);
-			},
+			function(done) { advanceTime(48 * 24 * 60 * 60, done); },
 			// Finalize the auction and get the deed address
 			function(done) {
 				registrar.finalizeAuction(web3.sha3('name'), {from: accounts[0]}, function(err, txid) {
@@ -825,11 +768,7 @@ describe('SimpleHashRegistrar', function() {
 				});
 			},
 			// Advance 26 days to the reveal period
-			function(done) { web3.currentProvider.sendAsync({
-				jsonrpc: "2.0",
-				"method": "evm_increaseTime",
-				params: [26 * 24 * 60 * 60 + 1]}, done);
-			},
+			function(done) { advanceTime(26 * 24 * 60 * 60 + 1, done); },
 			// Reveal the bid
 			function(done) {
 				registrar.unsealBid(web3.sha3('name'), accounts[0], 1e18, 1, {from: accounts[0]}, function(err, txid) {
@@ -838,11 +777,7 @@ describe('SimpleHashRegistrar', function() {
 				});
 			},
 			// Advance another two days to the end of the auction
-			function(done) { web3.currentProvider.sendAsync({
-				jsonrpc: "2.0",
-				"method": "evm_increaseTime",
-				params: [48 * 60 * 60]}, done);
-			},
+			function(done) { advanceTime(48 * 60 * 60, done); },
 			// Finalize the auction and get the deed address
 			function(done) {
 				registrar.finalizeAuction(web3.sha3('name'), {from: accounts[0]}, function(err, txid) {
@@ -912,11 +847,7 @@ describe('SimpleHashRegistrar', function() {
 				});
 			},
 			// Advance 26 days to the reveal period
-			function(done) { web3.currentProvider.sendAsync({
-				jsonrpc: "2.0",
-				"method": "evm_increaseTime",
-				params: [26 * 24 * 60 * 60 + 1]}, done);
-			},
+			function(done) { advanceTime(26 * 24 * 60 * 60 + 1, done); },
 			// Reveal the normal bid
 			function(done) {
 				registrar.unsealBid(web3.sha3('longname'), bidWinner.account, bidWinner.value, bidWinner.salt, {from: bidWinner.account}, function(err, txid) {
@@ -956,11 +887,7 @@ describe('SimpleHashRegistrar', function() {
 				});
 			},
 			// Advance another two days to the end of the auction
-			function(done) { web3.currentProvider.sendAsync({
-				jsonrpc: "2.0",
-				"method": "evm_increaseTime",
-				params: [48 * 60 * 60]}, done);
-			},
+			function(done) { advanceTime(48 * 60 * 60, done); },
 			// Finalize the auction and get the deed address
 			function(done) {
 				registrar.finalizeAuction(web3.sha3('longname'), {from: bidWinner.account}, function(err, txid) {
@@ -999,11 +926,7 @@ describe('SimpleHashRegistrar', function() {
 				registrar.startAuction(web3.sha3('longname'), {from: accounts[0]}, done);
 			},
 			// Advance 26 days to the reveal period
-			function(done) { web3.currentProvider.sendAsync({
-				jsonrpc: "2.0",
-				"method": "evm_increaseTime",
-				params: [26 * 24 * 60 * 60 + 1]}, done);
-			},
+			function(done) { advanceTime(26 * 24 * 60 * 60 + 1, done); },
 			// Place the bid
 			function(done) {
 				registrar.shaBid(web3.sha3('longname'), bid.account, bid.value, bid.salt, function(err, result) {
@@ -1078,11 +1001,7 @@ describe('SimpleHashRegistrar', function() {
 			},
 			function(done) { ens.setSubnodeOwner(0, web3.sha3('eth'), newRegistrar.address, {from: accounts[0]}, done);},
 			// Advance 26 days to the reveal period
-			function(done) { web3.currentProvider.sendAsync({
-				jsonrpc: "2.0",
-				"method": "evm_increaseTime",
-				params: [26 * 24 * 60 * 60 + 1]}, done);
-			},
+			function(done) { advanceTime(26 * 24 * 60 * 60 + 1, done); },
 			// Reveal the bid
 			function(done) {
 				registrar.unsealBid(web3.sha3('name'), accounts[0], bid.value, 1, {from: accounts[0]}, function(err, txid) {
@@ -1091,11 +1010,7 @@ describe('SimpleHashRegistrar', function() {
 				});
 			},
 			// Advance another two days to the end of the auction
-			function(done) { web3.currentProvider.sendAsync({
-				jsonrpc: "2.0",
-				"method": "evm_increaseTime",
-				params: [48 * 60 * 60]}, done);
-			},
+			function(done) { advanceTime(48 * 60 * 60, done); },
 			// Get the deed address
 			function(done) {
 				registrar.entries(web3.sha3('name'), function(err, result) {
