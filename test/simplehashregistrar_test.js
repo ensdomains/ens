@@ -66,10 +66,30 @@ describe('SimpleHashRegistrar', function() {
 					assert.equal(err, null, err);
 					assert.equal(result[0], 1); // status == Auction
 					assert.equal(result[1], 0); // deed == 0x00
-					var dateDiff = Math.abs(result[2].toNumber() - new Date().getTime() / 1000 - 28 * 24 * 60 * 60);
-					assert.ok(dateDiff < 5, dateDiff); // registrationDate
+					// Expected to end 28 days from start
+					var expectedEnd = new Date().getTime() / 1000 + 28 * 24 * 60 * 60;
+					assert.ok(Math.abs(result[2].toNumber() - expectedEnd) < 5); // registrationDate
 					assert.equal(result[3], 0); // value = 0
 					assert.equal(result[4], 0); // highestBid = 0
+					done();
+				});
+			},
+			// Advance time 24 days
+			function(done) { web3.currentProvider.sendAsync({
+				jsonrpc: "2.0",
+				"method": "evm_increaseTime",
+				params: [24 * 24 * 60 * 60]}, done);
+			},
+			function(done) {
+				registrar.startAuction(web3.sha3('anothername'), {from: accounts[0]}, done);
+			},
+			// Check later auctions end 7 days after they start
+			function(done) {
+				registrar.entries(web3.sha3('anothername'), function(err, result) {
+					assert.equal(err, null, err);
+					// Expected to end 29 days from start (24 days + 5)
+					var expectedEnd = new Date().getTime() / 1000 + 29 * 24 * 60 * 60;
+					assert.ok(Math.abs(result[2].toNumber() - expectedEnd) < 5); // registrationDate
 					done();
 				});
 			}
