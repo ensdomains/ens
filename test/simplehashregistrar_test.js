@@ -105,6 +105,7 @@ describe('SimpleHashRegistrar', function() {
 			function(done) {
 				registrar.startAuction(web3.sha3('name'), {from: accounts[0]}, done);
 			},
+			// Submit a bid
 			function(done) {
 				registrar.shaBid(web3.sha3('name'), accounts[0], 1e18, 0, function(err, result) {
 					bid = result;
@@ -115,6 +116,7 @@ describe('SimpleHashRegistrar', function() {
 					});
 				});
 			},
+			// Check it was recorded correctly
 			function(done) {
 				registrar.sealedBids(accounts[0], bid, function(err, deedAddress) {
 					assert.equal(err, null, err);
@@ -124,7 +126,14 @@ describe('SimpleHashRegistrar', function() {
 						done();
 					})
 				});
-			}
+			},
+			// Submit a less-than-minimum bid and check it throws
+			function(done)  {
+				registrar.newBid.call(0, {from: accounts[0], value: 1e15 - 1}, function(err, result) {
+					assert.ok(err.toString().indexOf(utils.INVALID_JUMP) != -1, err);
+					done();
+				});
+			},
 		], done);
 	});
 
