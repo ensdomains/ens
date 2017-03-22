@@ -116,6 +116,13 @@ describe('SimpleHashRegistrar', function() {
 					});
 				});
 			},
+			// Check a duplicate bid would throw
+			function(done) {
+				registrar.newBid.call(bid, {from: accounts[0], value: 2e18}, function(err, result) {
+					assert.ok(err.toString().indexOf(utils.INVALID_JUMP) != -1, err);
+					done();
+				})
+			},
 			// Check it was recorded correctly
 			function(done) {
 				registrar.sealedBids(accounts[0], bid, function(err, deedAddress) {
