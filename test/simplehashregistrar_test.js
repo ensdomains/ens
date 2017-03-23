@@ -885,6 +885,15 @@ describe('SimpleHashRegistrar', function() {
 					});
 				});
 			},
+
+			// Try and transfer it when we don't own it
+			function(done) {
+				registrar.transfer(web3.sha3('name'), accounts[1], {from: accounts[1]}, function(err, txid) {
+					assert.ok(err.toString().indexOf(utils.INVALID_JUMP) != -1, err);
+					done();
+				});
+			},
+
 			// Transfer ownership to another account
 			function(done) {
 				registrar.transfer(web3.sha3('name'), accounts[1], {from: accounts[0]}, function(err, txid) {
