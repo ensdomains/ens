@@ -808,6 +808,14 @@ describe('SimpleHashRegistrar', function() {
 					done();
 				});
 			},
+			// Check the ENS record is set to 0
+			function(done) {
+				ens.owner(nameDotEth, function(err, owner) {
+					assert.equal(err, null, err);
+					assert.equal(owner, 0);
+					done();
+				});
+			},
 			function(done) {
 				// Makes sure it can't be registered again
 				registrar.startAuction(web3.sha3('name'), {from: accounts[0]}, function(err, res){
