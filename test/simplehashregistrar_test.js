@@ -532,6 +532,23 @@ describe('SimpleHashRegistrar', function() {
 			.asCallback(done);
 	});
 
+	it("doesn't allow revealing a bid on a name not up for auction", function(done) {
+		var sealedBid = null;
+		registrar.shaBidAsync(web3.sha3('name'), accounts[0], 1e18, 1)
+			.then((result) => {
+				sealedBid = result;
+				return registrar.newBidAsync(result, {from: accounts[0], value: 1e18});
+			})
+			.then((done) => registrar.unsealBidAsync(web3.sha3('name'), accounts[0], 1e18, 1, {from: accounts[0]}))
+			.then((done) => assert.fail("Expected exception"), (err) => assert.ok(err.toString().indexOf(utils.INVALID_JUMP) != -1, err))
+			// Check reveal works after starting the auction
+			.then((done) => advanceTimeAsync(24 * 60 * 60))
+			.then((done) => registrar.startAuctionAsync(web3.sha3('name'), {from: accounts[0]}))
+			.then((done) => advanceTimeAsync(25 * 24 * 60 * 60 + 1))
+			.then((done) => registrar.unsealBidAsync(web3.sha3('name'), accounts[0], 1e18, 1, {from: accounts[0]}))
+			.asCallback(done);
+	})
+
 	it('calling startAuction on a finished auction has no effect', function(done) {
 		var auctionStatus = null;
 		async.series([
