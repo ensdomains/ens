@@ -1,6 +1,7 @@
 
 var assert = require('assert');
 var async = require('async');
+var Promise = require('bluebird');
 
 var utils = require('./utils.js');
 var web3 = utils.web3;
@@ -20,6 +21,7 @@ function advanceTime(delay, done) {
 		"method": "evm_increaseTime",
 		params: [delay]}, done)
 }
+var advanceTimeAsync = Promise.promisify(advanceTime);
 
 describe('SimpleHashRegistrar', function() {
 	var registrarABI = null;
@@ -55,6 +57,7 @@ describe('SimpleHashRegistrar', function() {
 				   	}, function(err, contract) {
 				   	    assert.equal(err, null, err);
 				   	    if(contract.address != undefined) {
+				   	    	registrar = Promise.promisifyAll(registrar);
 				   	    	done();
 					   	}
 				   });
@@ -516,6 +519,17 @@ describe('SimpleHashRegistrar', function() {
 				});
 			},
 		], done);
+	});
+
+	it('rejects bids less than the minimum', function(done) {
+		registrar.startAuctionAsync(web3.sha3('name'), {from: accounts[0]})
+			.then((done) => registrar.shaBidAsync(web3.sha3('name'), accounts[0], 1e15 - 1, 1))
+			.then((result) => registrar.newBidAsync(result, {from: accounts[0], value: 1e18}))
+			.then((done) => advanceTimeAsync(26 * 24 * 60 * 60 + 1))
+			.then((done) => registrar.unsealBidAsync(web3.sha3('name'), accounts[0], 1e15 - 1, 1, {from: accounts[0]}))
+			.then((done) => registrar.entriesAsync(web3.sha3('name')))
+			.then((result) => assert.equal(result[4], 0)) // highestBid == 0
+			.asCallback(done);
 	});
 
 	it('calling startAuction on a finished auction has no effect', function(done) {
