@@ -518,6 +518,14 @@ describe('SimpleHashRegistrar', function() {
 					done();
 				});
 			},
+			// Check the owner is set to 0 in ENS
+			function(done) {
+				ens.owner(web3.sha3(dotEth + web3.sha3('releasename').slice(2), {encoding: 'hex'}), function(err, owner) {
+					assert.equal(err, null, err);
+					assert.equal(owner, 0);
+					done();
+				});
+			}
 		], done);
 	});
 
