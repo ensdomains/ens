@@ -631,7 +631,7 @@ describe('SimpleHashRegistrar', function() {
 			.then((done) => registrar.invalidateNameAsync('longname', {from: accounts[0]}))
 			.then((done) => assert.fail("Expected exception"), (err) => assert.ok(err.toString().indexOf(utils.INVALID_JUMP) != -1, err))
 			.asCallback(done);
-	})
+	});
 
 	it('calling startAuction on a finished auction has no effect', function(done) {
 		var auctionStatus = null;
@@ -887,6 +887,13 @@ describe('SimpleHashRegistrar', function() {
 						deedAddress = result[1];
 						done();
 					});
+				});
+			},
+			// Transferring the deed should fail
+			function(done) {
+				registrar.transferRegistrars(web3.sha3('name'), {from: accounts[0]}, function(err, result) {
+					assert.ok(err.toString().indexOf(utils.INVALID_JUMP) != -1, err);
+					done();
 				});
 			},
 			// Update ENS with a new registrar
