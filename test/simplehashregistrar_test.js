@@ -532,6 +532,28 @@ describe('SimpleHashRegistrar', function() {
 			.asCallback(done);
 	});
 
+	it("doesn't allow finalizing an auction early", function(done) {
+		var sealedBid = null;
+		registrar.startAuctionAsync(web3.sha3('name'), {from: accounts[0]})
+			.then((done) => registrar.finalizeAuctionAsync(web3.sha3('name'), {from: accounts[0]}))
+			.then((done) => assert.fail("Expected exception"), (err) => assert.ok(err.toString().indexOf(utils.INVALID_JUMP) != -1, err))
+
+			.then((done) => registrar.shaBidAsync(web3.sha3('name'), accounts[0], 1e18, 1))
+			.then((result) => {
+				sealedBid = result;
+				return registrar.newBidAsync(result, {from: accounts[0], value: 1e18});
+			})
+			.then((done) => advanceTimeAsync(26 * 24 * 60 * 60 + 1))
+			.then((done) => registrar.unsealBidAsync(web3.sha3('name'), accounts[0], 1e18, 1, {from: accounts[0]}))
+
+			.then((done) => registrar.finalizeAuctionAsync(web3.sha3('name'), {from: accounts[0]}))
+			.then((done) => assert.fail("Expected exception"), (err) => assert.ok(err.toString().indexOf(utils.INVALID_JUMP) != -1, err))
+
+			.then((done) => advanceTimeAsync(2 * 24 * 60 * 60 + 1))
+			.then((done) => registrar.finalizeAuctionAsync(web3.sha3('name'), {from: accounts[0]}))
+			.asCallback(done);
+	});
+
 	it("doesn't allow revealing a bid on a name not up for auction", function(done) {
 		var sealedBid = null;
 		registrar.shaBidAsync(web3.sha3('name'), accounts[0], 1e18, 1)
@@ -547,7 +569,7 @@ describe('SimpleHashRegistrar', function() {
 			.then((done) => advanceTimeAsync(25 * 24 * 60 * 60 + 1))
 			.then((done) => registrar.unsealBidAsync(web3.sha3('name'), accounts[0], 1e18, 1, {from: accounts[0]}))
 			.asCallback(done);
-	})
+	});
 
 	it('calling startAuction on a finished auction has no effect', function(done) {
 		var auctionStatus = null;
