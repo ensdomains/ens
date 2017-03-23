@@ -872,6 +872,15 @@ describe('SimpleHashRegistrar', function() {
 					done();
 				});
 			},
+
+			// Make sure we can't transfer it yet
+			function(done) {
+				registrar.transfer(web3.sha3('name'), accounts[1], {from: accounts[0]}, function(err, txid) {
+					assert.ok(err.toString().indexOf(utils.INVALID_JUMP) != -1, err);
+					done();
+				});
+			},
+
 			// Advance another two days to the end of the auction
 			function(done) { advanceTime(48 * 60 * 60, done); },
 			// Finalize the auction and get the deed address
