@@ -187,6 +187,13 @@ describe('SimpleHashRegistrar', function() {
 					});
 				}, done);
 			},
+			// Try to reveal a bid early
+			function(done) {
+				registrar.unsealBid(web3.sha3('name'), bidData[0].account, bidData[0].value, bidData[0].salt, {from: bidData[0].account}, function(err, txid) {
+					assert.ok(err.toString().indexOf(utils.INVALID_JUMP) != -1, err);
+					done();
+				});
+			},
 			// Advance 26 days to the reveal period
 			function(done) { advanceTime(26 * 24 * 60 * 60 + 1, done); },
 			// Reveal all the bids
