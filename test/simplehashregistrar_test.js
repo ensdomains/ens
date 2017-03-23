@@ -491,6 +491,16 @@ describe('SimpleHashRegistrar', function() {
 			},
 			// Advance one year
 			function(done) { advanceTime(365 * 24 * 60 * 60, done); },
+
+			// Try and fail to release the deed as the wrong user
+			function(done) {
+				registrar.releaseDeed(web3.sha3('releasename'), {from: accounts[1]}, function(err, txid) {
+					assert.notEqual(err, null, err);
+					console.log("\t Could not release as someone else");
+					done();
+				});
+			},
+
 			// Release the deed
 			function(done) {
 				registrar.releaseDeed(web3.sha3('releasename'), {from: bid.account}, function(err, txid) {
