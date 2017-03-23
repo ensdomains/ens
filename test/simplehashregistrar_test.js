@@ -439,6 +439,7 @@ describe('SimpleHashRegistrar', function() {
 	it('releases deed after one year', function(done) {
 		this.timeout(5000);
 		var bid = {description: 'A regular bid', account: accounts[0], value: 1.1e18, deposit: 2.0e18, salt: 1, expectedFee: 0.005 };
+		var startdate = null;
 		async.series([
 			// Start an auction for 'releasename'
 			function(done) {
@@ -525,7 +526,26 @@ describe('SimpleHashRegistrar', function() {
 					assert.equal(owner, 0);
 					done();
 				});
-			}
+			},
+			function(done) {
+				web3.eth.getBlock('latest', function(err, block) {
+					startdate = block.timestamp;
+					done();
+				});
+			},
+			// Check we can start an auction on the name
+			function(done) {
+				registrar.startAuction(web3.sha3('releasename'), {from: bid.account}, done);
+			},
+			// Check that the end time is set correctly
+			function(done) {
+				registrar.entries(web3.sha3('releasename'), function(err, result) {
+					assert.equal(err, null, err);
+					var expectedEnd = startdate + 5 * 24 * 60 * 60;
+					assert.ok(Math.abs(result[2].toNumber() - expectedEnd) < 5, Math.abs(result[2].toNumber() - expectedEnd)); // registrationDate
+					done();
+				});
+			},
 		], done);
 	});
 
