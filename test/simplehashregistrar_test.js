@@ -899,6 +899,14 @@ describe('SimpleHashRegistrar', function() {
 					assert.equal(accounts[1], owner);
 					done();
 				});
+			},
+			// Check the new owner was set in ENS
+			function(done) {
+				ens.owner(nameDotEth, function(err, owner) {
+					assert.equal(err, null, err);
+					assert.equal(accounts[1], owner);
+					done();
+				});
 			}
 		], done);
 	});
