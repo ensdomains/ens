@@ -559,6 +559,24 @@ describe('SimpleHashRegistrar', function() {
 		], done);
 	});
 
+	it("allows releasing a deed even when no longer the registrar", function(done) {
+		var sealedBid = null;
+		registrar.startAuctionAsync(web3.sha3('name'), {from: accounts[0]})
+			.then((done) => registrar.shaBidAsync(web3.sha3('name'), accounts[0], 1e18, 1))
+			.then((result) => {
+				sealedBid = result;
+				return registrar.newBidAsync(result, {from: accounts[0], value: 1e18});
+			})
+			.then((done) => advanceTimeAsync(26 * 24 * 60 * 60 + 1))
+			.then((done) => registrar.unsealBidAsync(web3.sha3('name'), accounts[0], 1e18, 1, {from: accounts[0]}))
+			.then((done) => advanceTimeAsync(2 * 24 * 60 * 60 + 1))
+			.then((done) => registrar.finalizeAuctionAsync(web3.sha3('name'), {from: accounts[0]}))
+			.then((done) => advanceTimeAsync(365 * 24 * 60 * 60 + 1))
+			.then((done) => ens.setSubnodeOwnerAsync(0, web3.sha3('eth'), accounts[0], {from: accounts[0]}))
+			.then((done) => registrar.releaseDeedAsync(web3.sha3('name'), {from: accounts[0]}))
+			.asCallback(done);
+	});
+
 	it('rejects bids less than the minimum', function(done) {
 		registrar.startAuctionAsync(web3.sha3('name'), {from: accounts[0]})
 			.then((done) => registrar.shaBidAsync(web3.sha3('name'), accounts[0], 1e15 - 1, 1))
@@ -596,6 +614,22 @@ describe('SimpleHashRegistrar', function() {
 			.asCallback(done);
 	});
 
+	it("allows finalizing an auction even when no longer the registrar", function(done) {
+		var sealedBid = null;
+		registrar.startAuctionAsync(web3.sha3('name'), {from: accounts[0]})
+			.then((done) => registrar.shaBidAsync(web3.sha3('name'), accounts[0], 1e18, 1))
+			.then((result) => {
+				sealedBid = result;
+				return registrar.newBidAsync(result, {from: accounts[0], value: 1e18});
+			})
+			.then((done) => advanceTimeAsync(26 * 24 * 60 * 60 + 1))
+			.then((done) => registrar.unsealBidAsync(web3.sha3('name'), accounts[0], 1e18, 1, {from: accounts[0]}))
+			.then((done) => advanceTimeAsync(2 * 24 * 60 * 60 + 1))
+			.then((done) => ens.setSubnodeOwnerAsync(0, web3.sha3('eth'), accounts[0], {from: accounts[0]}))
+			.then((done) => registrar.finalizeAuctionAsync(web3.sha3('name'), {from: accounts[0]}))
+			.asCallback(done);		
+	})
+
 	it("doesn't allow revealing a bid on a name not up for auction", function(done) {
 		var sealedBid = null;
 		registrar.shaBidAsync(web3.sha3('name'), accounts[0], 1e18, 1)
@@ -616,9 +650,6 @@ describe('SimpleHashRegistrar', function() {
 	it("doesn't invalidate long names", function(done) {
 		var sealedBid = null;
 		registrar.startAuctionAsync(web3.sha3('longname'), {from: accounts[0]})
-			.then((done) => registrar.finalizeAuctionAsync(web3.sha3('longname'), {from: accounts[0]}))
-			.then((done) => assert.fail("Expected exception"), (err) => assert.ok(err.toString().indexOf(utils.INVALID_JUMP) != -1, err))
-
 			.then((done) => registrar.shaBidAsync(web3.sha3('longname'), accounts[0], 1e18, 1))
 			.then((result) => {
 				sealedBid = result;
@@ -630,6 +661,23 @@ describe('SimpleHashRegistrar', function() {
 			.then((done) => registrar.finalizeAuctionAsync(web3.sha3('longname'), {from: accounts[0]}))
 			.then((done) => registrar.invalidateNameAsync('longname', {from: accounts[0]}))
 			.then((done) => assert.fail("Expected exception"), (err) => assert.ok(err.toString().indexOf(utils.INVALID_JUMP) != -1, err))
+			.asCallback(done);
+	});
+
+	it("allows invalidation even when no longer the registrar", function(done) {
+		var sealedBid = null;
+		registrar.startAuctionAsync(web3.sha3('name'), {from: accounts[0]})
+			.then((done) => registrar.shaBidAsync(web3.sha3('name'), accounts[0], 1e18, 1))
+			.then((result) => {
+				sealedBid = result;
+				return registrar.newBidAsync(result, {from: accounts[0], value: 1e18});
+			})
+			.then((done) => advanceTimeAsync(26 * 24 * 60 * 60 + 1))
+			.then((done) => registrar.unsealBidAsync(web3.sha3('name'), accounts[0], 1e18, 1, {from: accounts[0]}))
+			.then((done) => advanceTimeAsync(2 * 24 * 60 * 60 + 1))
+			.then((done) => registrar.finalizeAuctionAsync(web3.sha3('name'), {from: accounts[0]}))
+			.then((done) => ens.setSubnodeOwnerAsync(0, web3.sha3('eth'), accounts[0], {from: accounts[0]}))
+			.then((done) => registrar.invalidateNameAsync('name', {from: accounts[0]}))
 			.asCallback(done);
 	});
 
