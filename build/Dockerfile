@@ -1,6 +1,5 @@
-FROM ubuntu:latest
-RUN (apt-get update \
-     && apt-get -y install git lsb-release sudo software-properties-common)
+FROM alpine:latest
+RUN apk add --no-cache git
 RUN (git clone --recursive https://github.com/ethereum/solidity.git \
      && cd solidity \
      && git checkout 4633f3de \
