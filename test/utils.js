@@ -1,6 +1,7 @@
 var assert = require('assert');
 var async = require('async');
 var fs = require('fs');
+var Promise = require('bluebird');
 var solc = require('solc');
 var TestRPC = require('ethereumjs-testrpc');
 var Web3 = require('web3');
@@ -27,7 +28,7 @@ module.exports = {
 	deployENS: function (account, done) {
 		if(ensCode == null)
 			ensCode = compileContract(['ENS.sol', 'interface.sol']).contracts['ENS.sol:ENS'];
-		return web3.eth.contract(JSON.parse(ensCode.interface)).new(
+		var ens = web3.eth.contract(JSON.parse(ensCode.interface)).new(
 		    {
 		    	from: account,
 		     	data: ensCode.bytecode,
@@ -35,9 +36,11 @@ module.exports = {
 		   	}, function(err, contract) {
 		   	    assert.equal(err, null, err);
 		   	    if(contract.address != undefined) {
+		   	    	ens = Promise.promisifyAll(ens);
 		   	    	done();
 			   	}
 		   });
+		return ens;
 	},
 	deployENSLLL: function(account, done) {
 		if(ensLLLCode == null) {

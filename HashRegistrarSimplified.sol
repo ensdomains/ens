@@ -391,8 +391,9 @@ contract Registrar {
 
         h.value =  max(h.value, minPrice);
 
-        // Assign the owner in ENS
-        ens.setSubnodeOwner(rootNode, _hash, h.deed.owner());
+        // Assign the owner in ENS, if we're still the registrar
+        if(ens.owner(rootNode) == address(this))
+            ens.setSubnodeOwner(rootNode, _hash, h.deed.owner());
 
         Deed deedContract = h.deed;
         deedContract.setBalance(h.value);
@@ -426,7 +427,8 @@ contract Registrar {
         h.highestBid = 0;
         h.deed = Deed(0);
 
-        ens.setSubnodeOwner(rootNode, _hash, 0);
+        if(ens.owner(rootNode) == address(this))
+            ens.setSubnodeOwner(rootNode, _hash, 0);
         deedContract.closeDeed(1000);
     }  
 
@@ -443,7 +445,10 @@ contract Registrar {
         bytes32 hash = sha3(unhashedName);
         
         entry h = _entries[hash];
-        ens.setSubnodeOwner(rootNode, hash, 0);
+
+        if(ens.owner(rootNode) == address(this))
+            ens.setSubnodeOwner(rootNode, hash, 0);
+
         if(address(h.deed) != 0) {
             // Reward the discoverer with 50% of the deed
             // The previous owner gets 50%
