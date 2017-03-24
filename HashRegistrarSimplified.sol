@@ -251,7 +251,7 @@ contract Registrar {
      * open but not bid on are closed after a week. 
      *
      * @param _hash The hash to start an auction on
-     */    
+     */
     function startAuction(bytes32 _hash) registryOpen() {
         var mode = state(_hash);
         if(mode == Mode.Auction) return;
