@@ -7,8 +7,7 @@ Temporary Hash Registrar
 ========================
 
 This is a simplified version of a hash registrar. It is purporsefully limited:
-names cannot be six letters or shorter, new auctions will stop after 4 years
-and all ether still locked after 8 years will become unreachable.
+names cannot be six letters or shorter, new auctions will stop after 4 years.
 
 The plan is to test the basic features and then move to a new contract in at most
 2 years, when some sort of renewal mechanism will be enabled.
@@ -420,7 +419,6 @@ contract Registrar {
         entry h = _entries[_hash];
         Deed deedContract = h.deed;
         if(now < h.registrationDate + 1 years && ens.owner(rootNode) == address(this)) throw;
-        if(now > registryStarted + 8 years) throw;
 
         HashReleased(_hash, h.value);
         
