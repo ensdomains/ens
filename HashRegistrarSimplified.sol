@@ -412,14 +412,15 @@ contract Registrar {
     }
 
     /**
-     * @dev After some time, the owner can release the property and get their ether back
+     * @dev After some time, or if we're no longer the registrar, the owner can release
+     *      the name and get their ether back.
      * @param _hash The node to release
      */
     function releaseDeed(bytes32 _hash) onlyOwner(_hash) {
         entry h = _entries[_hash];
         Deed deedContract = h.deed;
-        if (now < h.registrationDate + 1 years 
-            || now > registryStarted + 8 years) throw;
+        if(now < h.registrationDate + 1 years && ens.owner(rootNode) == address(this)) throw;
+        if(now > registryStarted + 8 years) throw;
 
         HashReleased(_hash, h.value);
         
