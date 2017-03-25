@@ -795,112 +795,41 @@ describe('SimpleHashRegistrar', function() {
 		], done);
 	});
 
-	it('invalidate short names', function(done) {
+	it('invalidates short names', function(done) {
 		let bid = {account: accounts[0], value: 1.5e18, deposit: 2e18, salt: 1, description: 'bidded before invalidation' };
 		let invalidator = {account: accounts[2]};
-		async.series([
-			// Save initial balances
-			function(done) {
-				web3.eth.getBalance(bid.account, function(err, balance){
-					bid.startingBalance = balance.toFixed();
-					done();
-				});
-			},
-			// Save initial invalidator balances
-			function(done) {
-				web3.eth.getBalance(invalidator.account, function(err, balance){
-					invalidator.startingBalance = balance.toFixed();
-					done();
-				});
-			},
-			function(done) {
-				// Test multiple auctions
-				registrar.startAuctions([web3.sha3('name'), web3.sha3('longname'), web3.sha3('thirdname')], {from: accounts[0]}, done);
-			},
-			function(done) {
-				registrar.entries(web3.sha3('name'), function(err, result) {
-					// Test if foo is an auction
-					assert.equal(result[0], 1); // status == Auction
-					done();
-				});
-			},
-			function(done) {
-				registrar.entries(web3.sha3('longname'), function(err, result) {
-					// Tests if foobars is an auction
-					assert.equal(result[0], 1); // status == Auction
-					done();
-				});
-			},
-			// Place each of the bids
-			function(done) {
-				registrar.shaBid(web3.sha3('name'), bid.account, bid.value, bid.salt, function(err, result) {
-					bid.sealedBid = result;
-					assert.equal(err, null, err);
-					registrar.newBid(bid.sealedBid, {from: bid.account, value: bid.deposit}, function(err, txid) {
-						assert.equal(err, null, err);
-						done();
-					});
-				});
-			},
-			// Advance 26 days to the reveal period
-			function(done) { advanceTime(daysInSec(26) + 1, done); },
-			// Reveal the bid
-			function(done) {
-				registrar.unsealBid(web3.sha3('name'), bid.account, bid.value, bid.salt, {from: bid.account}, function(err, txid) {
-					assert.equal(err, null, err);
-					done();
-				});
-			},
-			// Advance to the end of the auction
-			function(done) { advanceTime(daysInSec(48), done); },
-			// Invalidate Name
-			function(done) {
-				registrar.invalidateName('name', {from: invalidator.account}, function(err, txid) {
-					assert.equal(err, null);
-					done();
-				});
-			},
-			function(done) {
-				registrar.entries(web3.sha3('name'), function(err, result) {
-					// Test if 'foo' is now 'forbidden'
-					assert.equal(result[0], 3); // status == Forbidden
-					done();
-				});
-			},
-			// Check balances
-			function(done) {
-				web3.eth.getBalance(bid.account, function(err, balance){
-					var spentFee = Math.floor(web3.fromWei(bid.startingBalance - balance.toFixed(), 'finney'));
-					console.log('\t Bidder #'+ bid.salt, bid.description, 'spent:', spentFee, 'finney;');
-					assert.equal(spentFee, 750);
-					done();
-				});
-			},
-			// Get current invalidator balances
-			function(done) {
-				web3.eth.getBalance(invalidator.account, function(err, balance){
+		eth = Promise.promisifyAll(web3.eth);
+		eth.getBalanceAsync(bid.account)
+			.then((balance) => { bid.startingBalance = balance.toFixed(); })
+			.then((result) => web3.eth.getBalanceAsync(invalidator.account))
+			.then((balance) => { invalidator.startingBalance = balance.toFixed(); })
+			.then((result) => registrar.startAuctionsAsync([web3.sha3('name'), web3.sha3('longname'), web3.sha3('thirdname')], {from: accounts[0]}))
+			.then((result) => registrar.shaBidAsync(web3.sha3('name'), bid.account, bid.value, bid.salt))
+			.then((sealedBid) => {
+				bid.sealedBid = sealedBid;
+				return registrar.newBidAsync(sealedBid, {from: bid.account, value: bid.deposit});
+			}).then((result) => advanceTimeAsync(daysInSec(26) + 1))
+			.then((result) => registrar.unsealBidAsync(web3.sha3('name'), bid.account, bid.value, bid.salt, {from: bid.account}))
+			.then((result) => advanceTimeAsync(daysInSec(2)))
+			.then((result) => registrar.invalidateNameAsync('name', {from: invalidator.account}))
+			.then((result) => registrar.entriesAsync(web3.sha3('name')))
+			.then((entry) => { assert.equal(entry[0], 3); })
+			.then((result) => eth.getBalanceAsync(bid.account))
+			.then((balance) => {
+				var spentFee = Math.floor(web3.fromWei(bid.startingBalance - balance.toFixed(), 'finney'));
+				console.log('\t Bidder #'+ bid.salt, bid.description, 'spent:', spentFee, 'finney;');
+				assert.equal(spentFee, 5);
+			}).then((result) => eth.getBalanceAsync(invalidator.account))
+			.then((balance) => {
 					let fee = Math.floor(web3.fromWei(balance.toFixed() - invalidator.startingBalance, 'finney'));
 					console.log('\t Invalidator got: ', fee, 'finney');
-					assert.equal(fee, 749);
-					done();
-				});
-			},
-			// Check the ENS record is set to 0
-			function(done) {
-				ens.owner(nameDotEth, function(err, owner) {
-					assert.equal(err, null, err);
-					assert.equal(owner, 0);
-					done();
-				});
-			},
-			function(done) {
-				// Makes sure it can't be registered again
-				registrar.startAuction(web3.sha3('name'), {from: accounts[0]}, function(err, res){
-					assert.notEqual(err, null);
-					done();
-				});
-			}
-		], done);
+					assert.equal(fee, 4);
+			}).then((result) => ens.ownerAsync(nameDotEth))
+			.then((owner) => {
+				assert.equal(owner, 0);
+			}).then((result) => registrar.startAuctionAsync(web3.sha3('name'), {from: accounts[0]}))
+			.then((done) => assert.fail("Expected exception"), (err) => assert.ok(err.toString().indexOf(utils.INVALID_JUMP) != -1, err))
+			.asCallback(done);
 	});
 
 	it('supports transferring deeds to another registrar', function(done) {

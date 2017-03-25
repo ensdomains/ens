@@ -455,7 +455,8 @@ contract Registrar {
         if(address(h.deed) != 0) {
             // Reward the discoverer with 50% of the deed
             // The previous owner gets 50%
-            h.deed.setBalance(h.deed.value()/2);
+            h.value = max(h.value, minPrice);
+            h.deed.setBalance(h.value/2);
             h.deed.setOwner(msg.sender);
             h.deed.closeDeed(1000);
         }
