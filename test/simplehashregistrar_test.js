@@ -466,6 +466,7 @@ describe('SimpleHashRegistrar', function() {
 		this.timeout(5000);
 		var bid = {description: 'A regular bid', account: accounts[0], value: 1.1e18, deposit: 2.0e18, salt: 1, expectedFee: 0.005 };
 		var startdate = null;
+		var releasenameDotEth = web3.sha3(dotEth + web3.sha3('releasename').slice(2), {encoding: 'hex'});
 		async.series([
 			// Start an auction for 'releasename'
 			function(done) {
@@ -499,6 +500,10 @@ describe('SimpleHashRegistrar', function() {
 					assert.equal(err, null, err);
 					done();
 				});
+			},
+			// Set the resolver in ENS
+			function(done) {
+				ens.setResolver(releasenameDotEth, accounts[0], {from: bid.account}, done);
 			},
 			// Save balance
 			function(done) {
@@ -557,9 +562,17 @@ describe('SimpleHashRegistrar', function() {
 			},
 			// Check the owner is set to 0 in ENS
 			function(done) {
-				ens.owner(web3.sha3(dotEth + web3.sha3('releasename').slice(2), {encoding: 'hex'}), function(err, owner) {
+				ens.owner(releasenameDotEth, function(err, owner) {
 					assert.equal(err, null, err);
 					assert.equal(owner, 0);
+					done();
+				});
+			},
+			// Check the resolver is set to 0 in ENS
+			function(done) {
+				ens.resolver(releasenameDotEth, function(err, resolver) {
+					assert.equal(err, null, err);
+					assert.equal(resolver, 0);
 					done();
 				});
 			},
@@ -860,6 +873,39 @@ describe('SimpleHashRegistrar', function() {
 			// Check we can't restart the auction process.
 			.then((result) => registrar.startAuctionAsync(web3.sha3('name'), {from: accounts[0]}))
 			.then((done) => assert.fail("Expected exception"), (err) => assert.ok(err, err))
+			.asCallback(done);
+	});
+
+	it('zeroes ENS records on invalidation', function(done) {
+		let bid = {account: accounts[0], value: 1.5e18, deposit: 2e18, salt: 1, description: 'bidded before invalidation' };
+		let invalidator = {account: accounts[2]};
+		registrar.startAuctionAsync(web3.sha3('name'), {from: accounts[0]})
+			// Make a bid
+			.then((result) => registrar.shaBidAsync(web3.sha3('name'), bid.account, bid.value, bid.salt))
+			.then((sealedBid) => {
+				bid.sealedBid = sealedBid;
+				return registrar.newBidAsync(sealedBid, {from: bid.account, value: bid.deposit});
+			})
+
+			// Advance time and reveal the bid
+			.then((result) => advanceTimeAsync(26 * 24 * 60 * 60 + 1))
+			.then((result) => registrar.unsealBidAsync(web3.sha3('name'), bid.account, bid.value, bid.salt, {from: bid.account}))
+
+			// Advance time and finalise the auction
+			.then((result) => advanceTimeAsync(48 * 24 * 60 * 60))
+			.then((result) => registrar.finalizeAuctionAsync(web3.sha3('name'), {from: bid.account}))
+
+			// Set the resolver record in ENS
+			.then((result) => ens.setResolverAsync(nameDotEth, accounts[0], {from: bid.account}))
+
+			// Invalidate the name
+			.then((result) => registrar.invalidateNameAsync('name', {from: invalidator.account}))
+
+			// Check owner and resolver are both zeroed
+			.then((result) => ens.ownerAsync(nameDotEth))
+			.then((owner) => { assert.equal(owner, 0); })
+			.then((result) => ens.resolverAsync(nameDotEth))
+			.then((resolver) => { assert.equal(resolver, 0); })
 			.asCallback(done);
 	});
 
@@ -1226,4 +1272,52 @@ describe('SimpleHashRegistrar', function() {
 			},
 		], done);
 	});
+
+	it("permits anyone to zero out ENS records not associated with an owned name", function(done) {
+		var subdomainDotNameDotEth = web3.sha3(nameDotEth + web3.sha3('subdomain').slice(2), {encoding: 'hex'});
+
+		// Set the node owners and resolvers
+		ens.setSubnodeOwnerAsync(0, web3.sha3('eth'), accounts[0], {from: accounts[0]})
+			.then(() => ens.setSubnodeOwnerAsync(dotEth, web3.sha3('name'), accounts[0], {from: accounts[0]}))
+			.then(() => ens.setSubnodeOwnerAsync(nameDotEth, web3.sha3('subdomain'), accounts[0], {from: accounts[0]}))
+			.then(() => ens.setResolverAsync(nameDotEth, accounts[0], {from: accounts[0]}))
+			.then(() => ens.setResolverAsync(subdomainDotNameDotEth, accounts[0], {from: accounts[0]}))
+			// Set the registrar as the owner of .eth again
+			.then(() => ens.setOwnerAsync(dotEth, registrar.address, {from: accounts[0]}))
+			// Call the eraseNode method
+			.then(() => registrar.eraseNodeAsync([web3.sha3("subdomain"), web3.sha3("name")], {from: accounts[1]}))
+			// Check that the owners and resolvers have all been set to zero
+			.then(() => ens.resolverAsync(subdomainDotNameDotEth))
+			.then((resolver) => assert.equal(resolver, 0))
+			.then(() => ens.ownerAsync(subdomainDotNameDotEth))
+			.then((owner) => assert.equal(owner, 0))
+			.then(() => ens.resolverAsync(nameDotEth))
+			.then((resolver) => assert.equal(resolver, 0))
+			.then(() => ens.ownerAsync(nameDotEth))
+			.then((owner) => assert.equal(owner, 0))
+			.asCallback(done);
+	});
+
+	it("does not permit owned names to be zeroed", function(done) {
+		var sealedBid = null;
+		registrar.startAuctionAsync(web3.sha3('longname'), {from: accounts[0]})
+			.then((done) => registrar.shaBidAsync(web3.sha3('longname'), accounts[0], 1e18, 1))
+			.then((result) => {
+				sealedBid = result;
+				return registrar.newBidAsync(result, {from: accounts[0], value: 1e18});
+			})
+			.then((done) => advanceTimeAsync(26 * 24 * 60 * 60 + 1))
+			.then((done) => registrar.unsealBidAsync(web3.sha3('longname'), accounts[0], 1e18, 1, {from: accounts[0]}))
+			.then((done) => advanceTimeAsync(2 * 24 * 60 * 60 + 1))
+			.then((done) => registrar.finalizeAuctionAsync(web3.sha3('longname'), {from: accounts[0]}))
+			.then((done) => registrar.eraseNodeAsync([web3.sha3("longname")], {from: accounts[0]}))
+			.then((result) => assert.fail("Expected exception"), (err) => assert.ok(err, err))
+			.asCallback(done);
+	});
+
+	it("does not permit an empty name to be zeroed", function(done) {
+		registrar.eraseNodeAsync([], {from: accounts[0]})
+			.then((result) => assert.fail("Expected exception"), (err) => assert.ok(err, err))
+			.asCallback(done);
+	})
 });

@@ -440,8 +440,8 @@ contract Registrar {
         h.value = 0;
         h.highestBid = 0;
         h.deed = Deed(0);
-        
-        trySetSubnodeOwner(_hash, 0);
+
+        _tryEraseSingleNode(_hash);
         deedContract.closeDeed(1000);
         HashReleased(_hash, h.value);        
     }
@@ -460,7 +460,7 @@ contract Registrar {
 
         entry h = _entries[hash];
 
-        trySetSubnodeOwner(hash, 0);
+        _tryEraseSingleNode(hash);
 
         if(address(h.deed) != 0) {
             // Reward the discoverer with 50% of the deed
@@ -472,6 +472,45 @@ contract Registrar {
         }
         HashInvalidated(hash, unhashedName, h.value, h.registrationDate);
         h.deed = Deed(0);
+    }
+
+    /**
+     * @dev Allows anyone to delete the owner and resolver records for a (subdomain of) a
+     *      name that is not currently owned in the registrar. If passing, eg, 'foo.bar.eth',
+     *      the owner and resolver fields on 'foo.bar.eth' and 'bar.eth' will all be cleared.
+     * @param labels A series of label hashes identifying the name to zero out, rooted at the
+     *        registrar's root. Must contain at least one element. For instance, to zero 
+     *        'foo.bar.eth' on a registrar that owns '.eth', pass an array containing
+     *        [sha3('foo'), sha3('bar')].
+     */
+    function eraseNode(bytes32[] labels) {
+        if(labels.length == 0) throw;
+        if(state(labels[labels.length - 1]) == Mode.Owned) throw;
+
+        _eraseNodeHierarchy(labels.length - 1, labels, rootNode);
+    }
+
+    function _tryEraseSingleNode(bytes32 label) internal {
+        if(ens.owner(rootNode) == address(this)) {
+            ens.setSubnodeOwner(rootNode, label, address(this));
+            var node = sha3(rootNode, label);
+            ens.setResolver(node, 0);
+            ens.setOwner(node, 0);
+        }
+    }
+
+    function _eraseNodeHierarchy(uint idx, bytes32[] labels, bytes32 node) internal {
+        // Take ownership of the node
+        ens.setSubnodeOwner(node, labels[idx], address(this));
+        node = sha3(node, labels[idx]);
+        
+        // Recurse if there's more labels
+        if(idx > 0)
+            _eraseNodeHierarchy(idx - 1, labels, node);
+
+        // Erase the resolver and owner records
+        ens.setResolver(node, 0);
+        ens.setOwner(node, 0);
     }
 
     /**
