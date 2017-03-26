@@ -50,11 +50,13 @@ describe('ReverseRegistrar', function() {
                                 reject(err);
                             } else if (typeof contract.address !== "undefined") {
                                 resolve(contract);
+                            } else {
+                                // There is to hope that reject or resolve is called
                             }
                         });
                 });
             })
-            .then(function(contract) {
+            .then(contract => {
                 registrar = Promise.promisifyAll(contract);
                 return ens.setOwnerAsync(0, registrar.address, {from: accounts[0]});
             });
@@ -63,19 +65,13 @@ describe('ReverseRegistrar', function() {
     it('calculates node hashes correctly', function() {
         this.slow(150);
         return registrar.nodeAsync(accounts[0])
-            .then(function(hash) {
-                assert.equal(hash, node);
-            });
+            .then(hash =>assert.equal(hash, node));
     });
 
     it('allows an account to claim its address', function() {
         this.slow(150);
         return registrar.claimAsync(accounts[1], {from: accounts[0]})
-            .then(function(txHash) {
-                return ens.ownerAsync(node);
-            })
-            .then(function(result) {
-                assert.equal(result, accounts[1]);
-            });
+            .then(txHash => ens.ownerAsync(node))
+            .then(result => assert.equal(result, accounts[1]));
     });
 });
