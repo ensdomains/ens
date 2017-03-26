@@ -5,6 +5,7 @@ For documentation of the ENS system, see [docs.ens.domains](http://docs.ens.doma
 
 To run unittests, clone this repository, and run:
 
+    sudo npm install -g mocha
     npm install
     npm test
 
