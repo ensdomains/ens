@@ -57,8 +57,6 @@ describe('PublicResolver', function() {
 
 	describe('constructor', function() {
 
-		it('should not allow a 0 address for ens');
-
 		it('uses precise gas', function() {
 			return web3.eth.getTransactionReceiptAsync(resolver.transactionHash)
 				.then(receipt => assert.equal(receipt.gasUsed, 349348));
