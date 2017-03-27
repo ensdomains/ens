@@ -43,11 +43,11 @@ contract Deed {
         _;
     }
 
-    function Deed(uint _value) {
+    function Deed() payable {
         registrar = msg.sender;
         creationDate = now;
         active = true;
-        value = _value;
+        value = msg.value;
     }
         
     function setOwner(address newOwner) onlyRegistrar {
@@ -88,9 +88,6 @@ contract Deed {
         if(owner.send(this.balance))
             selfdestruct(burn);
     }
-
-    // The default function just receives an amount
-    function () payable {}
 }
 
 /**
@@ -305,11 +302,9 @@ contract Registrar {
         if (address(sealedBids[msg.sender][sealedBid]) > 0 ) throw;
         if (msg.value < minPrice) throw;
         // creates a new hash contract with the owner
-        Deed newBid = new Deed(msg.value);
+        Deed newBid = (new Deed).value(msg.value)();
         sealedBids[msg.sender][sealedBid] = newBid;
         NewBid(sealedBid, msg.sender, msg.value);
-
-        if (!newBid.send(msg.value)) throw;
     } 
 
     /**
