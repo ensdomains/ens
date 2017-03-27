@@ -66,18 +66,14 @@ module.exports = {
 	promisifyContractFactory: function(contractFactory) {
 		contractFactory.newAsync = function() {
 			var args = arguments;
-			var contracts = [];
 			return new Promise(function(resolve, reject) {
 				args[args.length] = function(err, contract) {
 					if (err) {
 						reject(err);
+					} else if (typeof contract.address !== "undefined") {
+						resolve(contract);
 					} else {
-						contracts.push(contract);
-						if (contracts.length > 1) {
-							// Notice how it resolves to an array with both returned contract.
-							// Only contracts[1] has the address, presumably.
-							resolve(contracts);
-						}
+						// There is to hope that reject or resolve is called
 					}
 				};
 				args.length++;

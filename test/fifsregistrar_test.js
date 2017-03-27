@@ -40,8 +40,8 @@ describe('FIFSRegistrar', function() {
 							gas: 4700000
 						});
 			})
-			.then(contracts => {
-				registrar = Promise.promisifyAll(contracts[1]);
+			.then(contract => {
+				registrar = Promise.promisifyAll(contract);
 				return ens.setOwnerAsync(0, registrar.address, {from: accounts[0]});
 			});
 	});
