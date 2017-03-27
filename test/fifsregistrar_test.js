@@ -83,7 +83,7 @@ describe('FIFSRegistrar', function() {
 				});
 			}],
 			done
-		);		
+		);
 	});
 
 	it('forbids transferring names you do not own', function(done) {
@@ -93,7 +93,7 @@ describe('FIFSRegistrar', function() {
 			},
 			function(done) {
 				registrar.register(web3.sha3('eth'), accounts[0], {from: accounts[0]}, function(err, txid) {
-					assert.ok(err.toString().indexOf(utils.INVALID_JUMP) != -1, err);
+					assert.ok(err, err);
 					done();
 				});
 			}],
