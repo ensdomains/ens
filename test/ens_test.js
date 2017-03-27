@@ -70,7 +70,7 @@ function ensTests(label, deploy) {
 
 	it("prohibits transfers by non-owners", function(done) {
 		ens.setOwner(1, "0x1234", {from: accounts[0]}, function(err, result) {
-			assert.ok(err.toString().indexOf(utils.INVALID_JUMP) != -1, err);
+			assert.ok(err, err);
 			ens.owner(1, function(err, owner) {
 				assert.equal(owner, "0x0000000000000000000000000000000000000000");
 			});
@@ -98,7 +98,7 @@ function ensTests(label, deploy) {
 
 	it("prohibits setting resolver by non-owners", function(done) {
 		ens.setResolver(1, "0x1234", {from: accounts[0]}, function(err, result) {
-			assert.ok(err.toString().indexOf(utils.INVALID_JUMP) != -1, err);
+			assert.ok(err, err);
 			ens.resolver(1, function(err, resolver) {
 				assert.equal(resolver, "0x0000000000000000000000000000000000000000");
 				done();
@@ -126,7 +126,7 @@ function ensTests(label, deploy) {
 
 	it("prohibits setting TTL by non-owners", function(done) {
 		ens.setTTL(1, 3600, {from: accounts[0]}, function(err, result) {
-			assert.ok(err.toString().indexOf(utils.INVALID_JUMP) != -1, err);
+			assert.ok(err, err);
 			ens.ttl(1, function(err, ttl) {
 				assert.equal(ttl.toNumber(), 0);
 				done();
@@ -155,7 +155,7 @@ function ensTests(label, deploy) {
 
 	it("prohibits subnode creation by non-owners", function(done) {
 		ens.setSubnodeOwner(0, web3.sha3('eth'), accounts[1], {from: accounts[1]}, function(err, result) {
-			assert.ok(err.toString().indexOf(utils.INVALID_JUMP) != -1, err);
+			assert.ok(err, err);
 			ens.owner(utils.node, function(err, owner) {
 				assert.equal(owner, "0x0000000000000000000000000000000000000000");
 				done();

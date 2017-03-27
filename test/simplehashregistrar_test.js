@@ -23,6 +23,11 @@ function advanceTime(delay, done) {
 }
 var advanceTimeAsync = Promise.promisify(advanceTime);
 
+function daysInSec(days) {
+	return days * 24 * 60 * 60;
+}
+
+
 describe('SimpleHashRegistrar', function() {
 	var registrarABI = null;
 	var registrarBytecode = null;
@@ -77,7 +82,7 @@ describe('SimpleHashRegistrar', function() {
 					assert.equal(result[0], 1); // status == Auction
 					assert.equal(result[1], 0); // deed == 0x00
 					// Expected to end 28 days from start
-					var expectedEnd = new Date().getTime() / 1000 + 28 * 24 * 60 * 60;
+					var expectedEnd = new Date().getTime() / 1000 + daysInSec(28);
 					assert.ok(Math.abs(result[2].toNumber() - expectedEnd) < 5); // registrationDate
 					assert.equal(result[3], 0); // value = 0
 					assert.equal(result[4], 0); // highestBid = 0
@@ -85,7 +90,7 @@ describe('SimpleHashRegistrar', function() {
 				});
 			},
 			// Advance time 24 days
-			function(done) { advanceTime(24 * 24 * 60 * 60, done); },
+			function(done) { advanceTime(daysInSec(24), done); },
 			function(done) {
 				registrar.startAuction(web3.sha3('anothername'), {from: accounts[0]}, done);
 			},
@@ -94,7 +99,7 @@ describe('SimpleHashRegistrar', function() {
 				registrar.entries(web3.sha3('anothername'), function(err, result) {
 					assert.equal(err, null, err);
 					// Expected to end 29 days from start (24 days + 5)
-					var expectedEnd = new Date().getTime() / 1000 + 29 * 24 * 60 * 60;
+					var expectedEnd = new Date().getTime() / 1000 + daysInSec(29);
 					assert.ok(Math.abs(result[2].toNumber() - expectedEnd) < 5); // registrationDate
 					done();
 				});
@@ -122,7 +127,7 @@ describe('SimpleHashRegistrar', function() {
 			// Check a duplicate bid would throw
 			function(done) {
 				registrar.newBid.call(bid, {from: accounts[0], value: 2e18}, function(err, result) {
-					assert.ok(err.toString().indexOf(utils.INVALID_JUMP) != -1, err);
+					assert.ok(err, err);
 					done();
 				})
 			},
@@ -140,7 +145,7 @@ describe('SimpleHashRegistrar', function() {
 			// Submit a less-than-minimum bid and check it throws
 			function(done)  {
 				registrar.newBid.call(0, {from: accounts[0], value: 1e15 - 1}, function(err, result) {
-					assert.ok(err.toString().indexOf(utils.INVALID_JUMP) != -1, err);
+					assert.ok(err, err);
 					done();
 				});
 			},
@@ -164,7 +169,7 @@ describe('SimpleHashRegistrar', function() {
 			{description: 'Bid that wasn\'t revealed in time', account: accounts[5], value: 1.4e18, deposit: 2.0e18, salt: 6, expectedFee: 0.995 }
 		];
 		async.series([
-			// Save initial balances 
+			// Save initial balances
 			function(done) {
 				async.each(bidData, function(bid, done) {
 					web3.eth.getBalance(bid.account, function(err, balance){
@@ -193,12 +198,12 @@ describe('SimpleHashRegistrar', function() {
 			// Try to reveal a bid early
 			function(done) {
 				registrar.unsealBid(web3.sha3('name'), bidData[0].account, bidData[0].value, bidData[0].salt, {from: bidData[0].account}, function(err, txid) {
-					assert.ok(err.toString().indexOf(utils.INVALID_JUMP) != -1, err);
+					assert.ok(err, err);
 					done();
 				});
 			},
 			// Advance 26 days to the reveal period
-			function(done) { advanceTime(26 * 24 * 60 * 60 + 1, done); },
+			function(done) { advanceTime(daysInSec(26) + 1, done); },
 			// Reveal all the bids
 			function(done) {
 				async.each(bidData, function(bid, done) {
@@ -294,7 +299,7 @@ describe('SimpleHashRegistrar', function() {
 			}
 		], done);
 	});
-	
+
 	it('cancels bids', function(done) {
 		this.timeout(5000);
 		var bidData = [
@@ -338,8 +343,8 @@ describe('SimpleHashRegistrar', function() {
 				});
 			},
 			// Advance 26 days to the reveal period
-			function(done) { advanceTime(26 * 24 * 60 * 60 + 1, done); },
-			
+			function(done) { advanceTime(daysInSec(26) + 1, done); },
+
 			// Attempt to cancel the second bid and fail
 			function(done) {
 				let bid = bidData[1];
@@ -355,7 +360,7 @@ describe('SimpleHashRegistrar', function() {
 						});
 					});
 				});
-			},	
+			},
 			// Reveal the second bid
 			function(done) {
 				let bid = bidData[1];
@@ -380,7 +385,7 @@ describe('SimpleHashRegistrar', function() {
 						});
 					});
 				});
-			},	
+			},
 			// Advance another two days to the end of the auction
 			function(done) { advanceTime(48 * 60 * 60, done); },
 			// Finalize the auction and get the deed address
@@ -407,7 +412,7 @@ describe('SimpleHashRegistrar', function() {
 				});
 			},
 			// Advance another four weeks
-			function(done) { advanceTime(4 * 7 * 24 * 60 * 60, done); },
+			function(done) { advanceTime(4 * daysInSec(7), done); },
 
 			// Cancel the third bid
 			function(done) {
@@ -457,7 +462,7 @@ describe('SimpleHashRegistrar', function() {
 				});
 			},
 			// Advance 26 days to the reveal period
-			function(done) { advanceTime(26 * 24 * 60 * 60 + 1, done); },
+			function(done) { advanceTime(daysInSec(26) + 1, done); },
 			// Reveal the bid
 			function(done) {
 				registrar.unsealBid(web3.sha3('releasename'), bid.account, bid.value, bid.salt, {from: bid.account}, function(err, txid) {
@@ -490,7 +495,7 @@ describe('SimpleHashRegistrar', function() {
 				});
 			},
 			// Advance one year
-			function(done) { advanceTime(365 * 24 * 60 * 60, done); },
+			function(done) { advanceTime(daysInSec(365), done); },
 
 			// Try and fail to release the deed as the wrong user
 			function(done) {
@@ -551,7 +556,7 @@ describe('SimpleHashRegistrar', function() {
 			function(done) {
 				registrar.entries(web3.sha3('releasename'), function(err, result) {
 					assert.equal(err, null, err);
-					var expectedEnd = startdate + 5 * 24 * 60 * 60;
+					var expectedEnd = startdate + daysInSec(5);
 					assert.ok(Math.abs(result[2].toNumber() - expectedEnd) < 5, Math.abs(result[2].toNumber() - expectedEnd)); // registrationDate
 					done();
 				});
@@ -567,9 +572,9 @@ describe('SimpleHashRegistrar', function() {
 				sealedBid = result;
 				return registrar.newBidAsync(result, {from: accounts[0], value: 1e18});
 			})
-			.then((done) => advanceTimeAsync(26 * 24 * 60 * 60 + 1))
+			.then((done) => advanceTimeAsync(daysInSec(26) + 1))
 			.then((done) => registrar.unsealBidAsync(web3.sha3('name'), accounts[0], 1e18, 1, {from: accounts[0]}))
-			.then((done) => advanceTimeAsync(2 * 24 * 60 * 60 + 1))
+			.then((done) => advanceTimeAsync(daysInSec(2) + 1))
 			.then((done) => registrar.finalizeAuctionAsync(web3.sha3('name'), {from: accounts[0]}))
 			.then((done) => ens.setSubnodeOwnerAsync(0, web3.sha3('eth'), accounts[0], {from: accounts[0]}))
 			.then((done) => registrar.releaseDeedAsync(web3.sha3('name'), {from: accounts[0]}))
@@ -580,7 +585,7 @@ describe('SimpleHashRegistrar', function() {
 		registrar.startAuctionAsync(web3.sha3('name'), {from: accounts[0]})
 			.then((done) => registrar.shaBidAsync(web3.sha3('name'), accounts[0], 1e15 - 1, 1))
 			.then((result) => registrar.newBidAsync(result, {from: accounts[0], value: 1e18}))
-			.then((done) => advanceTimeAsync(26 * 24 * 60 * 60 + 1))
+			.then((done) => advanceTimeAsync(daysInSec(26) + 1))
 			.then((done) => registrar.unsealBidAsync(web3.sha3('name'), accounts[0], 1e15 - 1, 1, {from: accounts[0]}))
 			.then((done) => registrar.entriesAsync(web3.sha3('name')))
 			.then((result) => assert.equal(result[4], 0)) // highestBid == 0
@@ -591,22 +596,22 @@ describe('SimpleHashRegistrar', function() {
 		var sealedBid = null;
 		registrar.startAuctionAsync(web3.sha3('name'), {from: accounts[0]})
 			.then((done) => registrar.finalizeAuctionAsync(web3.sha3('name'), {from: accounts[0]}))
-			.then((done) => assert.fail("Expected exception"), (err) => assert.ok(err.toString().indexOf(utils.INVALID_JUMP) != -1, err))
+			.then((done) => assert.fail("Expected exception"), (err) => assert.ok(err, err))
 
 			.then((done) => registrar.shaBidAsync(web3.sha3('name'), accounts[0], 1e18, 1))
 			.then((result) => {
 				sealedBid = result;
 				return registrar.newBidAsync(result, {from: accounts[0], value: 1e18});
 			})
-			.then((done) => advanceTimeAsync(26 * 24 * 60 * 60 + 1))
+			.then((done) => advanceTimeAsync(daysInSec(26) + 1))
 			.then((done) => registrar.unsealBidAsync(web3.sha3('name'), accounts[0], 1e18, 1, {from: accounts[0]}))
 
 			.then((done) => registrar.finalizeAuctionAsync(web3.sha3('name'), {from: accounts[0]}))
-			.then((done) => assert.fail("Expected exception"), (err) => assert.ok(err.toString().indexOf(utils.INVALID_JUMP) != -1, err))
+			.then((done) => assert.fail("Expected exception"), (err) => assert.ok(err, err))
 
-			.then((done) => advanceTimeAsync(2 * 24 * 60 * 60 + 1))
+			.then((done) => advanceTimeAsync(daysInSec(2) + 1))
 			.then((done) => registrar.finalizeAuctionAsync(web3.sha3('name'), {from: accounts[1]}))
-			.then((done) => assert.fail("Expected exception"), (err) => assert.ok(err.toString().indexOf(utils.INVALID_JUMP) != -1, err))			
+			.then((done) => assert.fail("Expected exception"), (err) => assert.ok(err, err))
 
 			.then((done) => registrar.finalizeAuctionAsync(web3.sha3('name'), {from: accounts[0]}))
 			.then((done) => registrar.finalizeAuctionAsync(web3.sha3('name'), {from: accounts[0]}))
@@ -621,12 +626,12 @@ describe('SimpleHashRegistrar', function() {
 				sealedBid = result;
 				return registrar.newBidAsync(result, {from: accounts[0], value: 1e18});
 			})
-			.then((done) => advanceTimeAsync(26 * 24 * 60 * 60 + 1))
+			.then((done) => advanceTimeAsync(daysInSec(26) + 1))
 			.then((done) => registrar.unsealBidAsync(web3.sha3('name'), accounts[0], 1e18, 1, {from: accounts[0]}))
-			.then((done) => advanceTimeAsync(2 * 24 * 60 * 60 + 1))
+			.then((done) => advanceTimeAsync(daysInSec(2) + 1))
 			.then((done) => ens.setSubnodeOwnerAsync(0, web3.sha3('eth'), accounts[0], {from: accounts[0]}))
 			.then((done) => registrar.finalizeAuctionAsync(web3.sha3('name'), {from: accounts[0]}))
-			.asCallback(done);		
+			.asCallback(done);
 	})
 
 	it("doesn't allow revealing a bid on a name not up for auction", function(done) {
@@ -637,11 +642,11 @@ describe('SimpleHashRegistrar', function() {
 				return registrar.newBidAsync(result, {from: accounts[0], value: 1e18});
 			})
 			.then((done) => registrar.unsealBidAsync(web3.sha3('name'), accounts[0], 1e18, 1, {from: accounts[0]}))
-			.then((done) => assert.fail("Expected exception"), (err) => assert.ok(err.toString().indexOf(utils.INVALID_JUMP) != -1, err))
+			.then((done) => assert.fail("Expected exception"), (err) => assert.ok(err, err))
 			// Check reveal works after starting the auction
-			.then((done) => advanceTimeAsync(24 * 60 * 60))
+			.then((done) => advanceTimeAsync(daysInSec(1)))
 			.then((done) => registrar.startAuctionAsync(web3.sha3('name'), {from: accounts[0]}))
-			.then((done) => advanceTimeAsync(25 * 24 * 60 * 60 + 1))
+			.then((done) => advanceTimeAsync(daysInSec(25) + 1))
 			.then((done) => registrar.unsealBidAsync(web3.sha3('name'), accounts[0], 1e18, 1, {from: accounts[0]}))
 			.asCallback(done);
 	});
@@ -654,12 +659,12 @@ describe('SimpleHashRegistrar', function() {
 				sealedBid = result;
 				return registrar.newBidAsync(result, {from: accounts[0], value: 1e18});
 			})
-			.then((done) => advanceTimeAsync(26 * 24 * 60 * 60 + 1))
+			.then((done) => advanceTimeAsync(daysInSec(26) + 1))
 			.then((done) => registrar.unsealBidAsync(web3.sha3('longname'), accounts[0], 1e18, 1, {from: accounts[0]}))
-			.then((done) => advanceTimeAsync(2 * 24 * 60 * 60 + 1))
+			.then((done) => advanceTimeAsync(daysInSec(2) + 1))
 			.then((done) => registrar.finalizeAuctionAsync(web3.sha3('longname'), {from: accounts[0]}))
 			.then((done) => registrar.invalidateNameAsync('longname', {from: accounts[0]}))
-			.then((done) => assert.fail("Expected exception"), (err) => assert.ok(err.toString().indexOf(utils.INVALID_JUMP) != -1, err))
+			.then((done) => assert.fail("Expected exception"), (err) => assert.ok(err, err))
 			.asCallback(done);
 	});
 
@@ -671,9 +676,9 @@ describe('SimpleHashRegistrar', function() {
 				sealedBid = result;
 				return registrar.newBidAsync(result, {from: accounts[0], value: 1e18});
 			})
-			.then((done) => advanceTimeAsync(26 * 24 * 60 * 60 + 1))
+			.then((done) => advanceTimeAsync(daysInSec(26) + 1))
 			.then((done) => registrar.unsealBidAsync(web3.sha3('name'), accounts[0], 1e18, 1, {from: accounts[0]}))
-			.then((done) => advanceTimeAsync(2 * 24 * 60 * 60 + 1))
+			.then((done) => advanceTimeAsync(daysInSec(2) + 1))
 			.then((done) => registrar.finalizeAuctionAsync(web3.sha3('name'), {from: accounts[0]}))
 			.then((done) => ens.setSubnodeOwnerAsync(0, web3.sha3('eth'), accounts[0], {from: accounts[0]}))
 			.then((done) => registrar.invalidateNameAsync('name', {from: accounts[0]}))
@@ -698,7 +703,7 @@ describe('SimpleHashRegistrar', function() {
 				});
 			},
 			// Advance 26 days to the reveal period
-			function(done) { advanceTime(26 * 24 * 60 * 60 + 1, done); },
+			function(done) { advanceTime(daysInSec(26) + 1, done); },
 			// Reveal the bid
 			function(done) {
 				registrar.unsealBid(web3.sha3('name'), accounts[0], 1e18, 1, {from: accounts[0]}, function(err, txid) {
@@ -715,7 +720,7 @@ describe('SimpleHashRegistrar', function() {
 			// Have someone else call startAuction
 			function(done) {
 				registrar.startAuction(web3.sha3('name'), {from: accounts[0]}, function(err, result) {
-					assert.ok(err.toString().indexOf(utils.INVALID_JUMP) != -1, err);
+					assert.ok(err, err);
 					done();
 				});
 			},
@@ -756,7 +761,7 @@ describe('SimpleHashRegistrar', function() {
 				});
 			},
 			// Advance 26 days to the reveal period
-			function(done) { advanceTime(26 * 24 * 60 * 60 + 1, done); },
+			function(done) { advanceTime(daysInSec(26) + 1, done); },
 			// Reveal the bids and check they're processed correctly.
 			function(done) {
 				registrar.unsealBid(web3.sha3('name'), accounts[0], 2e18, 1, {from: accounts[0]}, function(err, txid) {
@@ -789,20 +794,20 @@ describe('SimpleHashRegistrar', function() {
 		let bid = {account: accounts[0], value: 1.5e18, deposit: 2e18, salt: 1, description: 'bidded before invalidation' };
 		let invalidator = {account: accounts[2]};
 		async.series([
-			// Save initial balances 
+			// Save initial balances
 			function(done) {
 				web3.eth.getBalance(bid.account, function(err, balance){
 					bid.startingBalance = balance.toFixed();
 					done();
 				});
 			},
-			// Save initial invalidator balances 
+			// Save initial invalidator balances
 			function(done) {
 				web3.eth.getBalance(invalidator.account, function(err, balance){
 					invalidator.startingBalance = balance.toFixed();
 					done();
 				});
-			},			
+			},
 			function(done) {
 				// Test multiple auctions
 				registrar.startAuctions([web3.sha3('name'), web3.sha3('longname'), web3.sha3('thirdname')], {from: accounts[0]}, done);
@@ -813,7 +818,7 @@ describe('SimpleHashRegistrar', function() {
 					assert.equal(result[0], 1); // status == Auction
 					done();
 				});
-			},			
+			},
 			function(done) {
 				registrar.entries(web3.sha3('longname'), function(err, result) {
 					// Tests if foobars is an auction
@@ -833,7 +838,7 @@ describe('SimpleHashRegistrar', function() {
 				});
 			},
 			// Advance 26 days to the reveal period
-			function(done) { advanceTime(26 * 24 * 60 * 60 + 1, done); },
+			function(done) { advanceTime(daysInSec(26) + 1, done); },
 			// Reveal the bid
 			function(done) {
 				registrar.unsealBid(web3.sha3('name'), bid.account, bid.value, bid.salt, {from: bid.account}, function(err, txid) {
@@ -842,18 +847,18 @@ describe('SimpleHashRegistrar', function() {
 				});
 			},
 			// Advance to the end of the auction
-			function(done) { advanceTime(48 * 24 * 60 * 60, done); },
+			function(done) { advanceTime(daysInSec(48), done); },
 			// Invalidate Name
 			function(done) {
 				registrar.invalidateName('name', {from: invalidator.account}, function(err, txid) {
 					assert.equal(err, null);
 					done();
-				});		
+				});
 			},
 			function(done) {
 				registrar.entries(web3.sha3('name'), function(err, result) {
 					// Test if 'foo' is now 'forbidden'
-					assert.equal(result[0], 3); // status == Forbidden	
+					assert.equal(result[0], 3); // status == Forbidden
 					done();
 				});
 			},
@@ -866,7 +871,7 @@ describe('SimpleHashRegistrar', function() {
 					done();
 				});
 			},
-			// Get current invalidator balances 
+			// Get current invalidator balances
 			function(done) {
 				web3.eth.getBalance(invalidator.account, function(err, balance){
 					let fee = Math.floor(web3.fromWei(balance.toFixed() - invalidator.startingBalance, 'finney'));
@@ -915,7 +920,7 @@ describe('SimpleHashRegistrar', function() {
 				});
 			},
 			// Advance 26 days to the reveal period
-			function(done) { advanceTime(26 * 24 * 60 * 60 + 1, done); },
+			function(done) { advanceTime(daysInSec(26) + 1, done); },
 			// Reveal the bid
 			function(done) {
 				registrar.unsealBid(web3.sha3('name'), accounts[0], 1e18, 1, {from: accounts[0]}, function(err, txid) {
@@ -924,7 +929,7 @@ describe('SimpleHashRegistrar', function() {
 				});
 			},
 			// Advance another two days to the end of the auction
-			function(done) { advanceTime(48 * 24 * 60 * 60, done); },
+			function(done) { advanceTime(daysInSec(48), done); },
 			// Finalize the auction and get the deed address
 			function(done) {
 				registrar.finalizeAuction(web3.sha3('name'), {from: accounts[0]}, function(err, txid) {
@@ -939,7 +944,7 @@ describe('SimpleHashRegistrar', function() {
 			// Transferring the deed should fail
 			function(done) {
 				registrar.transferRegistrars(web3.sha3('name'), {from: accounts[0]}, function(err, result) {
-					assert.ok(err.toString().indexOf(utils.INVALID_JUMP) != -1, err);
+					assert.ok(err, err);
 					done();
 				});
 			},
@@ -959,7 +964,7 @@ describe('SimpleHashRegistrar', function() {
 					done();
 				});
 			}
-		], done);		
+		], done);
 	});
 
 	it('supports transferring domains to another account', function(done) {
@@ -984,7 +989,7 @@ describe('SimpleHashRegistrar', function() {
 				});
 			},
 			// Advance 26 days to the reveal period
-			function(done) { advanceTime(26 * 24 * 60 * 60 + 1, done); },
+			function(done) { advanceTime(daysInSec(26) + 1, done); },
 			// Reveal the bid
 			function(done) {
 				registrar.unsealBid(web3.sha3('name'), accounts[0], 1e18, 1, {from: accounts[0]}, function(err, txid) {
@@ -996,7 +1001,7 @@ describe('SimpleHashRegistrar', function() {
 			// Make sure we can't transfer it yet
 			function(done) {
 				registrar.transfer(web3.sha3('name'), accounts[1], {from: accounts[0]}, function(err, txid) {
-					assert.ok(err.toString().indexOf(utils.INVALID_JUMP) != -1, err);
+					assert.ok(err, err);
 					done();
 				});
 			},
@@ -1018,7 +1023,7 @@ describe('SimpleHashRegistrar', function() {
 			// Try and transfer it when we don't own it
 			function(done) {
 				registrar.transfer(web3.sha3('name'), accounts[1], {from: accounts[1]}, function(err, txid) {
-					assert.ok(err.toString().indexOf(utils.INVALID_JUMP) != -1, err);
+					assert.ok(err, err);
 					done();
 				});
 			},
@@ -1055,7 +1060,7 @@ describe('SimpleHashRegistrar', function() {
 		let deedAddress = null;
 
 		async.series([
-			// Save initial balances 
+			// Save initial balances
 			function(done) {
 				web3.eth.getBalance(bid.account, function(err, balance){
 					bid.startingBalance = balance.toFixed();
@@ -1089,15 +1094,15 @@ describe('SimpleHashRegistrar', function() {
 				});
 			},
 			// Advance 26 days to the reveal period
-			function(done) { advanceTime(26 * 24 * 60 * 60 + 1, done); },
+			function(done) { advanceTime(daysInSec(26) + 1, done); },
 			// Reveal the normal bid
 			function(done) {
 				registrar.unsealBid(web3.sha3('longname'), bidWinner.account, bidWinner.value, bidWinner.salt, {from: bidWinner.account}, function(err, txid) {
 					assert.equal(err, null, err);
 					done();
 				});
-				
-			},			
+
+			},
 			// Sneakily top up the bid
 			function(done) {
 				registrar.sealedBids(bid.account, bid.sealedBid, function(err, result) {
@@ -1116,7 +1121,7 @@ describe('SimpleHashRegistrar', function() {
 					assert.equal(err, null, err);
 					done();
 				});
-				
+
 			},
 			// Check balance
 			function(done) {
@@ -1156,7 +1161,7 @@ describe('SimpleHashRegistrar', function() {
 	it('prohibits bids during the reveal period', function(done) {
 		let bid = {account: accounts[0], value: 1.5e18, deposit: 1e17, salt: 1, description: 'underfunded bid' };
 		async.series([
-			// Save initial balances 
+			// Save initial balances
 			function(done) {
 				web3.eth.getBalance(bid.account, function(err, balance){
 					bid.startingBalance = balance.toFixed();
@@ -1168,7 +1173,7 @@ describe('SimpleHashRegistrar', function() {
 				registrar.startAuction(web3.sha3('longname'), {from: accounts[0]}, done);
 			},
 			// Advance 26 days to the reveal period
-			function(done) { advanceTime(26 * 24 * 60 * 60 + 1, done); },
+			function(done) { advanceTime(daysInSec(26) + 1, done); },
 			// Place the bid
 			function(done) {
 				registrar.shaBid(web3.sha3('longname'), bid.account, bid.value, bid.salt, function(err, result) {
@@ -1194,7 +1199,7 @@ describe('SimpleHashRegistrar', function() {
 					done();
 				});
 			},
-		], done);		
+		], done);
 	});
 
 	it('allows returning deeds from previous registrars', function(done) {
@@ -1202,7 +1207,7 @@ describe('SimpleHashRegistrar', function() {
 		var deedAddress = null;
 		var newRegistrar = null;
 		async.series([
-			// Save initial balances 
+			// Save initial balances
 			function(done) {
 				web3.eth.getBalance(bid.account, function(err, balance){
 					bid.startingBalance = balance.toFixed();
@@ -1243,7 +1248,7 @@ describe('SimpleHashRegistrar', function() {
 			},
 			function(done) { ens.setSubnodeOwner(0, web3.sha3('eth'), newRegistrar.address, {from: accounts[0]}, done);},
 			// Advance 26 days to the reveal period
-			function(done) { advanceTime(26 * 24 * 60 * 60 + 1, done); },
+			function(done) { advanceTime(daysInSec(26) + 1, done); },
 			// Reveal the bid
 			function(done) {
 				registrar.unsealBid(web3.sha3('name'), accounts[0], bid.value, 1, {from: accounts[0]}, function(err, txid) {
@@ -1252,7 +1257,7 @@ describe('SimpleHashRegistrar', function() {
 				});
 			},
 			// Advance another two days to the end of the auction
-			function(done) { advanceTime(48 * 60 * 60, done); },
+			function(done) { advanceTime(daysInSec(2), done); },
 			// Get the deed address
 			function(done) {
 				registrar.entries(web3.sha3('name'), function(err, result) {
@@ -1296,7 +1301,7 @@ describe('SimpleHashRegistrar', function() {
 			function(done) { ens.setSubnodeOwner(0, web3.sha3('eth'), accounts[0], {from: accounts[0]}, done);},
 			function(done) {
 				registrar.startAuction(web3.sha3('name'), {from: accounts[0]}, function(err, txid) {
-					assert.ok(err.toString().indexOf(utils.INVALID_JUMP) != -1, err);
+					assert.ok(err, err);
 					done();
 				});
 			},
