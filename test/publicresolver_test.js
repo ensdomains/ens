@@ -51,7 +51,7 @@ describe('PublicResolver', function() {
 			})
 			.then(contract => {
 				resolver = Promise.promisifyAll(contract);
-				ens.setSubnodeOwnerAsync(0, web3.sha3('eth'), accounts[0], {from: accounts[0]});
+				return ens.setSubnodeOwnerAsync(0, web3.sha3('eth'), accounts[0], {from: accounts[0]});
 			});
 	});
 
@@ -59,7 +59,7 @@ describe('PublicResolver', function() {
 
 		it('should not allow a 0 address for ens');
 
-		it.only('uses precise gas', function() {
+		it('uses precise gas', function() {
 			return web3.eth.getTransactionReceiptAsync(resolver.transactionHash)
 				.then(receipt => assert.equal(receipt.gasUsed, 349348));
 		});
