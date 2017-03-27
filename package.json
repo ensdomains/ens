@@ -19,5 +19,8 @@
     "bluebird": "^3.5.0",
     "ethereumjs-testrpc": "^2.2.4",
     "solc": "^0.4.9"
+  },
+  "devDependencies": {
+    "mocha": "^3.2.0"
   }
 }
