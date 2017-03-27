@@ -62,5 +62,28 @@ module.exports = {
 		});
 	},
 	web3: web3,
-	TestRPC: TestRPC
+	TestRPC: TestRPC,
+	promisifyContractFactory: function(contractFactory) {
+		contractFactory.newAsync = function() {
+			var args = arguments;
+			var contracts = [];
+			return new Promise(function(resolve, reject) {
+				args[args.length] = function(err, contract) {
+					if (err) {
+						reject(err);
+					} else {
+						contracts.push(contract);
+						if (contracts.length > 1) {
+							// Notice how it resolves to an array with both returned contract.
+							// Only contracts[1] has the address, presumably.
+							resolve(contracts);
+						}
+					}
+				};
+				args.length++;
+				contractFactory.new.apply(contractFactory, args);
+			});
+		};
+		return contractFactory;
+	}
 };
