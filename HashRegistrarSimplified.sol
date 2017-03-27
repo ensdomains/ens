@@ -61,12 +61,12 @@ contract Deed {
         registrar = newRegistrar;
     }
     
-    function setBalance(uint newValue) onlyRegistrar onlyActive payable {
+    function setBalance(uint newValue, bool throwOnFailure) onlyRegistrar onlyActive payable {
         // Check if it has enough balance to set the value
         if (value < newValue) throw;
         value = newValue;
         // Send the difference to the owner
-        if (!owner.send(this.balance - newValue)) throw;
+        if (!owner.send(this.balance - newValue) && throwOnFailure) throw;
     }
 
     /**
@@ -327,7 +327,7 @@ contract Registrar {
         bid.setOwner(_owner);
         entry h = _entries[_hash];
         uint actualValue = min(_value, bid.value());
-        bid.setBalance(actualValue);
+        bid.setBalance(actualValue, true);
 
         var auctionState = state(_hash);
         if(auctionState == Mode.Owned) {
@@ -399,7 +399,7 @@ contract Registrar {
             ens.setSubnodeOwner(rootNode, _hash, h.deed.owner());
 
         Deed deedContract = h.deed;
-        deedContract.setBalance(h.value);
+        deedContract.setBalance(h.value, true);
         HashRegistered(_hash, deedContract.owner(), h.value, h.registrationDate);
     }
 
@@ -456,7 +456,7 @@ contract Registrar {
             // Reward the discoverer with 50% of the deed
             // The previous owner gets 50%
             h.value = max(h.value, minPrice);
-            h.deed.setBalance(h.value/2);
+            h.deed.setBalance(h.value/2, false);
             h.deed.setOwner(msg.sender);
             h.deed.closeDeed(1000);
         }
