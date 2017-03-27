@@ -34,6 +34,7 @@ describe('SimpleHashRegistrar', function() {
 	var deedABI = null;
 	var registrar = null;
 	var ens = null;
+	var throwingBidder = null;
 
 	var dotEth = web3.sha3('0000000000000000000000000000000000000000000000000000000000000000' + web3.sha3('eth').slice(2), {encoding: 'hex'});
 	var nameDotEth = web3.sha3(dotEth + web3.sha3('name').slice(2), {encoding: 'hex'});
@@ -66,6 +67,20 @@ describe('SimpleHashRegistrar', function() {
 				   	    	done();
 					   	}
 				   });
+			},
+			function(done) {
+				throwingBidder = web3.eth.contract([{"inputs":[],"payable":false,"type":"constructor"}]).new(
+					{
+						from: accounts[0],
+						data: "0x60606040523415600b57fe5b5b5b5b603380601b6000396000f30060606040525bfe00a165627a7a72305820439539138917e1fca55719c0d3bb351280d3d8db3698b096c8ce05eb72d74c1e0029",
+						gas: 1000000
+					}, function(err, contract) {
+						assert.equal(err, null, err);
+						if(contract.address != undefined) {
+							throwingBidder = Promise.promisifyAll(throwingBidder);
+							done();
+						}
+					});
 			},
 			function(done) { ens.setSubnodeOwner(0, web3.sha3('eth'), registrar.address, {from: accounts[0]}, done);}
 		], done);
@@ -800,20 +815,30 @@ describe('SimpleHashRegistrar', function() {
 		let invalidator = {account: accounts[2]};
 		eth = Promise.promisifyAll(web3.eth);
 		eth.getBalanceAsync(bid.account)
+			// Store balances
 			.then((balance) => { bid.startingBalance = balance.toFixed(); })
 			.then((result) => web3.eth.getBalanceAsync(invalidator.account))
 			.then((balance) => { invalidator.startingBalance = balance.toFixed(); })
+			// Start some auctions
 			.then((result) => registrar.startAuctionsAsync([web3.sha3('name'), web3.sha3('longname'), web3.sha3('thirdname')], {from: accounts[0]}))
-			.then((result) => registrar.shaBidAsync(web3.sha3('name'), bid.account, bid.value, bid.salt))
+			// Bid on 'name'
+			.then((result) => registrar.shaBidAsync(web3.sha3('name'), throwingBidder.address, bid.value, bid.salt))
 			.then((sealedBid) => {
 				bid.sealedBid = sealedBid;
 				return registrar.newBidAsync(sealedBid, {from: bid.account, value: bid.deposit});
-			}).then((result) => advanceTimeAsync(daysInSec(26) + 1))
-			.then((result) => registrar.unsealBidAsync(web3.sha3('name'), bid.account, bid.value, bid.salt, {from: bid.account}))
+			})
+			// Advance time to the reveal period
+			.then((result) => advanceTimeAsync(daysInSec(26) + 1))
+			// Reveal the bid
+			.then((result) => registrar.unsealBidAsync(web3.sha3('name'), throwingBidder.address, bid.value, bid.salt, {from: bid.account}))
+			// Advance to the end of the auction
 			.then((result) => advanceTimeAsync(daysInSec(2)))
+			// Invalidate the name
 			.then((result) => registrar.invalidateNameAsync('name', {from: invalidator.account}))
+			// Check it was invalidated
 			.then((result) => registrar.entriesAsync(web3.sha3('name')))
 			.then((entry) => { assert.equal(entry[0], 3); })
+			// Check account balances
 			.then((result) => eth.getBalanceAsync(bid.account))
 			.then((balance) => {
 				var spentFee = Math.floor(web3.fromWei(bid.startingBalance - balance.toFixed(), 'finney'));
@@ -824,11 +849,15 @@ describe('SimpleHashRegistrar', function() {
 					let fee = Math.floor(web3.fromWei(balance.toFixed() - invalidator.startingBalance, 'finney'));
 					console.log('\t Invalidator got: ', fee, 'finney');
 					assert.equal(fee, 4);
-			}).then((result) => ens.ownerAsync(nameDotEth))
+			})
+			// check the owner field was cleared.
+			.then((result) => ens.ownerAsync(nameDotEth))
 			.then((owner) => {
 				assert.equal(owner, 0);
-			}).then((result) => registrar.startAuctionAsync(web3.sha3('name'), {from: accounts[0]}))
-			.then((done) => assert.fail("Expected exception"), (err) => assert.ok(err.toString().indexOf(utils.INVALID_JUMP) != -1, err))
+			})
+			// Check we can't restart the auction process.
+			.then((result) => registrar.startAuctionAsync(web3.sha3('name'), {from: accounts[0]}))
+			.then((done) => assert.fail("Expected exception"), (err) => assert.ok(err, err))
 			.asCallback(done);
 	});
 
