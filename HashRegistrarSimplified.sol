@@ -388,14 +388,21 @@ contract Registrar {
         entry h = _entries[_hash];
 
         h.value =  max(h.value, minPrice);
+        h.deed.setBalance(h.value, true);
 
-        // Assign the owner in ENS, if we're still the registrar
-        if(ens.owner(rootNode) == address(this))
-            ens.setSubnodeOwner(rootNode, _hash, h.deed.owner());
+        if (h.value >= 1000 ether) {
+            // Temporary registrar will not accept high value names yet
+            h.deed.closeDeed(995);
+            h.deed = Deed(0);
+            HashInvalidated(hash, unhashedName, h.value, h.registrationDate);
 
-        Deed deedContract = h.deed;
-        deedContract.setBalance(h.value, true);
-        HashRegistered(_hash, deedContract.owner(), h.value, h.registrationDate);
+        } else {
+            // Assign the owner in ENS, if we're still the registrar
+            if(ens.owner(rootNode) == address(this))
+                ens.setSubnodeOwner(rootNode, _hash, h.deed.owner());
+
+            HashRegistered(_hash, h.deed.owner(), h.value, h.registrationDate);
+        }
     }
 
     /**
