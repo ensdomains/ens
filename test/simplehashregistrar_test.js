@@ -76,7 +76,7 @@ describe('SimpleHashRegistrar', function() {
 			function(done) {
 				registrar.startAuction(web3.sha3('name'), {from: accounts[0]}, done);
 			},
-			function(done) { advanceTime(48 * 60 * 60, done); },
+			function(done) { advanceTime(daysInSec(2), done); },
 			// Starting the same auction again should have no effect
 			function(done) {
 				registrar.startAuction(web3.sha3('name'), {from: accounts[0]}, done);
@@ -95,7 +95,7 @@ describe('SimpleHashRegistrar', function() {
 				});
 			},
 			// Advance time 24 days
-			function(done) { advanceTime(daysInSec(24), done); },
+			function(done) { advanceTime(daysInSec(22), done); },
 			function(done) {
 				registrar.startAuction(web3.sha3('anothername'), {from: accounts[0]}, done);
 			},
