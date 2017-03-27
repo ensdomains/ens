@@ -251,8 +251,12 @@ contract Registrar {
      * open but not bid on are closed after a week. 
      *
      * @param _hash The hash to start an auction on
-     */    
-    function startAuction(bytes32 _hash) inState(_hash, Mode.Open) registryOpen() {
+     */
+    function startAuction(bytes32 _hash) registryOpen() {
+        var mode = state(_hash);
+        if(mode == Mode.Auction) return;
+        if(mode != Mode.Open) throw;
+
         entry newAuction = _entries[_hash];
 
         // for the first month of the registry, make longer auctions
@@ -451,7 +455,8 @@ contract Registrar {
         if(address(h.deed) != 0) {
             // Reward the discoverer with 50% of the deed
             // The previous owner gets 50%
-            h.deed.setBalance(h.deed.value()/2);
+            h.value = max(h.value, minPrice);
+            h.deed.setBalance(h.value/2);
             h.deed.setOwner(msg.sender);
             h.deed.closeDeed(1000);
         }

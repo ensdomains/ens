@@ -37,7 +37,7 @@ module.exports = {
 		   	    assert.equal(err, null, err);
 		   	    if(contract.address != undefined) {
 		   	    	ens = Promise.promisifyAll(ens);
-		   	    	done();
+		   	    	done(null, ens);
 			   	}
 		   });
 		return ens;

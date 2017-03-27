@@ -70,7 +70,7 @@ describe('PublicResolver', function() {
 
 	it('forbids setting addresses by non-owners', function(done) {
 		resolver.setAddr(utils.node, accounts[1], {from: accounts[1]}, function(err, tx) {
-			assert.ok(err.toString().indexOf(utils.INVALID_JUMP) != -1, err);
+			assert.ok(err, err);
 			done();
 		});
 	});

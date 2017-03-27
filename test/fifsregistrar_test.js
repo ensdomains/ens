@@ -107,7 +107,7 @@ describe('FIFSRegistrar', function() {
 			async.series([
 				function(done) {
 					registrar.register(web3.sha3('eth'), accounts[1], {from: accounts[1]}, function(err, txid) {
-						assert.ok(err.toString().indexOf(utils.INVALID_JUMP) != -1, err);
+						assert.ok(err, err);
 						done();
 					});
 				}],
