@@ -29,26 +29,16 @@ describe('FIFSRegistrar', function() {
 		return utils.deployENSAsync(accounts[0])
 			.then(function(_ens) {
 				ens = _ens;
-				return new Promise(function(resolve, reject) {
-					web3.eth.contract(JSON.parse(registrarCode.interface)).new(
+				return utils.promisifyContractFactory(
+						web3.eth.contract(JSON.parse(registrarCode.interface)))
+					.newAsync(
 						ens.address,
 						0,
 						{
 							from: accounts[0],
 							data: registrarCode.bytecode,
 							gas: 4700000
-						},
-						function(err, contract) {
-							if (err) {
-								reject(err);
-							} else if (typeof contract.address !== "undefined") {
-								resolve(contract);
-							} else {
-								// There is to hope that reject or resolve is called
-							}
 						});
-
-				});
 			})
 			.then(contract => {
 				registrar = Promise.promisifyAll(contract);

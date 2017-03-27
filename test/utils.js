@@ -62,5 +62,24 @@ module.exports = {
 		});
 	},
 	web3: web3,
-	TestRPC: TestRPC
+	TestRPC: TestRPC,
+	promisifyContractFactory: function(contractFactory) {
+		contractFactory.newAsync = function() {
+			var args = arguments;
+			return new Promise(function(resolve, reject) {
+				args[args.length] = function(err, contract) {
+					if (err) {
+						reject(err);
+					} else if (typeof contract.address !== "undefined") {
+						resolve(contract);
+					} else {
+						// There is to hope that reject or resolve is called
+					}
+				};
+				args.length++;
+				contractFactory.new.apply(contractFactory, args);
+			});
+		};
+		return contractFactory;
+	}
 };
