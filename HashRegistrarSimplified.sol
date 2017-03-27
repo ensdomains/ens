@@ -474,9 +474,28 @@ contract Registrar {
         if(registrar == address(this))
             throw;
 
+        // Migrate the deed
         entry h = _entries[_hash];
         h.deed.setRegistrar(registrar);
+
+        // Call the new registrar to accept the transfer
+        Registrar(registrar).acceptRegistrarTransfer(_hash, h.deed, h.registrationDate);
+
+        // Zero out the entry
+        h.deed = Deed(0);
+        h.registrationDate = 0;
+        h.value = 0;
+        h.highestBid = 0;
     }
+
+    /**
+     * @dev Accepts a transfer from a previous registrar; stubbed out here since there
+     *      is no previous registrar implementing this interface.
+     * @param hash The sha3 hash of the label to transfer.
+     * @param deed The Deed object for the name being transferred in.
+     * @param registrationDate The date at which the name was originally registered.
+     */
+    function acceptRegistrarTransfer(bytes32 hash, Deed deed, uint registrationDate) {}
 
     /**
      * @dev Returns a deed created by a previous instance of the registrar.

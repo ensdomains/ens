@@ -837,6 +837,7 @@ describe('SimpleHashRegistrar', function() {
 			{account: accounts[0], value: 1e18, deposit: 2e18, salt: 1},
 		];
 		var deedAddress = null;
+		var newRegistrar = null;
 		async.series([
 			// Start an auction for 'name'
 			function(done) {
@@ -882,9 +883,26 @@ describe('SimpleHashRegistrar', function() {
 					done();
 				});
 			},
+			// Deploy a new registrar
+			function(done) {
+				newRegistrar = web3.eth.contract(registrarABI).new(
+				    ens.address,
+				    dotEth,
+				    0,
+				    {
+				    	from: accounts[0],
+				     	data: registrarBytecode,
+				     	gas: 4700000
+				   	}, function(err, contract) {
+				   	    assert.equal(err, null, err);
+				   	    if(contract.address != undefined) {
+				   	    	done();
+					   	}
+				   });
+			},
 			// Update ENS with a new registrar
 			function(done) {
-				ens.setSubnodeOwner(0, web3.sha3('eth'), accounts[2], {from: accounts[0]}, done);
+				ens.setSubnodeOwner(0, web3.sha3('eth'), newRegistrar.address, {from: accounts[0]}, done);
 			},
 			// Transfer the deed
 			function(done) {
@@ -894,7 +912,19 @@ describe('SimpleHashRegistrar', function() {
 			function(done) {
 				web3.eth.contract(deedABI).at(deedAddress).registrar(function(err, owner) {
 					assert.equal(err, null, err);
-					assert.equal(accounts[2], owner);
+					assert.equal(newRegistrar.address, owner);
+					done();
+				});
+			},
+			// Check the record is unset on the old registrar
+			function(done) {
+				registrar.entries(web3.sha3('name'), function(err, entry) {
+					assert.equal(err, null, err);
+					assert.equal(entry[0], 0);
+					assert.equal(entry[1], 0);
+					assert.equal(entry[2], 0);
+					assert.equal(entry[3], 0);
+					assert.equal(entry[4], 0);
 					done();
 				});
 			}
