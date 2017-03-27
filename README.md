@@ -1,11 +1,13 @@
 # ENS
+
+[![Build Status](https://travis-ci.org/ethereum/ens.svg?branch=master)](https://travis-ci.org/ethereum/ens)
+
 Implementations for registrars and local resolvers for the Ethereum Name Service.
 
 For documentation of the ENS system, see [docs.ens.domains](http://docs.ens.domains/).
 
-To run unittests, clone this repository, and run:
+To run unit tests, clone this repository, and run:
 
-    sudo npm install -g mocha
     npm install
     npm test
 
@@ -26,7 +28,7 @@ Simple resolver implementation that allows the owner of any domain to configure 
 
 # ENS Registry interface
 
-The ENS registry is a single central contract that provides a mapping from domain names to owners and resolvers, as described in [EIP 137](https://github.com/ethereum/EIPs/issues/137). 
+The ENS registry is a single central contract that provides a mapping from domain names to owners and resolvers, as described in [EIP 137](https://github.com/ethereum/EIPs/issues/137).
 
 The ENS operates on 'nodes' instead of human-readable names; a human readable name is converted to a node using the namehash algorithm, which is as follows:
 
