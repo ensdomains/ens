@@ -305,7 +305,20 @@ contract Registrar {
         Deed newBid = (new Deed).value(msg.value)();
         sealedBids[msg.sender][sealedBid] = newBid;
         NewBid(sealedBid, msg.sender, msg.value);
-    } 
+    }
+
+    /**
+     * @dev Start a set of auctions and bid on one of them
+     * 
+     * This method functions identically to calling `startAuctions` followed by `newBid`,
+     * but all in one transaction.
+     * @param hashes A list of hashes to start auctions on.
+     * @param sealedBid A sealed bid for one of the auctions.
+     */
+    function startAuctionsAndBid(bytes32[] hashes, bytes32 sealedBid) payable {
+        startAuctions(hashes);
+        newBid(sealedBid);
+    }
 
     /**
      * @dev Submit the properties of a bid to reveal them
