@@ -176,7 +176,7 @@ contract Registrar {
     function Registrar(AbstractENS _ens, bytes32 _rootNode, uint _startDate) {
         ens = _ens;
         rootNode = _rootNode;
-        registryStarted = _startDate > 0 ? _startDate : now;
+        registryStarted = _startDate;
     }
 
     /**
