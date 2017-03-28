@@ -55,15 +55,6 @@ describe('PublicResolver', function() {
 			});
 	});
 
-	describe('constructor', function() {
-
-		it('uses precise gas', function() {
-			return web3.eth.getTransactionReceiptAsync(resolver.transactionHash)
-				.then(receipt => assert.equal(receipt.gasUsed, 349348));
-		});
-
-	});
-
 	describe('fallback function', function() {
 
 		it('forbids calls to the fallback function with 0 value', function() {
@@ -191,29 +182,6 @@ describe('PublicResolver', function() {
 				.then(txid => resolver.setAddrAsync(utils.node, accounts[1], {from: accounts[0]}));
 		});
 
-		it('uses precise gas the first time', function() {
-			this.slow(200);
-			return resolver.setAddrAsync(utils.node, accounts[1], {from: accounts[0]})
-				.then(web3.eth.getTransactionReceiptAsync)
-				.then(receipt => assert.equal(receipt.gasUsed, 46163));
-		});
-
-		it('uses precise gas the second time to a different value', function() {
-			this.slow(200);
-			return resolver.setAddrAsync(utils.node, accounts[1], {from: accounts[0]})
-				.then(txid => resolver.setAddrAsync(utils.node, accounts[0], {from: accounts[0]}))
-				.then(web3.eth.getTransactionReceiptAsync)
-				.then(receipt => assert.equal(receipt.gasUsed, 31163));
-		});
-
-		it('uses precise gas the second time to the same value', function() {
-			this.slow(200);
-			return resolver.setAddrAsync(utils.node, accounts[1], {from: accounts[0]})
-				.then(txid => resolver.setAddrAsync(utils.node, accounts[1], {from: accounts[0]}))
-				.then(web3.eth.getTransactionReceiptAsync)
-				.then(receipt => assert.equal(receipt.gasUsed, 31163));
-		});
-
 		it('forbids setting new address by non-owners', function() {
 			return resolver.setAddrAsync(utils.node, accounts[1], {from: accounts[1]})
 				.then(
@@ -265,15 +233,6 @@ describe('PublicResolver', function() {
 				.then(address => assert.equal(address, accounts[0]));
 		});
 
-		it('uses precise gas', function() {
-			this.slow(200);
-			var addrTxAsync = Promise.promisify(resolver.addr.sendTransaction);
-			return resolver.setAddrAsync(utils.node, accounts[1], {from: accounts[0]})
-				.then(txid => addrTxAsync(utils.node, {from: accounts[0]}))
-				.then(web3.eth.getTransactionReceiptAsync)
-				.then(receipt => assert.equal(receipt.gasUsed, 23889));
-		});
-
 	});
 
 	describe('setContent function', function() {
@@ -292,29 +251,6 @@ describe('PublicResolver', function() {
 			this.slow(200);
 			return resolver.setContentAsync(utils.node, 'hash1', {from: accounts[0]})
 				.then(txid => resolver.setContentAsync(utils.node, 'hash1', {from: accounts[0]}));
-		});
-
-		it('uses precise gas', function() {
-			this.slow(200);
-			return resolver.setContentAsync(utils.node, 'hash1', {from: accounts[0]})
-				.then(web3.eth.getTransactionReceiptAsync)
-				.then(receipt => assert.equal(receipt.gasUsed, 45110));
-		});
-
-		it('uses precise gas the second time to a different value', function() {
-			this.slow(200);
-			return resolver.setContentAsync(utils.node, 'hash1', {from: accounts[0]})
-				.then(txid => resolver.setContentAsync(utils.node, 'hash2', {from: accounts[0]}))
-				.then(web3.eth.getTransactionReceiptAsync)
-				.then(receipt => assert.equal(receipt.gasUsed, 30110));
-		});
-
-		it('uses precise gas the second time to the same value', function() {
-			this.slow(200);
-			return resolver.setContentAsync(utils.node, 'hash1', {from: accounts[0]})
-				.then(txid => resolver.setContentAsync(utils.node, 'hash1', {from: accounts[0]}))
-				.then(web3.eth.getTransactionReceiptAsync)
-				.then(receipt => assert.equal(receipt.gasUsed, 30110));
 		});
 
 		it('forbids setting content by non-owners', function() {
@@ -366,15 +302,6 @@ describe('PublicResolver', function() {
 				.then(txid => resolver.setContentAsync(utils.node, 'hash2', {from: accounts[0]}))
 				.then(txid => resolver.contentAsync(utils.node))
 				.then(content => assert.equal(web3.toUtf8(content), 'hash2'));
-		});
-
-		it('uses precise gas', function() {
-			this.slow(200);
-			var contentTxAsync = Promise.promisify(resolver.content.sendTransaction);
-			return resolver.setContentAsync(utils.node, 'hash1', {from: accounts[0]})
-				.then(txid => contentTxAsync(utils.node, {from: accounts[0]}))
-				.then(web3.eth.getTransactionReceiptAsync)
-				.then(receipt => assert.equal(receipt.gasUsed, 23794));
 		});
 
 	});
