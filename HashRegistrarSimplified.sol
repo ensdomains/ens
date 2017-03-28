@@ -104,7 +104,7 @@ contract Registrar {
     enum Mode { Open, Auction, Owned, Forbidden, Reveal }
     uint32 constant auctionLength = 5 days;
     uint32 constant revealPeriod = 48 hours;
-    uint32 constant initialAuctionPeriod = 4 weeks;
+    uint32 constant initialAuctionPeriod = 2 weeks;
     uint constant minPrice = 0.01 ether;
     uint public registryStarted;
 
@@ -452,7 +452,8 @@ contract Registrar {
      * 
      */
     function invalidateName(string unhashedName) inState(sha3(unhashedName), Mode.Owned) {
-        if (strlen(unhashedName) > 6 ) throw;
+        uint minLength = max(6, 12 - (now - registryStarted)/(4 weeks));
+        if (strlen(unhashedName) > minLength ) throw;
         bytes32 hash = sha3(unhashedName);
         
         entry h = _entries[hash];
