@@ -259,6 +259,16 @@ contract Registrar {
         return uint(_hash) < limit;
     }
 
+    /** 
+     * @dev Returns expected launch date for hash
+     * 
+     * Returns the minimum date for opening the auction
+     * 
+     * @param _hash The hash to start an auction on
+     */
+    function getAllowedTime(bytes32 _hash) constant returns (uint timestamp) {
+        return registryStarted + (2**64*launchLength*uint(bytes8(_hash))/2**64)/2**64;
+    }
     /**
      * @dev Start an auction for an available hash
      * 
