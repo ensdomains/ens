@@ -11,7 +11,7 @@ names cannot be six letters or shorter, new auctions will stop after 4 years.
 
 The plan is to test the basic features and then move to a new contract in at most
 2 years, when some sort of renewal mechanism will be enabled.
-*/
+*/ 
 
 
 import 'interface.sol';
@@ -104,7 +104,8 @@ contract Registrar {
     enum Mode { Open, Auction, Owned, Forbidden, Reveal }
     uint32 constant auctionLength = 5 days;
     uint32 constant revealPeriod = 48 hours;
-    uint32 constant initialAuctionPeriod = 4 weeks;
+    uint32 constant initialAuctionPeriod = 2 weeks;
+    uint32 constant lengthOfSoftLaunch = 26 weeks;
     uint constant minPrice = 0.01 ether;
     uint public registryStarted;
 
@@ -237,6 +238,27 @@ contract Registrar {
         }
         return len;
     }
+    
+    /** 
+     * @dev Creates a scheduled release for each name
+     * 
+     * Each name will be assigned a random date in which its auction 
+     * can be started, from 0 to 6 months
+     * 
+     * @param _hash The hash to start an auction on
+     * @param _timestamp The timestamp to query about
+     */
+     
+    function isAllowed(bytes32 _hash, uint _timestamp) constant returns (bool allowed){
+        uint upperLimit;
+        upperLimit--;       // Underflows to set it to 0xFFF...
+        uint timeSpan = _timestamp - registryStarted;
+        uint limit = timeSpan < lengthOfSoftLaunch ? 
+            timeSpan * (upperLimit / lengthOfSoftLaunch)
+            : upperLimit;
+        
+        return uint(_hash) < limit;
+    }
 
     /**
      * @dev Start an auction for an available hash
@@ -252,8 +274,8 @@ contract Registrar {
     function startAuction(bytes32 _hash) registryOpen() {
         var mode = state(_hash);
         if(mode == Mode.Auction) return;
-        if(mode != Mode.Open) throw;
-
+        if(mode != Mode.Open || !isAllowed(_hash, now)) throw;
+        
         entry newAuction = _entries[_hash];
 
         // for the first month of the registry, make longer auctions
