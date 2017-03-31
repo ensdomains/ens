@@ -32,6 +32,7 @@ describe('SimpleHashRegistrar', function() {
 	var registrarABI = null;
 	var registrarBytecode = null;
 	var deedABI = null;
+	var backend = null;
 	var registrar = null;
 	var ens = null;
 	var throwingBidder = null;
@@ -44,17 +45,37 @@ describe('SimpleHashRegistrar', function() {
 		var code = utils.compileContract(['interface.sol', 'HashRegistrarSimplified.sol']);
 		registrarABI = JSON.parse(code.contracts['HashRegistrarSimplified.sol:Registrar'].interface);
 		registrarBytecode = code.contracts['HashRegistrarSimplified.sol:Registrar'].bytecode;
+		backendABI = JSON.parse(code.contracts['HashRegistrarSimplified.sol:RegistrarBackend'].interface);
+		backendBytecode = code.contracts['HashRegistrarSimplified.sol:RegistrarBackend'].bytecode;
 		deedABI = JSON.parse(code.contracts['HashRegistrarSimplified.sol:Deed'].interface);
 	});
 
 	beforeEach(function(done) {
 		this.timeout(5000);
 		async.series([
+			// Deploy the registry
 			function(done) { ens = utils.deployENS(accounts[0], done); },
+			// Deploy the backend
+			function(done) {
+				backend = web3.eth.contract(backendABI).new(
+					ens.address,
+					dotEth,
+					{
+						from: accounts[0],
+						data: backendBytecode,
+						gas: 4700000
+					}, function(err, contract) {
+						assert.equal(err, null, err);
+						if(contract.address != undefined) {
+							backend = Promise.promisifyAll(backend);
+							done();
+						}
+					});
+			},
+			// Deploy the registrar
 			function(done) {
 				registrar = web3.eth.contract(registrarABI).new(
-				    ens.address,
-				    dotEth,
+				    backend.address,
 				    0,
 				    {
 				    	from: accounts[0],
@@ -67,6 +88,10 @@ describe('SimpleHashRegistrar', function() {
 				   	    	done();
 					   	}
 				   });
+			},
+			// Authorize the registrar to access the backend
+			function(done) {
+				backend.addRegistrar(registrar.address, {from: accounts[0]}, done);
 			},
 			function(done) {
 				throwingBidder = web3.eth.contract([{"inputs":[],"payable":false,"type":"constructor"}]).new(
@@ -82,7 +107,7 @@ describe('SimpleHashRegistrar', function() {
 						}
 					});
 			},
-			function(done) { ens.setSubnodeOwner(0, web3.sha3('eth'), registrar.address, {from: accounts[0]}, done);}
+			function(done) { ens.setSubnodeOwner(0, web3.sha3('eth'), backend.address, {from: accounts[0]}, done);}
 		], done);
 	});
 
