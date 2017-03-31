@@ -104,8 +104,7 @@ contract Registrar {
     enum Mode { Open, Auction, Owned, Forbidden, Reveal }
     uint32 constant auctionLength = 5 days;
     uint32 constant revealPeriod = 48 hours;
-    uint32 constant initialAuctionPeriod = 2 weeks;
-    uint32 constant lengthOfSoftLaunch = 26 weeks;
+    uint32 constant launchLength = 26 weeks;
     uint constant minPrice = 0.01 ether;
     uint public registryStarted;
 
@@ -253,8 +252,8 @@ contract Registrar {
         uint upperLimit;
         upperLimit--;       // Underflows to set it to 0xFFF...
         uint timeSpan = _timestamp - registryStarted;
-        uint limit = timeSpan < lengthOfSoftLaunch ? 
-            timeSpan * (upperLimit / lengthOfSoftLaunch)
+        uint limit = timeSpan < launchLength ? 
+            timeSpan * (upperLimit / launchLength)
             : upperLimit;
         
         return uint(_hash) < limit;
@@ -279,7 +278,7 @@ contract Registrar {
         entry newAuction = _entries[_hash];
 
         // for the first month of the registry, make longer auctions
-        newAuction.registrationDate = max(now + auctionLength, registryStarted + initialAuctionPeriod);
+        newAuction.registrationDate = now + auctionLength;
         newAuction.value = 0;
         newAuction.highestBid = 0;
         AuctionStarted(_hash, newAuction.registrationDate);      
@@ -405,7 +404,7 @@ contract Registrar {
         Deed bid = sealedBids[bidder][seal];
         // If the bid hasn't been revealed after any possible auction date, then close it
         if (address(bid) == 0 
-            || now < bid.creationDate() + initialAuctionPeriod 
+            || now < bid.creationDate() + launchLength 
             || bid.owner() > 0) throw;
 
         // Send the canceller 0.5% of the bid, and burn the rest.
