@@ -14,18 +14,6 @@ contract ENS is AbstractENS {
 
     mapping(bytes32=>Record) records;
 
-    // Logged when the owner of a node assigns a new owner to a subnode.
-    event NewOwner(bytes32 indexed node, bytes32 indexed label, address owner);
-
-    // Logged when the owner of a node transfers ownership to a new account.
-    event Transfer(bytes32 indexed node, address owner);
-
-    // Logged when the resolver for a node changes.
-    event NewResolver(bytes32 indexed node, address resolver);
-
-    // Logged when the TTL of a node changes
-    event NewTTL(bytes32 indexed node, uint64 ttl);
-
     // Permits modifications only by the owner of the specified node.
     modifier only_owner(bytes32 node) {
         if(records[node].owner != msg.sender) throw;
