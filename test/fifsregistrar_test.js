@@ -7,17 +7,16 @@ Promise.promisifyAll(utils);
 var web3 = utils.web3;
 Promise.promisifyAll(web3.eth);
 
-var accounts = null;
-
-before(function() {
-	return web3.eth.getAccountsAsync()
-		.then(acct => accounts = acct);
-});
-
 describe('FIFSRegistrar', function() {
 	var registrarCode = null;
 	var registrar = null;
 	var ens = null;
+	var accounts = null;
+
+	before(function() {
+		return web3.eth.getAccountsAsync()
+			.then(acct => accounts = acct);
+	});
 
 	before(function() {
 		this.timeout(10000);

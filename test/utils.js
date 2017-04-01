@@ -51,7 +51,7 @@ module.exports = {
 	deployENSLLL: function(account, done) {
 		if(ensLLLCode == null) {
 			ensLLLCode = {
-				bytecode: fs.readFileSync('ENS.lll.bin').toString().trim(),
+				bytecode: fs.readFileSync('./contracts/ENS.lll.bin').toString().trim(),
 				interface: fs.readFileSync('abi/AbstractENS.abi').toString()
 			}
 		}
@@ -68,7 +68,6 @@ module.exports = {
 		});
 	},
 	web3: web3,
-	TestRPC: TestRPC,
 	promisifyContractFactory: function(contractFactory) {
 		contractFactory.newAsync = function() {
 			var args = arguments;
