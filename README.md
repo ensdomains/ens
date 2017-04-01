@@ -78,4 +78,4 @@ ENS.lll.bin was generated with the following command, using the lllc packaged wi
 
 The files in the abi directory were generated with the following command:
 
-    solc --abi -o abi interface.sol FIFSRegistrar.sol HashRegistrarSimplified.sol PublicResolver.sol
+    solc --abi -o abi AbstractENS.sol FIFSRegistrar.sol HashRegistrarSimplified.sol PublicResolver.sol

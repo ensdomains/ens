@@ -21,7 +21,7 @@ describe('FIFSRegistrar', function() {
 
 	before(function() {
 		this.timeout(10000);
-		registrarCode = utils.compileContract(['interface.sol', 'FIFSRegistrar.sol']).contracts['FIFSRegistrar.sol:FIFSRegistrar'];
+		registrarCode = utils.compileContract(['AbstractENS.sol', 'FIFSRegistrar.sol']).contracts['FIFSRegistrar.sol:FIFSRegistrar'];
 	});
 
 	beforeEach(function() {
@@ -58,7 +58,7 @@ describe('FIFSRegistrar', function() {
 	});
 
 	describe("transferring names", function() {
-		
+
 		beforeEach("register an unclaimed name", function() {
 			return registrar.registerAsync(web3.sha3('eth'), accounts[0], {from: accounts[0]})
 				.then(txHash => ens.ownerAsync(utils.node))

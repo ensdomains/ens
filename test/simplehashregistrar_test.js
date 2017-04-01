@@ -41,7 +41,7 @@ describe('SimpleHashRegistrar', function() {
 
 	before(function() {
 		this.timeout(30000);
-		var code = utils.compileContract(['interface.sol', 'HashRegistrarSimplified.sol']);
+		var code = utils.compileContract(['AbstractENS.sol', 'HashRegistrarSimplified.sol']);
 		registrarABI = JSON.parse(code.contracts['HashRegistrarSimplified.sol:Registrar'].interface);
 		registrarBytecode = code.contracts['HashRegistrarSimplified.sol:Registrar'].bytecode;
 		deedABI = JSON.parse(code.contracts['HashRegistrarSimplified.sol:Deed'].interface);

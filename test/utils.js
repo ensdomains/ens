@@ -27,7 +27,7 @@ module.exports = {
 	compileContract: compileContract,
 	deployENS: function (account, done) {
 		if(ensCode == null)
-			ensCode = compileContract(['ENS.sol', 'interface.sol']).contracts['ENS.sol:ENS'];
+			ensCode = compileContract(['ENS.sol', 'AbstractENS.sol']).contracts['ENS.sol:ENS'];
 		var ens = web3.eth.contract(JSON.parse(ensCode.interface)).new(
 		    {
 		    	from: account,
