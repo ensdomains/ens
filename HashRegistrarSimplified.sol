@@ -43,7 +43,8 @@ contract Deed {
         _;
     }
 
-    function Deed() payable {
+    function Deed(address _owner) payable {
+        owner = _owner;
         registrar = msg.sender;
         creationDate = now;
         active = true;
@@ -276,13 +277,12 @@ contract Registrar {
     /**
      * @dev Hash the values required for a secret bid
      * @param hash The node corresponding to the desired namehash
-     * @param owner The address which will own the 
      * @param value The bid amount
      * @param salt A random value to ensure secrecy of the bid
      * @return The hash of the bid values
      */
-    function shaBid(bytes32 hash, address owner, uint value, bytes32 salt) constant returns (bytes32 sealedBid) {
-        return sha3(hash, owner, value, salt);
+    function shaBid(bytes32 hash, uint value, bytes32 salt) constant returns (bytes32 sealedBid) {
+        return sha3(hash, value, salt);
     }
     
     /**
@@ -302,7 +302,7 @@ contract Registrar {
         if (address(sealedBids[msg.sender][sealedBid]) > 0 ) throw;
         if (msg.value < minPrice) throw;
         // creates a new hash contract with the owner
-        Deed newBid = (new Deed).value(msg.value)();
+        Deed newBid = (new Deed).value(msg.value)(msg.sender);
         sealedBids[msg.sender][sealedBid] = newBid;
         NewBid(sealedBid, msg.sender, msg.value);
     }
@@ -323,16 +323,14 @@ contract Registrar {
     /**
      * @dev Submit the properties of a bid to reveal them
      * @param _hash The node in the sealedBid
-     * @param _owner The address in the sealedBid
      * @param _value The bid amount in the sealedBid
      * @param _salt The sale in the sealedBid
      */ 
-    function unsealBid(bytes32 _hash, address _owner, uint _value, bytes32 _salt) {
-        bytes32 seal = shaBid(_hash, _owner, _value, _salt);
+    function unsealBid(bytes32 _hash, uint _value, bytes32 _salt) {
+        bytes32 seal = shaBid(_hash, _value, _salt);
         Deed bid = sealedBids[msg.sender][seal];
         if (address(bid) == 0 ) throw;
         sealedBids[msg.sender][seal] = Deed(0);
-        bid.setOwner(_owner);
         entry h = _entries[_hash];
         uint actualValue = min(_value, bid.value());
         bid.setBalance(actualValue, true);
@@ -341,14 +339,14 @@ contract Registrar {
         if(auctionState == Mode.Owned) {
             // Too late! Bidder loses their bid. Get's 0.5% back.
             bid.closeDeed(5);
-            BidRevealed(_hash, _owner, actualValue, 1);
+            BidRevealed(_hash, msg.sender, actualValue, 1);
         } else if(auctionState != Mode.Reveal) {
             // Invalid phase
             throw;
         } else if (actualValue < minPrice || bid.creationDate() > h.registrationDate - revealPeriod) {
             // Bid too low or too late, refund 99.5%
             bid.closeDeed(995);
-            BidRevealed(_hash, _owner, actualValue, 0);
+            BidRevealed(_hash, msg.sender, actualValue, 0);
         } else if (actualValue > h.highestBid) {
             // new winner
             // cancel the other bid, refund 99.5%
@@ -362,16 +360,16 @@ contract Registrar {
             h.value = h.highestBid;
             h.highestBid = actualValue;
             h.deed = bid;
-            BidRevealed(_hash, _owner, actualValue, 2);
+            BidRevealed(_hash, msg.sender, actualValue, 2);
         } else if (actualValue > h.value) {
             // not winner, but affects second place
             h.value = actualValue;
             bid.closeDeed(995);
-            BidRevealed(_hash, _owner, actualValue, 3);
+            BidRevealed(_hash, msg.sender, actualValue, 3);
         } else {
             // bid doesn't affect auction
             bid.closeDeed(995);
-            BidRevealed(_hash, _owner, actualValue, 4);
+            BidRevealed(_hash, msg.sender, actualValue, 4);
         }
     }
     
@@ -383,8 +381,7 @@ contract Registrar {
         Deed bid = sealedBids[bidder][seal];
         // If the bid hasn't been revealed after any possible auction date, then close it
         if (address(bid) == 0 
-            || now < bid.creationDate() + initialAuctionPeriod 
-            || bid.owner() > 0) throw;
+            || now < bid.creationDate() + initialAuctionPeriod) throw;
 
         // Send the canceller 0.5% of the bid, and burn the rest.
         bid.setOwner(msg.sender);
@@ -406,9 +403,8 @@ contract Registrar {
         if(ens.owner(rootNode) == address(this))
             ens.setSubnodeOwner(rootNode, _hash, h.deed.owner());
 
-        Deed deedContract = h.deed;
-        deedContract.setBalance(h.value, true);
-        HashRegistered(_hash, deedContract.owner(), h.value, h.registrationDate);
+        h.deed.setBalance(h.value, true);
+        HashRegistered(_hash, h.deed.owner(), h.value, h.registrationDate);
     }
 
     /**

@@ -136,7 +136,7 @@ describe('SimpleHashRegistrar', function() {
 			},
 			// Submit a bid
 			function(done) {
-				registrar.shaBid(web3.sha3('name'), accounts[0], 1e18, 0, function(err, result) {
+				registrar.shaBid(web3.sha3('name'), 1e18, 0, function(err, result) {
 					bid = result;
 					assert.equal(err, null, err);
 					registrar.newBid(bid, {from: accounts[0], value: 2e18}, function(err, txid) {
@@ -206,7 +206,7 @@ describe('SimpleHashRegistrar', function() {
 			// Place each of the bids
 			function(done) {
 				async.each(bidData, function(bid, done) {
-					registrar.shaBid(web3.sha3('name'), bid.account, bid.value, bid.salt, function(err, result) {
+					registrar.shaBid(web3.sha3('name'), bid.value, bid.salt, function(err, result) {
 						bid.sealedBid = result;
 						assert.equal(err, null, err);
 						registrar.newBid(bid.sealedBid, {from: bid.account, value: bid.deposit}, function(err, txid) {
@@ -218,7 +218,7 @@ describe('SimpleHashRegistrar', function() {
 			},
 			// Try to reveal a bid early
 			function(done) {
-				registrar.unsealBid(web3.sha3('name'), bidData[0].account, bidData[0].value, bidData[0].salt, {from: bidData[0].account}, function(err, txid) {
+				registrar.unsealBid(web3.sha3('name'), bidData[0].value, bidData[0].salt, {from: bidData[0].account}, function(err, txid) {
 					assert.ok(err, err);
 					done();
 				});
@@ -229,7 +229,7 @@ describe('SimpleHashRegistrar', function() {
 			function(done) {
 				async.each(bidData, function(bid, done) {
 					if (bid.salt !== 6) {
-						registrar.unsealBid(web3.sha3('name'), bid.account, bid.value, bid.salt, {from: bid.account}, function(err, txid) {
+						registrar.unsealBid(web3.sha3('name'), bid.value, bid.salt, {from: bid.account}, function(err, txid) {
 							assert.equal(err, null, err);
 							done();
 						});
@@ -243,7 +243,7 @@ describe('SimpleHashRegistrar', function() {
 			// Reveal last bid
 			function(done) {
 				bid = bidData[5];
-				registrar.unsealBid(web3.sha3('name'), bid.account, bid.value, bid.salt, {from: bid.account}, function(err, txid) {
+				registrar.unsealBid(web3.sha3('name'), bid.value, bid.salt, {from: bid.account}, function(err, txid) {
 					assert.equal(err, null, err);
 					done();
 				});
@@ -337,7 +337,7 @@ describe('SimpleHashRegistrar', function() {
 			// Place each of the bids
 			function(done) {
 				async.each(bidData, function(bid, done) {
-					registrar.shaBid(web3.sha3('cancelname'), bid.account, bid.value, bid.salt, function(err, result) {
+					registrar.shaBid(web3.sha3('cancelname'), bid.value, bid.salt, function(err, result) {
 						bid.sealedBid = result;
 						assert.equal(err, null, err);
 						registrar.newBid(bid.sealedBid, {from: bid.account, value: bid.deposit}, function(err, txid) {
@@ -350,7 +350,7 @@ describe('SimpleHashRegistrar', function() {
 			// Attempt to cancel the first bid and fail
 			function(done) {
 				let bid = bidData[0];
-				registrar.shaBid(web3.sha3('cancelname'), bid.account, bid.value, bid.salt, function(err, result) {
+				registrar.shaBid(web3.sha3('cancelname'), bid.value, bid.salt, function(err, result) {
 					bid.sealedBid = result;
 					registrar.cancelBid(bid.account, bid.sealedBid, {from: bid.account}, function(err, txid) {
 						assert.notEqual(err, null, err);
@@ -369,7 +369,7 @@ describe('SimpleHashRegistrar', function() {
 			// Attempt to cancel the second bid and fail
 			function(done) {
 				let bid = bidData[1];
-				registrar.shaBid(web3.sha3('cancelname'), bid.account, bid.value, bid.salt, function(err, result) {
+				registrar.shaBid(web3.sha3('cancelname'), bid.value, bid.salt, function(err, result) {
 					bid.sealedBid = result;
 					registrar.cancelBid(bid.account, bid.sealedBid, {from: bid.account}, function(err, txid) {
 						assert.notEqual(err, null, err);
@@ -385,7 +385,7 @@ describe('SimpleHashRegistrar', function() {
 			// Reveal the second bid
 			function(done) {
 				let bid = bidData[1];
-				registrar.unsealBid(web3.sha3('cancelname'), bid.account, bid.value, bid.salt, {from: bid.account}, function(err, txid) {
+				registrar.unsealBid(web3.sha3('cancelname'), bid.value, bid.salt, {from: bid.account}, function(err, txid) {
 					assert.equal(err, null, err);
 					console.log('\t Bid #2 revealed');
 					done();
@@ -394,7 +394,7 @@ describe('SimpleHashRegistrar', function() {
 			// Attempt to cancel the second bid and fail
 			function(done) {
 				let bid = bidData[1];
-				registrar.shaBid(web3.sha3('cancelname'), bid.account, bid.value, bid.salt, function(err, result) {
+				registrar.shaBid(web3.sha3('cancelname'), bid.value, bid.salt, function(err, result) {
 					bid.sealedBid = result;
 					registrar.cancelBid(bid.account, bid.sealedBid, {from: bid.account}, function(err, txid) {
 						assert.notEqual(err, null, err);
@@ -423,7 +423,7 @@ describe('SimpleHashRegistrar', function() {
 			// Attempt to cancel the third bid and fail
 			function(done) {
 				let bid = bidData[2];
-				registrar.shaBid(web3.sha3('cancelname'), bid.account, bid.value, bid.salt, function(err, result) {
+				registrar.shaBid(web3.sha3('cancelname'), bid.value, bid.salt, function(err, result) {
 					bid.sealedBid = result;
 					registrar.cancelBid(bid.account, bid.sealedBid, {from: bid.account}, function(err, txid) {
 						assert.equal(err, null, err);
@@ -438,7 +438,7 @@ describe('SimpleHashRegistrar', function() {
 			// Cancel the third bid
 			function(done) {
 				let bid = bidData[2];
-				registrar.shaBid(web3.sha3('cancelname'), bid.account, bid.value, bid.salt, function(err, result) {
+				registrar.shaBid(web3.sha3('cancelname'), bid.value, bid.salt, function(err, result) {
 					bid.sealedBid = result;
 					registrar.cancelBid(bid.account, bid.sealedBid, {from: bid.account}, function(err, txid) {
 						assert.notEqual(err, null, err);
@@ -450,7 +450,7 @@ describe('SimpleHashRegistrar', function() {
 			// Attempt to cancel again and fail
 			function(done) {
 				let bid = bidData[2];
-				registrar.shaBid(web3.sha3('cancelname'), bid.account, bid.value, bid.salt, function(err, result) {
+				registrar.shaBid(web3.sha3('cancelname'), bid.value, bid.salt, function(err, result) {
 					bid.sealedBid = result;
 					registrar.cancelBid(bid.account, bid.sealedBid, {from: bid.account}, function(err, txid) {
 						assert.notEqual(err, null, err);
@@ -473,7 +473,7 @@ describe('SimpleHashRegistrar', function() {
 			},
 			// Place the bid
 			function(done) {
-				registrar.shaBid(web3.sha3('releasename'), bid.account, bid.value, bid.salt, function(err, result) {
+				registrar.shaBid(web3.sha3('releasename'), bid.value, bid.salt, function(err, result) {
 					bid.sealedBid = result;
 					assert.equal(err, null, err);
 					registrar.newBid(bid.sealedBid, {from: bid.account, value: bid.deposit}, function(err, txid) {
@@ -486,7 +486,7 @@ describe('SimpleHashRegistrar', function() {
 			function(done) { advanceTime(days(26) + 1, done); },
 			// Reveal the bid
 			function(done) {
-				registrar.unsealBid(web3.sha3('releasename'), bid.account, bid.value, bid.salt, {from: bid.account}, function(err, txid) {
+				registrar.unsealBid(web3.sha3('releasename'), bid.value, bid.salt, {from: bid.account}, function(err, txid) {
 					assert.equal(err, null, err);
 					done();
 				});
@@ -588,13 +588,13 @@ describe('SimpleHashRegistrar', function() {
 	it("allows releasing a deed immediately when no longer the registrar", function(done) {
 		var sealedBid = null;
 		registrar.startAuctionAsync(web3.sha3('name'), {from: accounts[0]})
-			.then((done) => registrar.shaBidAsync(web3.sha3('name'), accounts[0], 1e18, 1))
+			.then((done) => registrar.shaBidAsync(web3.sha3('name'), 1e18, 1))
 			.then((result) => {
 				sealedBid = result;
 				return registrar.newBidAsync(result, {from: accounts[0], value: 1e18});
 			})
 			.then((done) => advanceTimeAsync(days(26) + 1))
-			.then((done) => registrar.unsealBidAsync(web3.sha3('name'), accounts[0], 1e18, 1, {from: accounts[0]}))
+			.then((done) => registrar.unsealBidAsync(web3.sha3('name'), 1e18, 1, {from: accounts[0]}))
 			.then((done) => advanceTimeAsync(days(2) + 1))
 			.then((done) => registrar.finalizeAuctionAsync(web3.sha3('name'), {from: accounts[0]}))
 			.then((done) => ens.setSubnodeOwnerAsync(0, web3.sha3('eth'), accounts[0], {from: accounts[0]}))
@@ -604,10 +604,10 @@ describe('SimpleHashRegistrar', function() {
 
 	it('rejects bids less than the minimum', function(done) {
 		registrar.startAuctionAsync(web3.sha3('name'), {from: accounts[0]})
-			.then((done) => registrar.shaBidAsync(web3.sha3('name'), accounts[0], 1e15 - 1, 1))
+			.then((done) => registrar.shaBidAsync(web3.sha3('name'), 1e15 - 1, 1))
 			.then((result) => registrar.newBidAsync(result, {from: accounts[0], value: 1e18}))
 			.then((done) => advanceTimeAsync(days(26) + 1))
-			.then((done) => registrar.unsealBidAsync(web3.sha3('name'), accounts[0], 1e15 - 1, 1, {from: accounts[0]}))
+			.then((done) => registrar.unsealBidAsync(web3.sha3('name'), 1e15 - 1, 1, {from: accounts[0]}))
 			.then((done) => registrar.entriesAsync(web3.sha3('name')))
 			.then((result) => assert.equal(result[4], 0)) // highestBid == 0
 			.asCallback(done);
@@ -619,13 +619,13 @@ describe('SimpleHashRegistrar', function() {
 			.then((done) => registrar.finalizeAuctionAsync(web3.sha3('name'), {from: accounts[0]}))
 			.then((done) => assert.fail("Expected exception"), (err) => assert.ok(err, err))
 
-			.then((done) => registrar.shaBidAsync(web3.sha3('name'), accounts[0], 1e18, 1))
+			.then((done) => registrar.shaBidAsync(web3.sha3('name'), 1e18, 1))
 			.then((result) => {
 				sealedBid = result;
 				return registrar.newBidAsync(result, {from: accounts[0], value: 1e18});
 			})
 			.then((done) => advanceTimeAsync(days(26) + 1))
-			.then((done) => registrar.unsealBidAsync(web3.sha3('name'), accounts[0], 1e18, 1, {from: accounts[0]}))
+			.then((done) => registrar.unsealBidAsync(web3.sha3('name'), 1e18, 1, {from: accounts[0]}))
 
 			.then((done) => registrar.finalizeAuctionAsync(web3.sha3('name'), {from: accounts[0]}))
 			.then((done) => assert.fail("Expected exception"), (err) => assert.ok(err, err))
@@ -642,13 +642,13 @@ describe('SimpleHashRegistrar', function() {
 	it("allows finalizing an auction even when no longer the registrar", function(done) {
 		var sealedBid = null;
 		registrar.startAuctionAsync(web3.sha3('name'), {from: accounts[0]})
-			.then((done) => registrar.shaBidAsync(web3.sha3('name'), accounts[0], 1e18, 1))
+			.then((done) => registrar.shaBidAsync(web3.sha3('name'), 1e18, 1))
 			.then((result) => {
 				sealedBid = result;
 				return registrar.newBidAsync(result, {from: accounts[0], value: 1e18});
 			})
 			.then((done) => advanceTimeAsync(days(26) + 1))
-			.then((done) => registrar.unsealBidAsync(web3.sha3('name'), accounts[0], 1e18, 1, {from: accounts[0]}))
+			.then((done) => registrar.unsealBidAsync(web3.sha3('name'), 1e18, 1, {from: accounts[0]}))
 			.then((done) => advanceTimeAsync(days(2) + 1))
 			.then((done) => ens.setSubnodeOwnerAsync(0, web3.sha3('eth'), accounts[0], {from: accounts[0]}))
 			.then((done) => registrar.finalizeAuctionAsync(web3.sha3('name'), {from: accounts[0]}))
@@ -657,31 +657,31 @@ describe('SimpleHashRegistrar', function() {
 
 	it("doesn't allow revealing a bid on a name not up for auction", function(done) {
 		var sealedBid = null;
-		registrar.shaBidAsync(web3.sha3('name'), accounts[0], 1e18, 1)
+		registrar.shaBidAsync(web3.sha3('name'), 1e18, 1)
 			.then((result) => {
 				sealedBid = result;
 				return registrar.newBidAsync(result, {from: accounts[0], value: 1e18});
 			})
-			.then((done) => registrar.unsealBidAsync(web3.sha3('name'), accounts[0], 1e18, 1, {from: accounts[0]}))
+			.then((done) => registrar.unsealBidAsync(web3.sha3('name'), 1e18, 1, {from: accounts[0]}))
 			.then((done) => assert.fail("Expected exception"), (err) => assert.ok(err, err))
 			// Check reveal works after starting the auction
 			.then((done) => advanceTimeAsync(days(1)))
 			.then((done) => registrar.startAuctionAsync(web3.sha3('name'), {from: accounts[0]}))
 			.then((done) => advanceTimeAsync(days(25) + 1))
-			.then((done) => registrar.unsealBidAsync(web3.sha3('name'), accounts[0], 1e18, 1, {from: accounts[0]}))
+			.then((done) => registrar.unsealBidAsync(web3.sha3('name'), 1e18, 1, {from: accounts[0]}))
 			.asCallback(done);
 	});
 
 	it("doesn't invalidate long names", function(done) {
 		var sealedBid = null;
 		registrar.startAuctionAsync(web3.sha3('longname'), {from: accounts[0]})
-			.then((done) => registrar.shaBidAsync(web3.sha3('longname'), accounts[0], 1e18, 1))
+			.then((done) => registrar.shaBidAsync(web3.sha3('longname'), 1e18, 1))
 			.then((result) => {
 				sealedBid = result;
 				return registrar.newBidAsync(result, {from: accounts[0], value: 1e18});
 			})
 			.then((done) => advanceTimeAsync(days(26) + 1))
-			.then((done) => registrar.unsealBidAsync(web3.sha3('longname'), accounts[0], 1e18, 1, {from: accounts[0]}))
+			.then((done) => registrar.unsealBidAsync(web3.sha3('longname'), 1e18, 1, {from: accounts[0]}))
 			.then((done) => advanceTimeAsync(days(2) + 1))
 			.then((done) => registrar.finalizeAuctionAsync(web3.sha3('longname'), {from: accounts[0]}))
 			.then((done) => registrar.invalidateNameAsync('longname', {from: accounts[0]}))
@@ -692,13 +692,13 @@ describe('SimpleHashRegistrar', function() {
 	it("allows invalidation even when no longer the registrar", function(done) {
 		var sealedBid = null;
 		registrar.startAuctionAsync(web3.sha3('name'), {from: accounts[0]})
-			.then((done) => registrar.shaBidAsync(web3.sha3('name'), accounts[0], 1e18, 1))
+			.then((done) => registrar.shaBidAsync(web3.sha3('name'), 1e18, 1))
 			.then((result) => {
 				sealedBid = result;
 				return registrar.newBidAsync(result, {from: accounts[0], value: 1e18});
 			})
 			.then((done) => advanceTimeAsync(days(26) + 1))
-			.then((done) => registrar.unsealBidAsync(web3.sha3('name'), accounts[0], 1e18, 1, {from: accounts[0]}))
+			.then((done) => registrar.unsealBidAsync(web3.sha3('name'), 1e18, 1, {from: accounts[0]}))
 			.then((done) => advanceTimeAsync(days(2) + 1))
 			.then((done) => registrar.finalizeAuctionAsync(web3.sha3('name'), {from: accounts[0]}))
 			.then((done) => ens.setSubnodeOwnerAsync(0, web3.sha3('eth'), accounts[0], {from: accounts[0]}))
@@ -715,7 +715,7 @@ describe('SimpleHashRegistrar', function() {
 			},
 			// Place a bid on it
 			function(done) {
-				registrar.shaBid(web3.sha3('name'), accounts[0], 1e18, 1, function(err, result) {
+				registrar.shaBid(web3.sha3('name'), 1e18, 1, function(err, result) {
 					assert.equal(err, null, err);
 					registrar.newBid(result, {from: accounts[0], value: 1e18}, function(Err, txid) {
 						assert.equal(err, null, err);
@@ -727,7 +727,7 @@ describe('SimpleHashRegistrar', function() {
 			function(done) { advanceTime(days(26) + 1, done); },
 			// Reveal the bid
 			function(done) {
-				registrar.unsealBid(web3.sha3('name'), accounts[0], 1e18, 1, {from: accounts[0]}, function(err, txid) {
+				registrar.unsealBid(web3.sha3('name'), 1e18, 1, {from: accounts[0]}, function(err, txid) {
 					assert.equal(err, null, err);
 					registrar.entries(web3.sha3('name'), function(err, result) {
 						assert.equal(err, null, err);
@@ -764,7 +764,7 @@ describe('SimpleHashRegistrar', function() {
 			},
 			// Place some bids
 			function(done) {
-				registrar.shaBid(web3.sha3('name'), accounts[0], 2e18, 1, function(err, result) {
+				registrar.shaBid(web3.sha3('name'), 2e18, 1, function(err, result) {
 					assert.equal(err, null, err);
 					registrar.newBid(result, {from: accounts[0], value: 1e18}, function(Err, txid) {
 						assert.equal(err, null, err);
@@ -773,7 +773,7 @@ describe('SimpleHashRegistrar', function() {
 				});
 			},
 			function(done) {
-				registrar.shaBid(web3.sha3('name'), accounts[1], 4e18, 1, function(err, result) {
+				registrar.shaBid(web3.sha3('name'), 4e18, 1, function(err, result) {
 					assert.equal(err, null, err);
 					registrar.newBid(result, {from: accounts[1], value: 3e18}, function(Err, txid) {
 						assert.equal(err, null, err);
@@ -785,7 +785,7 @@ describe('SimpleHashRegistrar', function() {
 			function(done) { advanceTime(days(26) + 1, done); },
 			// Reveal the bids and check they're processed correctly.
 			function(done) {
-				registrar.unsealBid(web3.sha3('name'), accounts[0], 2e18, 1, {from: accounts[0]}, function(err, txid) {
+				registrar.unsealBid(web3.sha3('name'), 2e18, 1, {from: accounts[0]}, function(err, txid) {
 					assert.equal(err, null, err);
 					registrar.entries(web3.sha3('name'), function(err, result) {
 						assert.equal(err, null, err);
@@ -797,7 +797,7 @@ describe('SimpleHashRegistrar', function() {
 				});
 			},
 			function(done) {
-				registrar.unsealBid(web3.sha3('name'), accounts[1], 4e18, 1, {from: accounts[1]}, function(err, txid) {
+				registrar.unsealBid(web3.sha3('name'), 4e18, 1, {from: accounts[1]}, function(err, txid) {
 					assert.equal(err, null, err);
 					registrar.entries(web3.sha3('name'), function(err, result) {
 						assert.equal(err, null, err);
@@ -823,7 +823,7 @@ describe('SimpleHashRegistrar', function() {
 			// Start some auctions
 			.then((result) => registrar.startAuctionsAsync([web3.sha3('name'), web3.sha3('longname'), web3.sha3('thirdname')], {from: accounts[0]}))
 			// Bid on 'name'
-			.then((result) => registrar.shaBidAsync(web3.sha3('name'), throwingBidder.address, bid.value, bid.salt))
+			.then((result) => registrar.shaBidAsync(web3.sha3('name'), bid.value, bid.salt))
 			.then((sealedBid) => {
 				bid.sealedBid = sealedBid;
 				return registrar.newBidAsync(sealedBid, {from: bid.account, value: bid.deposit});
@@ -831,7 +831,7 @@ describe('SimpleHashRegistrar', function() {
 			// Advance time to the reveal period
 			.then((result) => advanceTimeAsync(days(26) + 1))
 			// Reveal the bid
-			.then((result) => registrar.unsealBidAsync(web3.sha3('name'), throwingBidder.address, bid.value, bid.salt, {from: bid.account}))
+			.then((result) => registrar.unsealBidAsync(web3.sha3('name'), bid.value, bid.salt, {from: bid.account}))
 			// Advance to the end of the auction
 			.then((result) => advanceTimeAsync(daysInSec(2)))
 			// Invalidate the name
@@ -876,7 +876,7 @@ describe('SimpleHashRegistrar', function() {
 			},
 			// Place each of the bids
 			function(done) {
-				registrar.shaBid(web3.sha3('name'), accounts[0], 1e18, 1, function(err, result) {
+				registrar.shaBid(web3.sha3('name'), 1e18, 1, function(err, result) {
 					var sealedBid = result;
 					assert.equal(err, null, err);
 					registrar.newBid(sealedBid, {from: accounts[0], value: 2e18}, function(err, txid) {
@@ -889,7 +889,7 @@ describe('SimpleHashRegistrar', function() {
 			function(done) { advanceTime(days(26) + 1, done); },
 			// Reveal the bid
 			function(done) {
-				registrar.unsealBid(web3.sha3('name'), accounts[0], 1e18, 1, {from: accounts[0]}, function(err, txid) {
+				registrar.unsealBid(web3.sha3('name'), 1e18, 1, {from: accounts[0]}, function(err, txid) {
 					assert.equal(err, null, err);
 					done();
 				});
@@ -974,7 +974,7 @@ describe('SimpleHashRegistrar', function() {
 			},
 			// Place each of the bids
 			function(done) {
-				registrar.shaBid(web3.sha3('name'), accounts[0], 1e18, 1, function(err, result) {
+				registrar.shaBid(web3.sha3('name'), 1e18, 1, function(err, result) {
 					var sealedBid = result;
 					assert.equal(err, null, err);
 					registrar.newBid(sealedBid, {from: accounts[0], value: 2e18}, function(err, txid) {
@@ -987,7 +987,7 @@ describe('SimpleHashRegistrar', function() {
 			function(done) { advanceTime(days(26) + 1, done); },
 			// Reveal the bid
 			function(done) {
-				registrar.unsealBid(web3.sha3('name'), accounts[0], 1e18, 1, {from: accounts[0]}, function(err, txid) {
+				registrar.unsealBid(web3.sha3('name'), 1e18, 1, {from: accounts[0]}, function(err, txid) {
 					assert.equal(err, null, err);
 					done();
 				});
@@ -1068,7 +1068,7 @@ describe('SimpleHashRegistrar', function() {
 			},
 			// Place the underfunded bid
 			function(done) {
-				registrar.shaBid(web3.sha3('longname'), bid.account, bid.value, bid.salt, function(err, result) {
+				registrar.shaBid(web3.sha3('longname'), bid.value, bid.salt, function(err, result) {
 					bid.sealedBid = result;
 					assert.equal(err, null, err);
 					registrar.newBid(bid.sealedBid, {from: bid.account, value: bid.deposit}, function(err, txid) {
@@ -1079,7 +1079,7 @@ describe('SimpleHashRegistrar', function() {
 			},
 			// Place the normal bid
 			function(done) {
-				registrar.shaBid(web3.sha3('longname'), bidWinner.account, bidWinner.value, bidWinner.salt, function(err, result) {
+				registrar.shaBid(web3.sha3('longname'), bidWinner.value, bidWinner.salt, function(err, result) {
 					bidWinner.sealedBid = result;
 					assert.equal(err, null, err);
 					registrar.newBid(bidWinner.sealedBid, {from: bidWinner.account, value: bidWinner.deposit}, function(err, txid) {
@@ -1092,7 +1092,7 @@ describe('SimpleHashRegistrar', function() {
 			function(done) { advanceTime(days(26) + 1, done); },
 			// Reveal the normal bid
 			function(done) {
-				registrar.unsealBid(web3.sha3('longname'), bidWinner.account, bidWinner.value, bidWinner.salt, {from: bidWinner.account}, function(err, txid) {
+				registrar.unsealBid(web3.sha3('longname'), bidWinner.value, bidWinner.salt, {from: bidWinner.account}, function(err, txid) {
 					assert.equal(err, null, err);
 					done();
 				});
@@ -1125,7 +1125,7 @@ describe('SimpleHashRegistrar', function() {
 			},
 			// Reveal the underfunded bid
 			function(done) {
-				registrar.unsealBid(web3.sha3('longname'), bid.account, bid.value, bid.salt, {from: bid.account}, function(err, txid) {
+				registrar.unsealBid(web3.sha3('longname'), bid.value, bid.salt, {from: bid.account}, function(err, txid) {
 					assert.equal(err, null, err);
 					done();
 				});
@@ -1184,7 +1184,7 @@ describe('SimpleHashRegistrar', function() {
 			function(done) { advanceTime(days(26) + 1, done); },
 			// Place the bid
 			function(done) {
-				registrar.shaBid(web3.sha3('longname'), bid.account, bid.value, bid.salt, function(err, result) {
+				registrar.shaBid(web3.sha3('longname'), bid.value, bid.salt, function(err, result) {
 					bid.sealedBid = result;
 					assert.equal(err, null, err);
 					registrar.newBid(bid.sealedBid, {from: bid.account, value: bid.deposit}, function(err, txid) {
@@ -1195,7 +1195,7 @@ describe('SimpleHashRegistrar', function() {
 			},
 			// Reveal the bid
 			function(done) {
-				registrar.unsealBid(web3.sha3('longname'), bid.account, bid.value, bid.salt, {from: bid.account}, function(err, txid) {
+				registrar.unsealBid(web3.sha3('longname'), bid.value, bid.salt, {from: bid.account}, function(err, txid) {
 					assert.equal(err, null, err);
 					done();
 				});
@@ -1228,7 +1228,7 @@ describe('SimpleHashRegistrar', function() {
 			},
 			// Place each of the bids
 			function(done) {
-				registrar.shaBid(web3.sha3('name'), accounts[0], bid.value, 1, function(err, result) {
+				registrar.shaBid(web3.sha3('name'), bid.value, 1, function(err, result) {
 					var sealedBid = result;
 					assert.equal(err, null, err);
 					registrar.newBid(sealedBid, {from: accounts[0], value: bid.deposit}, function(err, txid) {
@@ -1259,7 +1259,7 @@ describe('SimpleHashRegistrar', function() {
 			function(done) { advanceTime(days(26) + 1, done); },
 			// Reveal the bid
 			function(done) {
-				registrar.unsealBid(web3.sha3('name'), accounts[0], bid.value, 1, {from: accounts[0]}, function(err, txid) {
+				registrar.unsealBid(web3.sha3('name'), bid.value, 1, {from: accounts[0]}, function(err, txid) {
 					assert.equal(err, null, err);
 					done();
 				});
