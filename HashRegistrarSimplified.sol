@@ -105,7 +105,7 @@ contract Registrar {
     enum Mode { Open, Auction, Owned, Forbidden, Reveal }
     uint32 constant auctionLength = 5 days;
     uint32 constant revealPeriod = 48 hours;
-    uint32 constant initialAuctionPeriod = 4 weeks;
+    uint32 constant initialAuctionPeriod = 2 weeks;
     uint constant minPrice = 0.01 ether;
     uint public registryStarted;
 
@@ -141,7 +141,7 @@ contract Registrar {
         } else {
             if(entry.highestBid == 0) {
                 return Mode.Open;
-            } else if(entry.deed == Deed(0)) {
+            } else if(minLength(now) == 6 && entry.deed == Deed(0)) {
                 return Mode.Forbidden;
             } else {
                 return Mode.Owned;
@@ -440,6 +440,15 @@ contract Registrar {
     }  
 
     /**
+     * @dev Minimum length starts at 12 weeks reducing 1 letter every 4 weeks until min of 6
+     * @param timestamp The time for which you want to know the date.
+     */
+
+    function minLength(uint timestamp) constant returns (uint minLength) {
+        return uint minLength = max(6, 12 - (timestamp - registryStarted)/(4 weeks));
+    }
+
+    /**
      * @dev Submit a name 6 characters long or less. If it has been registered, 
      * the submitter will earn 50% of the deed value. We are purposefully
      * handicapping the simplified registrar as a way to force it into being restructured
@@ -448,7 +457,7 @@ contract Registrar {
      * 
      */
     function invalidateName(string unhashedName) inState(sha3(unhashedName), Mode.Owned) {
-        if (strlen(unhashedName) > 6 ) throw;
+        if (strlen(unhashedName) > minLength(now) ) throw;
         bytes32 hash = sha3(unhashedName);
         
         entry h = _entries[hash];
