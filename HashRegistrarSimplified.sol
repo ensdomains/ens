@@ -91,13 +91,68 @@ contract Deed {
     }
 }
 
+contract RegistrarBackend {
+    AbstractENS public ens;
+    bytes32 public rootNode;
+    mapping(address=>bool) public registrars;
+
+    modifier authorized {
+        if(!registrars[msg.sender]) throw;
+        _;
+    }
+
+    function addRegistrar(address registrar) authorized {
+        registrars[registrar] = true;
+    }
+
+    function removeRegistrar(address registrar) authorized {
+        // Cannot remove oneself
+        if(registrar == msg.sender) throw;
+        registrars[registrar] = false;
+    }
+
+    function RegistrarBackend(AbstractENS _ens, bytes32 _rootNode) {
+        ens = _ens;
+        rootNode = _rootNode;
+        registrars[msg.sender] = true;
+    }
+
+    function setOwner(bytes32 label, address owner) authorized {
+        ens.setSubnodeOwner(rootNode, label, owner);
+    }
+
+    function clearRecord(bytes32 label) authorized {
+        ens.setSubnodeOwner(rootNode, label, this);
+        var node = sha3(rootNode, label);
+        ens.setResolver(node, 0);
+        ens.setOwner(node, 0);
+    }
+
+    function clearRecords(bytes32[] labels) authorized {
+        _clearRecordHierarchy(0, labels, rootNode);
+    }
+
+    function _clearRecordHierarchy(uint idx, bytes32[] labels, bytes32 node) internal {
+        // Take ownership of the node
+        ens.setSubnodeOwner(node, labels[idx], address(this));
+        node = sha3(node, labels[idx]);
+        
+        // Recurse if there's more labels
+        if(idx > 0)
+            _clearRecordHierarchy(idx - 1, labels, node);
+
+        // Erase the resolver and owner records
+        ens.setResolver(node, 0);
+        ens.setOwner(node, 0);
+     }
+}
+
 /**
  * @title Registrar
  * @dev The registrar handles the auction process for each subnode of the node it owns.
  */
 contract Registrar {
-    AbstractENS public ens;
-    bytes32 public rootNode;
+    RegistrarBackend backend;
 
     mapping (bytes32 => entry) _entries;
     mapping (address => mapping(bytes32 => Deed)) public sealedBids;
@@ -160,7 +215,7 @@ contract Registrar {
     }
     
     modifier registryOpen() {
-        if(now < registryStarted  || now > registryStarted + 4 years || ens.owner(rootNode) != address(this)) throw;
+        if(now < registryStarted  || now > registryStarted + 4 years || !backend.registrars(this)) throw;
         _;
     }
     
@@ -171,12 +226,11 @@ contract Registrar {
     
     /**
      * @dev Constructs a new Registrar, with the provided address as the owner of the root node.
-     * @param _ens The address of the ENS
-     * @param _rootNode The hash of the rootnode.
+     * @param _backend The backend for this registrar
+     * @param _startDate The date to start registrations at
      */
-    function Registrar(AbstractENS _ens, bytes32 _rootNode, uint _startDate) {
-        ens = _ens;
-        rootNode = _rootNode;
+    function Registrar(RegistrarBackend _backend, uint _startDate) {
+        backend = _backend;
         registryStarted = _startDate > 0 ? _startDate : now;
     }
 
@@ -399,9 +453,8 @@ contract Registrar {
 
         h.value =  max(h.value, minPrice);
 
-        // Assign the owner in ENS, if we're still the registrar
-        if(ens.owner(rootNode) == address(this))
-            ens.setSubnodeOwner(rootNode, _hash, h.deed.owner());
+        // Assign the owner in ENS
+        backend.setOwner(_hash, h.deed.owner());
 
         h.deed.setBalance(h.value, true);
         HashRegistered(_hash, h.deed.owner(), h.value, h.registrationDate);
@@ -415,18 +468,18 @@ contract Registrar {
     function transfer(bytes32 _hash, address newOwner) onlyOwner(_hash) {
         entry h = _entries[_hash];
         h.deed.setOwner(newOwner);
-        ens.setSubnodeOwner(rootNode, _hash, newOwner);
+        backend.setOwner(_hash, newOwner);
     }
 
     /**
-     * @dev After some time, or if we're no longer the registrar, the owner can release
+     * @dev After some time, or if we're no longer a registrar, the owner can release
      *      the name and get their ether back.
      * @param _hash The node to release
      */
     function releaseDeed(bytes32 _hash) onlyOwner(_hash) {
         entry h = _entries[_hash];
         Deed deedContract = h.deed;
-        if(now < h.registrationDate + 1 years && ens.owner(rootNode) == address(this)) throw;
+        if(now < h.registrationDate + 1 years && backend.registrars(this)) throw;
 
         HashReleased(_hash, h.value);
         
@@ -434,8 +487,8 @@ contract Registrar {
         h.highestBid = 0;
         h.deed = Deed(0);
 
-        if(ens.owner(rootNode) == address(this))
-            ens.setSubnodeOwner(rootNode, _hash, 0);
+        if(backend.registrars(this))
+            backend.clearRecord(_hash);
         deedContract.closeDeed(1000);
     }  
 
@@ -453,8 +506,8 @@ contract Registrar {
         
         entry h = _entries[hash];
 
-        if(ens.owner(rootNode) == address(this))
-            ens.setSubnodeOwner(rootNode, hash, 0);
+        if(backend.registrars(this))
+            backend.clearRecord(hash);
 
         if(address(h.deed) != 0) {
             // Reward the discoverer with 50% of the deed
@@ -473,10 +526,8 @@ contract Registrar {
      * Used during the upgrade process to a permanent registrar.
      * @param _hash The name hash to transfer.
      */
-    function transferRegistrars(bytes32 _hash) onlyOwner(_hash) {
-        var registrar = ens.owner(rootNode);
-        if(registrar == address(this))
-            throw;
+    function transferRegistrars(Registrar registrar, bytes32 _hash) onlyOwner(_hash) {
+        if(!backend.registrars(registrar) || registrar == this) throw;
 
         // Migrate the deed
         entry h = _entries[_hash];
