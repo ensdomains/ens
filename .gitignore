@@ -2,3 +2,10 @@ node_modules
 _build
 _static
 _templates
+
+.DS_Store
+
+# Compiled contract ABIs and binaries
+build/contracts/*
+# Keep the ENS lll artifact
+!build/contracts/ENS.lll.json

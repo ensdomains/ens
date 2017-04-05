@@ -28,7 +28,7 @@ describe('ReverseRegistrar', function() {
 
     before(function() {
         this.timeout(10000);
-        registrarCode = utils.compileContract(['interface.sol', 'ReverseRegistrar.sol']).contracts['ReverseRegistrar.sol:ReverseRegistrar'];
+        registrarCode = utils.compileContract(['AbstractENS.sol', 'ReverseRegistrar.sol']).contracts['ReverseRegistrar.sol:ReverseRegistrar'];
     });
 
     beforeEach(function() {
