@@ -17,7 +17,7 @@ describe('ENS.sol', function() {
 	ensTests('ENS.sol', utils.deployENS);
 });
 
-describe.skip('ENS.lll', function() {
+describe('ENS.lll', function() {
 	ensTests('ENS.lll', utils.deployENSLLL);
 });
 

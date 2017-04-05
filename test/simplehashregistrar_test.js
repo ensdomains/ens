@@ -1110,17 +1110,18 @@ describe('SimpleHashRegistrar', function() {
 					     	data: "0x6060604052604051602080607b833981016040528080519060200190919050505b8073ffffffffffffffffffffffffffffffffffffffff16ff5b505b60338060486000396000f30060606040525bfe00a165627a7a72305820d4d9412759c88c41f1dd38f8ae34c9c2fa9d5c9fa90eadb1b343a98155e74bb50029",
 					     	gas: 4700000,
 					     	value: 2e18,
-					   	}, function(err, contract) {
-					   	    assert.equal(err, null, err);
-					   	    if(contract.address != undefined) {
-					   	    	// Check the balance was topped up.
-								web3.eth.getBalance(deedAddress, function(err, balance) {
-									assert.equal(err, null, err);
-									assert.equal(balance, 3000000000000000000);
-									done();
-								});
-						   	}
-					   });
+					   	},
+							function(err, contract) {
+								assert.equal(err, null, err);
+								if(contract.address != undefined) {
+									// Check the balance was topped up.
+									web3.eth.getBalance(deedAddress, function(err, balance) {
+										assert.equal(err, null, err);
+										assert.equal(balance, 3000000000000000000);
+										done();
+									});
+								}
+					   	});
 				});
 			},
 			// Reveal the underfunded bid

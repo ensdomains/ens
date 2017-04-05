@@ -3,11 +3,13 @@ var async = require('async');
 var fs = require('fs');
 var Promise = require('bluebird');
 var solc = require('solc');
-var TestRPC = require('ethereumjs-testrpc');
 var Web3 = require('web3');
+var namehash = require('eth-ens-namehash');
 
+var TestRPC = require('ethereumjs-testrpc');
 var web3 = new Web3();
 web3.setProvider(TestRPC.provider());
+
 
 var ensCode = null;
 var ensLLLCode = null;
@@ -29,7 +31,7 @@ function compileContract(filenames, sourceRoot) {
 }
 
 module.exports = {
-	node: web3.sha3("0x0000000000000000000000000000000000000000000000000000000000000000" + web3.sha3('eth').slice(2), {encoding: 'hex'}),
+	node: namehash('eth'),
 	compileContract: compileContract,
 	deployENS: function (account, done) {
 		if(ensCode == null)
@@ -50,22 +52,28 @@ module.exports = {
 	},
 	deployENSLLL: function(account, done) {
 		if(ensLLLCode == null) {
+			var lllArtifactPath = './build/contracts/ENS.lll.json';
+			var ensLLLArtifact = JSON.parse(fs.readFileSync(lllArtifactPath).toString());
+
 			ensLLLCode = {
-				bytecode: fs.readFileSync('./contracts/ENS.lll.bin').toString().trim(),
-				interface: fs.readFileSync('abi/AbstractENS.abi').toString()
+				bytecode: ensLLLArtifact.unlinked_binary,
+				interface: ensLLLArtifact.abi
 			}
 		}
-		return web3.eth.contract(JSON.parse(ensLLLCode.interface)).new(
-		{
-			from: account,
-			data: ensLLLCode.bytecode,
-			gas: 4700000
-		}, function(err, contract) {
-			assert.equal(err, null, err);
-			if(contract.address != undefined) {
-				done();
-			}
-		});
+
+		return web3.eth.contract(ensLLLCode.interface)
+			.new(
+				{
+					from: account,
+					data: ensLLLCode.bytecode,
+					gas: 4700000
+				},
+				function(err, contract) {
+					assert.equal(err, null, err);
+					if(contract.address != undefined) {
+						done();
+					}
+				});
 	},
 	web3: web3,
 	promisifyContractFactory: function(contractFactory) {
