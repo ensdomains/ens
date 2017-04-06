@@ -101,7 +101,7 @@ contract Registrar {
     mapping (bytes32 => entry) _entries;
     mapping (address => mapping(bytes32 => Deed)) public sealedBids;
     
-    enum Mode { Open, Auction, Owned, Forbidden, Reveal }
+    enum Mode { Open, Auction, Owned, Forbidden, Reveal, Unavailable }
     uint32 constant auctionLength = 5 days;
     uint32 constant revealPeriod = 48 hours;
     uint32 constant launchLength = 13 weeks;
@@ -131,8 +131,11 @@ contract Registrar {
     //   Owned -> Open (releaseDeed)
     function state(bytes32 _hash) constant returns (Mode) {
         var entry = _entries[_hash];
-        if(now < entry.registrationDate) {
-            if(now < entry.registrationDate - revealPeriod) {
+        
+        if(!isAllowed(_hash, now)) {
+            return Mode.Unavailable;
+        } else if(now < entry.registrationDate) {
+            if (now < entry.registrationDate - revealPeriod) {
                 return Mode.Auction;
             } else {
                 return Mode.Reveal;
@@ -267,7 +270,7 @@ contract Registrar {
      * @param _hash The hash to start an auction on
      */
     function getAllowedTime(bytes32 _hash) constant returns (uint timestamp) {
-        return registryStarted + (2**64*launchLength*uint(bytes8(_hash))/2**64)/2**64;
+        return registryStarted + launchLength*(uint(_hash)/2**128)/2**128;
     }
     /**
      * @dev Start an auction for an available hash
