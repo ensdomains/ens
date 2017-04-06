@@ -21,7 +21,7 @@ describe('PublicResolver', function() {
 
 	before(function() {
 		this.timeout(10000);
-		resolverCode = utils.compileContract(['interface.sol', 'PublicResolver.sol']).contracts['PublicResolver.sol:PublicResolver'];
+		resolverCode = utils.compileContract(['AbstractENS.sol', 'PublicResolver.sol']).contracts['PublicResolver.sol:PublicResolver'];
 	});
 
 	beforeEach(function() {

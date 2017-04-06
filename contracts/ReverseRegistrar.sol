@@ -1,11 +1,11 @@
 pragma solidity ^0.4.0;
 
-import 'interface.sol';
+import './AbstractENS.sol';
 
 contract ReverseRegistrar {
     AbstractENS public ens;
     bytes32 public rootNode;
-    
+
     /**
      * @dev Constructor
      * @param ensAddr The address of the ENS registry.
