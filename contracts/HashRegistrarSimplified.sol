@@ -244,30 +244,21 @@ contract Registrar {
     }
     
     /** 
-     * @dev Creates a scheduled release for each name
+     * @dev Determines if a name is available for registration yet
      * 
      * Each name will be assigned a random date in which its auction 
-     * can be started, from 0 to 6 months
+     * can be started, from 0 to 13 weeks
      * 
      * @param _hash The hash to start an auction on
      * @param _timestamp The timestamp to query about
      */
      
     function isAllowed(bytes32 _hash, uint _timestamp) constant returns (bool allowed){
-        uint upperLimit;
-        upperLimit--;       // Underflows to set it to 0xFFF...
-        uint timeSpan = _timestamp - registryStarted;
-        uint limit = timeSpan < launchLength ? 
-            timeSpan * (upperLimit / launchLength)
-            : upperLimit;
-        
-        return uint(_hash) < limit;
+        return _timestamp > getAllowedTime(_hash);
     }
 
     /** 
-     * @dev Returns expected launch date for hash
-     * 
-     * Returns the minimum date for opening the auction
+     * @dev Returns available date for hash
      * 
      * @param _hash The hash to start an auction on
      */
@@ -288,8 +279,8 @@ contract Registrar {
     function startAuction(bytes32 _hash) registryOpen() {
         var mode = state(_hash);
         if(mode == Mode.Auction) return;
-        if(mode != Mode.Open || !isAllowed(_hash, now)) throw;
-        
+        if(mode != Mode.Open) throw;
+
         entry newAuction = _entries[_hash];
 
         // for the first month of the registry, make longer auctions

@@ -93,7 +93,7 @@ describe('SimpleHashRegistrar', function() {
 			},		
 			function(done) { 
 				registrar.startAuction(web3.sha3('name'), {from: accounts[0]}, done);
-			},		
+			},
 			// Advance to the 2nd day
 			function(done) { advanceTime(days(2), done); },
 			// Starting the same auction again should have no effect
@@ -118,7 +118,7 @@ describe('SimpleHashRegistrar', function() {
 			// Advancing days only have an effect after a transaction
 			function(done) {
 				registrar.startAuction(web3.sha3('anothername'), {from: accounts[0]}, done);
-			},		
+			},
 			// Check later auctions end 5 days after they start
 			function(done) {
 				registrar.entries(web3.sha3('anothername'), function(err, result) {
@@ -128,20 +128,12 @@ describe('SimpleHashRegistrar', function() {
 					assert.ok(Math.abs(result[2].toNumber() - expectedEnd) < 5); // registrationDate
 					done();
 				});
-			},
-			function(done) {
-				registrar.entries(web3.sha3('name'), function(err, result) {
-					assert.equal(err, null, err);
-					// Asserts that auctions that go unbidded will become open again
-					assert.equal(Number(result[0]), 0); // status == Open
-					done();
-				});
 			}			
 		], done);
 	});
 
 	it('launch starts slow with scheduled availability', function(done) {
-		var launchLength = 7862400;
+		var launchLength = days(7 * 13);
 		var registryStarted = 0;
 		async.series([
 			function(done) { 
@@ -152,15 +144,14 @@ describe('SimpleHashRegistrar', function() {
 			},
 			function(done) { 
 				registrar.getAllowedTime('0x00', function(err, result){ 
-					// console.log('When is "0x00" allowed?\t', Number(result), Number(result)-registryStarted, (Number(result)-registryStarted)/launchLength);
 					// 0x00 should be available immediately
+					assert.equal(err, null, err);
 					assert.equal(Number(result) , registryStarted);
 					done();
 				});
 			},
 			function(done) { 
 				registrar.getAllowedTime('0x80', function(err, result){ 
-					// console.log('When is "0x80" allowed?\t', Number(result), Number(result)-registryStarted, (Number(result)-registryStarted)/launchLength); 
 					// 0x80 hash should be available at half the time
 					assert.equal(Number(result)-registryStarted , launchLength/2); 					
 					done();
@@ -168,6 +159,7 @@ describe('SimpleHashRegistrar', function() {
 			},
 			function(done) { 
 				registrar.getAllowedTime('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff', function(err, result){ 
+					assert.equal(err, null, err);
 					// Should be available at last second
 					assert.equal(Number(result)-registryStarted , launchLength-1); 					
 					done();
@@ -175,8 +167,8 @@ describe('SimpleHashRegistrar', function() {
 			},
 			function(done) { 
 				registrar.getAllowedTime(web3.sha3('ethereum'), function(err, result){ 
-					// console.log('When is "ethereum" allowed?\t', new Date(Number(result)*1000)); 
-					// 'Ethereum' should be available in 30 days
+					assert.equal(err, null, err);
+					// 'ethereum' should be available in 30 days
 					assert.equal(Math.round((Number(result)-registryStarted)/days(1)), 30);
 					done();
 				});
@@ -369,7 +361,6 @@ describe('SimpleHashRegistrar', function() {
 			function(done) {
 				registrar.entries(web3.sha3('name'), function(err, result) {
 					assert.equal(err, null, err);
-					// console.log('\n\n status', result);
 					// Should be status 1 (Auction)
 					assert.equal(result[0], 1);
 					done();
@@ -515,6 +506,7 @@ describe('SimpleHashRegistrar', function() {
 			{description: 'A regular bid 2', account: accounts[1], value: 1.1e18, deposit: 2.0e18, salt: 1, expectedFee: 0.005 },
 			{description: 'A regular bid 3', account: accounts[2], value: 1.1e18, deposit: 2.0e18, salt: 1, expectedFee: 0.005 },
 		];
+
 		async.series([
 			// moves past the soft launch dates
 			function(done) { 
@@ -572,30 +564,30 @@ describe('SimpleHashRegistrar', function() {
 					});
 				});
 			},
-			// Reveal the second bid
+			// Checks the bid exists
 			function(done) {
 				let bid = bidData[1];
-
 				registrar.sealedBids(bid.account, bid.sealedBid, function(err, result) {
-					// console.log('\t Bid #2', err, result);
-					// Checks the bid exists
 					assert.notEqual(result, '0x0000000000000000000000000000000000000000');
-					
-					registrar.unsealBid(web3.sha3('cancelname'), bid.value, bid.salt, {from: bid.account}, function(err, txid) {
-						assert.equal(err, null, err);
-						console.log('\t Bid #2 revealed');
-						
-						registrar.sealedBids(bid.account, bid.sealedBid, function(err, result) {
-							// Checks the bid doesn't exist anymore
-							assert.equal(result, '0x0000000000000000000000000000000000000000');
-							done();
-						});
-					});
-
-
+					done();
 				});
-
-				
+			},
+			// Reveal the second bid
+			function(done) {
+				let bid = bidData[1];				
+				registrar.unsealBid(web3.sha3('cancelname'), bid.value, bid.salt, {from: bid.account}, function(err, txid) {
+					assert.equal(err, null, err);
+					console.log('\t Bid #2 revealed');
+					done();
+				});
+			},
+			// Checks the bid doesn't exist anymore
+			function(done) {
+				let bid = bidData[1];				
+				registrar.sealedBids(bid.account, bid.sealedBid, function(err, result) {
+					assert.equal(result, '0x0000000000000000000000000000000000000000');
+					done();
+				});
 			},
 			// Attempt to cancel the second bid and fail
 			function(done) {
@@ -778,7 +770,6 @@ describe('SimpleHashRegistrar', function() {
 
 			// Release the deed
 			function(done) {
-				// console.log('balance', web3.fromWei(balance.toFixed(), 'ether'));
 				// web3.eth.getBalance(bid.account, function(err, initialBalance){
 					registrar.releaseDeed(web3.sha3('releasename'), {from: bidData[0].account}, function(
 						err, txid) {
@@ -908,7 +899,7 @@ describe('SimpleHashRegistrar', function() {
 			.then((done) => ens.setSubnodeOwnerAsync(0, web3.sha3('eth'), accounts[0], {from: accounts[0]}))
 			.then((done) => registrar.finalizeAuctionAsync(web3.sha3('name'), {from: accounts[0]}))
 			.asCallback(done);
-	})
+	});
 
 	it("doesn't allow revealing a bid on a name not up for auction", function(done) {
 		var sealedBid = null;
@@ -918,7 +909,7 @@ describe('SimpleHashRegistrar', function() {
 			.then((result) => {
 				sealedBid = result;
 				return registrar.newBidAsync(result, {from: accounts[0], value: 1e18});
-			})		
+			})
 			.then((done) => registrar.unsealBidAsync(web3.sha3('name'), 1e18, 1, {from: accounts[0]}))
 			.then((done) => assert.fail("Expected exception"), (err) => assert.ok(err, err))
 			// Check reveal works after starting the auction
