@@ -35,6 +35,7 @@ describe('SimpleHashRegistrar', function() {
 	var registrar = null;
 	var ens = null;
 	var throwingBidder = null;
+	var launchLength = days(7 * 13);
 
 	var dotEth = web3.sha3('0000000000000000000000000000000000000000000000000000000000000000' + web3.sha3('eth').slice(2), {encoding: 'hex'});
 	var nameDotEth = web3.sha3(dotEth + web3.sha3('name').slice(2), {encoding: 'hex'});
@@ -48,6 +49,7 @@ describe('SimpleHashRegistrar', function() {
 	});
 
 	beforeEach(function(done) {
+
 		this.timeout(5000);
 		async.series([
 			function(done) { ens = utils.deployENS(accounts[0], done); },
@@ -89,7 +91,7 @@ describe('SimpleHashRegistrar', function() {
 	it('starts auctions', function(done) {
 		async.series([
 			function(done) { 
-				advanceTime(days(100), done); 
+				advanceTime(launchLength, done); 
 			},		
 			function(done) { 
 				registrar.startAuction(web3.sha3('name'), {from: accounts[0]}, done);
@@ -106,7 +108,7 @@ describe('SimpleHashRegistrar', function() {
 					assert.equal(result[0], 1); // status == Auction
 					assert.equal(result[1], 0); // deed == 0x00
 					// Expected to end 5 days from start
-					var expectedEnd = new Date().getTime() / 1000 + days(105);
+					var expectedEnd = new Date().getTime() / 1000 + days(96);
 					assert.ok(Math.abs(result[2].toNumber() - expectedEnd) < 5); // registrationDate
 					assert.equal(result[3], 0); // value = 0
 					assert.equal(result[4], 0); // highestBid = 0
@@ -123,8 +125,8 @@ describe('SimpleHashRegistrar', function() {
 			function(done) {
 				registrar.entries(web3.sha3('anothername'), function(err, result) {
 					assert.equal(err, null, err);
-					// Expected to end 137 days from start (100 + 2 + 30 + 5)
-					var expectedEnd = new Date().getTime() / 1000 + days(137);
+					// Expected to end 128 days from start (91 + 2 + 30 + 5)
+					var expectedEnd = new Date().getTime() / 1000 + days(128);
 					assert.ok(Math.abs(result[2].toNumber() - expectedEnd) < 5); // registrationDate
 					done();
 				});
@@ -133,7 +135,6 @@ describe('SimpleHashRegistrar', function() {
 	});
 
 	it('launch starts slow with scheduled availability', function(done) {
-		var launchLength = days(7 * 13);
 		var registryStarted = 0;
 		async.series([
 			function(done) { 
@@ -280,7 +281,7 @@ describe('SimpleHashRegistrar', function() {
 		var bid = null;
 		async.series([
 			function(done) { 
-				advanceTime(days(90), done); 
+				advanceTime(launchLength, done); 
 			},
 			function(done) {
 				registrar.startAuction(web3.sha3('name'), {from: accounts[0]}, done);
@@ -343,7 +344,7 @@ describe('SimpleHashRegistrar', function() {
 		async.series([
 			// moves past the soft launch dates
 			function(done) { 
-				advanceTime(days(90), done); 
+				advanceTime(launchLength, done); 
 			},
 			// Save initial balances
 			function(done) {
@@ -510,7 +511,7 @@ describe('SimpleHashRegistrar', function() {
 		async.series([
 			// moves past the soft launch dates
 			function(done) { 
-				advanceTime(days(90), done); 
+				advanceTime(launchLength, done); 
 			},
 			// Start an auction for 'cancelname'
 			function(done) {
@@ -698,7 +699,7 @@ describe('SimpleHashRegistrar', function() {
 		async.series([
 			// moves past the soft launch dates
 			function(done) { 
-				advanceTime(days(90), done); 
+				advanceTime(launchLength, done); 
 			},
 			// Start an auction for 'releasename'
 			function(done) {
@@ -832,7 +833,7 @@ describe('SimpleHashRegistrar', function() {
 
 	it("allows releasing a deed immediately when no longer the registrar", function(done) {
 		var sealedBid = null;
-		advanceTimeAsync(days(91))
+		advanceTimeAsync(launchLength)
 			.then((done) => registrar.startAuctionAsync(web3.sha3('name'), {from: accounts[0]}))
 			.then((done) => registrar.shaBidAsync(web3.sha3('name'), 1e18, 1))
 			.then((result) => {
@@ -849,7 +850,7 @@ describe('SimpleHashRegistrar', function() {
 	});
 
 	it('rejects bids less than the minimum', function(done) {
-		advanceTimeAsync(days(91))
+		advanceTimeAsync(launchLength)
 			.then((done) => registrar.startAuctionAsync(web3.sha3('name'), {from: accounts[0]}))			.then((done) => registrar.shaBidAsync(web3.sha3('name'), 1e15 - 1, 1))
 			.then((result) => registrar.newBidAsync(result, {from: accounts[0], value: 1e18}))
 			.then((done) => advanceTimeAsync(days(3) + 1))
@@ -862,7 +863,7 @@ describe('SimpleHashRegistrar', function() {
 	it("doesn't allow finalizing an auction early", function(done) {
 		var sealedBid = null;
 
-		advanceTimeAsync(days(91))
+		advanceTimeAsync(launchLength)
 			.then((done) => registrar.startAuctionAsync(web3.sha3('name'), {from: accounts[0]}))			.then((done) => registrar.finalizeAuctionAsync(web3.sha3('name'), {from: accounts[0]}))
 			.then((done) => assert.fail("Expected exception"), (err) => assert.ok(err, err))
 
@@ -887,7 +888,7 @@ describe('SimpleHashRegistrar', function() {
 
 	it("allows finalizing an auction even when no longer the registrar", function(done) {
 		var sealedBid = null;
-		advanceTimeAsync(days(91))
+		advanceTimeAsync(launchLength)
 			.then((done) => registrar.startAuctionAsync(web3.sha3('name'), {from: accounts[0]}))			.then((done) => registrar.shaBidAsync(web3.sha3('name'), 1e18, 1))
 			.then((result) => {
 				sealedBid = result;
@@ -904,7 +905,7 @@ describe('SimpleHashRegistrar', function() {
 	it("doesn't allow revealing a bid on a name not up for auction", function(done) {
 		var sealedBid = null;
 
-		advanceTimeAsync(days(91))
+		advanceTimeAsync(launchLength)
 			.then((done) => registrar.shaBidAsync(web3.sha3('name'), 1e18, 1))
 			.then((result) => {
 				sealedBid = result;
@@ -922,7 +923,7 @@ describe('SimpleHashRegistrar', function() {
 
 	it("doesn't invalidate long names", function(done) {
 		var sealedBid = null;
-		advanceTimeAsync(days(91))
+		advanceTimeAsync(launchLength)
 			.then((done) => registrar.startAuctionAsync(web3.sha3('longname'), {from: accounts[0]}))	
 			.then((done) => registrar.shaBidAsync(web3.sha3('longname'), 1e18, 1))
 			.then((result) => {
@@ -940,7 +941,7 @@ describe('SimpleHashRegistrar', function() {
 
 	it("allows invalidation even when no longer the registrar", function(done) {
 		var sealedBid = null;
-		advanceTimeAsync(days(91))
+		advanceTimeAsync(launchLength)
 			.then((done) => registrar.startAuctionAsync(web3.sha3('name'), {from: accounts[0]}))
 			.then((done) => registrar.shaBidAsync(web3.sha3('name'), 1e18, 1))
 			.then((result) => {
@@ -961,7 +962,7 @@ describe('SimpleHashRegistrar', function() {
 		async.series([
 			// moves past the soft launch dates
 			function(done) { 
-				advanceTime(days(90), done); 
+				advanceTime(launchLength, done); 
 			},
 			// Start an auction for 'name'
 			function(done) {
@@ -1014,7 +1015,7 @@ describe('SimpleHashRegistrar', function() {
 		async.series([
 			// moves past the soft launch dates
 			function(done) { 
-				advanceTime(days(90), done); 
+				advanceTime(launchLength, done); 
 			},
 			// Start an auction for 'name'
 			function(done) {
@@ -1079,7 +1080,7 @@ describe('SimpleHashRegistrar', function() {
 			.then((result) => web3.eth.getBalanceAsync(invalidator.account))
 			.then((balance) => { invalidator.startingBalance = balance.toFixed(); })
 			// Advance time past soft launch
-			.then((result) => advanceTimeAsync(days(90)))
+			.then((result) => advanceTimeAsync(launchLength))
 			// Start some auctions
 			.then((result) => registrar.startAuctionsAsync([web3.sha3('name'), web3.sha3('longname'), web3.sha3('thirdname')], {from: accounts[0]}))
 			// Bid on 'name'
@@ -1131,7 +1132,7 @@ describe('SimpleHashRegistrar', function() {
 		var newRegistrar = null;
 		async.series([
 			// Advance past soft launch
-			function(done) { advanceTime(days(90) + 1, done); },
+			function(done) { advanceTime(launchLength + 1, done); },
 			// Start an auction for 'name'
 			function(done) {
 				registrar.startAuction(web3.sha3('name'), {from: accounts[0]}, done);
@@ -1231,7 +1232,7 @@ describe('SimpleHashRegistrar', function() {
 		var deedAddress = null;
 		async.series([
 			// Advance 
-			function(done) { advanceTime(days(90), done); },
+			function(done) { advanceTime(launchLength, done); },
 			
 			// Start an auction for 'name'
 			function(done) {
@@ -1321,7 +1322,7 @@ describe('SimpleHashRegistrar', function() {
 
 		async.series([
 			// Advance past soft launch
-			function(done) { advanceTime(days(90), done); },
+			function(done) { advanceTime(launchLength, done); },
 			// Save initial balances
 			function(done) {
 				web3.eth.getBalance(bid.account, function(err, balance){
@@ -1438,7 +1439,7 @@ describe('SimpleHashRegistrar', function() {
 		let bid = {account: accounts[0], value: 1.5e18, deposit: 1e17, salt: 1, description: 'underfunded bid' };
 		async.series([
 			// Advance past soft launch
-			function(done) { advanceTime(days(90), done); },
+			function(done) { advanceTime(launchLength, done); },
 			// Save initial balances
 			function(done) {
 				web3.eth.getBalance(bid.account, function(err, balance){
@@ -1486,7 +1487,7 @@ describe('SimpleHashRegistrar', function() {
 		var newRegistrar = null;
 		async.series([
 			// Advance past soft launch
-			function(done) { advanceTime(days(90), done); },
+			function(done) { advanceTime(launchLength, done); },
 			// Save initial balances
 			function(done) {
 				web3.eth.getBalance(bid.account, function(err, balance){
@@ -1578,7 +1579,7 @@ describe('SimpleHashRegistrar', function() {
 		var newRegistrar = null;
 		async.series([
 			// Advance past soft launch
-			function(done) { advanceTime(days(90), done); },
+			function(done) { advanceTime(launchLength, done); },
 			// Start an auction for 'name'
 			function(done) { ens.setSubnodeOwner(0, web3.sha3('eth'), accounts[0], {from: accounts[0]}, done);},
 			function(done) {

@@ -11,7 +11,7 @@ names cannot be six letters or shorter, new auctions will stop after 4 years.
 
 The plan is to test the basic features and then move to a new contract in at most
 2 years, when some sort of renewal mechanism will be enabled.
-*/ 
+*/
 
 
 import './AbstractENS.sol';
@@ -102,7 +102,7 @@ contract Registrar {
     mapping (bytes32 => entry) _entries;
     mapping (address => mapping(bytes32 => Deed)) public sealedBids;
     
-    enum Mode { Open, Auction, Owned, Forbidden, Reveal, Unavailable }
+    enum Mode { Open, Auction, Owned, Forbidden, Reveal, NotYetAvailable }
 
     uint32 constant auctionLength = 5 days;
     uint32 constant revealPeriod = 48 hours;
@@ -135,7 +135,7 @@ contract Registrar {
         var entry = _entries[_hash];
         
         if(!isAllowed(_hash, now)) {
-            return Mode.Unavailable;
+            return Mode.NotYetAvailable;
         } else if(now < entry.registrationDate) {
             if (now < entry.registrationDate - revealPeriod) {
                 return Mode.Auction;
@@ -263,7 +263,8 @@ contract Registrar {
      * @param _hash The hash to start an auction on
      */
     function getAllowedTime(bytes32 _hash) constant returns (uint timestamp) {
-        return registryStarted + launchLength*(uint(_hash)/2**128)/2**128;
+        return registryStarted + (launchLength*(uint(_hash)>>128)>>128);
+        // right shift operator: a >> b == a / 2**b
     }
     /**
      * @dev Start an auction for an available hash
@@ -407,7 +408,7 @@ contract Registrar {
         Deed bid = sealedBids[bidder][seal];
         // If the bid hasn't been revealed after any possible auction date, then close it
         if (address(bid) == 0
-            || now < bid.creationDate() + launchLength) throw;
+            || now < bid.creationDate() + auctionLength + 2 weeks) throw;
 
         // Send the canceller 0.5% of the bid, and burn the rest.
         bid.setOwner(msg.sender);
