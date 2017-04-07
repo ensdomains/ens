@@ -130,7 +130,7 @@ describe('SimpleHashRegistrar', function() {
 					assert.ok(Math.abs(result[2].toNumber() - expectedEnd) < 5); // registrationDate
 					done();
 				});
-			}			
+			}
 		], done);
 	});
 
@@ -406,7 +406,6 @@ describe('SimpleHashRegistrar', function() {
 			function(done) {
 				async.each(bidData, function(bid, done) {
 					if (bid.salt !== 6) {
-
 						registrar.unsealBid(web3.sha3('name'), bid.value, bid.salt, {from: bid.account}, function(err, txid) {
 							assert.equal(err, null, err);
 							done();
@@ -507,7 +506,6 @@ describe('SimpleHashRegistrar', function() {
 			{description: 'A regular bid 2', account: accounts[1], value: 1.1e18, deposit: 2.0e18, salt: 1, expectedFee: 0.005 },
 			{description: 'A regular bid 3', account: accounts[2], value: 1.1e18, deposit: 2.0e18, salt: 1, expectedFee: 0.005 },
 		];
-
 		async.series([
 			// moves past the soft launch dates
 			function(done) { 
