@@ -52,8 +52,8 @@ contract Deed {
     }
 
     function setOwner(address newOwner) onlyRegistrar {
-        // so contracts can check who sent them the ownership
-        previousOwner = owner;
+        if (newOwner == 0) throw;
+        previousOwner = owner;  // This allows contracts to check who sent them the ownership
         owner = newOwner;
         OwnerChanged(newOwner);
     }
@@ -86,8 +86,9 @@ contract Deed {
      */
     function destroyDeed() {
         if (active) throw;
-        if(owner.send(this.balance))
+        if(owner.send(this.balance)) {
             selfdestruct(burn);
+        }
     }
 }
 
@@ -237,6 +238,16 @@ contract Registrar {
             }
         }
         return len;
+    }
+
+    /**
+     * @dev Assign the owner in ENS, if we're still the registrar
+     * @param _hash hash to change owner
+     * @param _newOwner new owner to transfer to
+     */
+    function trySetSubnodeOwner(bytes32 _hash, address _newOwner) internal {
+        if(ens.owner(rootNode) == address(this))
+            ens.setSubnodeOwner(rootNode, _hash, _newOwner);        
     }
 
     /**
@@ -396,14 +407,10 @@ contract Registrar {
      */
     function finalizeAuction(bytes32 _hash) onlyOwner(_hash) {
         entry h = _entries[_hash];
-
         h.value =  max(h.value, minPrice);
-
-        // Assign the owner in ENS, if we're still the registrar
-        if(ens.owner(rootNode) == address(this))
-            ens.setSubnodeOwner(rootNode, _hash, h.deed.owner());
-
         h.deed.setBalance(h.value, true);
+
+        trySetSubnodeOwner(_hash, h.deed.owner());
         HashRegistered(_hash, h.deed.owner(), h.value, h.registrationDate);
     }
 
@@ -413,9 +420,11 @@ contract Registrar {
      * @param newOwner The address to transfer ownership to
      */
     function transfer(bytes32 _hash, address newOwner) onlyOwner(_hash) {
+        if (newOwner == 0) throw;
+
         entry h = _entries[_hash];
         h.deed.setOwner(newOwner);
-        ens.setSubnodeOwner(rootNode, _hash, newOwner);
+        trySetSubnodeOwner(_hash, newOwner);
     }
 
     /**
@@ -428,15 +437,13 @@ contract Registrar {
         Deed deedContract = h.deed;
         if(now < h.registrationDate + 1 years && ens.owner(rootNode) == address(this)) throw;
 
-        HashReleased(_hash, h.value);
-
         h.value = 0;
         h.highestBid = 0;
         h.deed = Deed(0);
-
-        if(ens.owner(rootNode) == address(this))
-            ens.setSubnodeOwner(rootNode, _hash, 0);
+        
+        trySetSubnodeOwner(_hash, 0);
         deedContract.closeDeed(1000);
+        HashReleased(_hash, h.value);        
     }
 
     /**
@@ -453,8 +460,7 @@ contract Registrar {
 
         entry h = _entries[hash];
 
-        if(ens.owner(rootNode) == address(this))
-            ens.setSubnodeOwner(rootNode, hash, 0);
+        trySetSubnodeOwner(hash, 0);
 
         if(address(h.deed) != 0) {
             // Reward the discoverer with 50% of the deed
@@ -501,14 +507,4 @@ contract Registrar {
      */
     function acceptRegistrarTransfer(bytes32 hash, Deed deed, uint registrationDate) {}
 
-    /**
-     * @dev Returns a deed created by a previous instance of the registrar.
-     * @param deed The address of the deed.
-     */
-    function returnDeed(Deed deed) {
-        // Only return if we own the deed, and it was created before our start date.
-        if(deed.registrar() != address(this) || deed.creationDate() > registryStarted)
-            throw;
-        deed.closeDeed(1000);
-    }
 }
