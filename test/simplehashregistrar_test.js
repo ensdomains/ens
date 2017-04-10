@@ -999,7 +999,7 @@ describe('SimpleHashRegistrar', function() {
 					});
 				});
 			},
-			// Advance 26 days to the reveal period
+			// Advance 3 days to the reveal period
 			function(done) { advanceTime(days(3) + 1, done); },
 			// Reveal the bid
 			function(done) {
@@ -1061,7 +1061,7 @@ describe('SimpleHashRegistrar', function() {
 					});
 				});
 			},
-			// Advance 26 days to the reveal period
+			// Advance 3 days to the reveal period
 			function(done) { advanceTime(days(3) + 1, done); },
 			// Reveal the bids and check they're processed correctly.
 			function(done) {
@@ -1169,7 +1169,7 @@ describe('SimpleHashRegistrar', function() {
 					});
 				});
 			},
-			// Advance 26 days to the reveal period
+			// Advance 3 days to the reveal period
 			function(done) { advanceTime(days(3) + 1, done); },
 			// Reveal the bid
 			function(done) {
