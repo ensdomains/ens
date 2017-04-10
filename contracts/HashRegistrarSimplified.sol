@@ -52,9 +52,8 @@ contract Deed {
     }
 
     function setOwner(address newOwner) onlyRegistrar {
-        // so contracts can check who sent them the ownership
         if (newOwner == 0) throw;
-        previousOwner = owner;
+        previousOwner = owner;  // so contracts can check who sent them the ownership
         owner = newOwner;
         OwnerChanged(newOwner);
     }
@@ -247,8 +246,6 @@ contract Registrar {
      * @param _newOwner new owner to transfer to
      */
     function trySetSubnodeOwner(bytes32 _hash, address _newOwner) internal {
-        entry h = _entries[_hash];
-
         if(ens.owner(rootNode) == address(this))
             ens.setSubnodeOwner(rootNode, _hash, _newOwner);        
     }
