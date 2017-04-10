@@ -36,6 +36,7 @@ describe('SimpleHashRegistrar', function() {
 	var ens = null;
 	var throwingBidder = null;
 	var launchLength = days(7 * 13);
+	var bid;
 
 	var dotEth = web3.sha3('0000000000000000000000000000000000000000000000000000000000000000' + web3.sha3('eth').slice(2), {encoding: 'hex'});
 	var nameDotEth = web3.sha3(dotEth + web3.sha3('name').slice(2), {encoding: 'hex'});
@@ -278,7 +279,7 @@ describe('SimpleHashRegistrar', function() {
 	});	
 
 	it('records bids', function(done) {
-		var bid = null;
+		bid = null;
 		async.series([
 			function(done) { 
 				advanceTime(launchLength, done); 
@@ -530,7 +531,7 @@ describe('SimpleHashRegistrar', function() {
 			},
 			// Attempt to cancel the first bid and fail
 			function(done) {
-				let bid = bidData[0];
+				bid = bidData[0];
 				registrar.shaBid(web3.sha3('cancelname'), bid.value, bid.salt, function(err, result) {
 					bid.sealedBid = result;
 					registrar.cancelBid(bid.account, bid.sealedBid, {from: bid.account}, function(err, txid) {
@@ -546,26 +547,33 @@ describe('SimpleHashRegistrar', function() {
 			},
 			// Advance 3 days to the reveal period
 			function(done) { advanceTime(days(3) + 1, done); },
-
-			// Attempt to cancel the second bid and fail
+			// Get the bid
 			function(done) {
-				let bid = bidData[1];
+				bid = bidData[1];
 				registrar.shaBid(web3.sha3('cancelname'), bid.value, bid.salt, function(err, result) {
+					assert.equal(err, null, err);					
 					bid.sealedBid = result;
-					registrar.cancelBid(bid.account, bid.sealedBid, {from: bid.account}, function(err, txid) {
-						assert.notEqual(err, null, err);
-						registrar.sealedBids(bid.account, bid.sealedBid, function(err, result) {
-							assert.equal(err, null, err);
-							assert.notEqual(result, 0);
-							console.log('\t Bid #2 not cancelled pre-reveal');
-							done();
-						});
-					});
+					done();
+				});
+			},
+			// Attempt to cancel the second bid and fail
+			function(done){
+				registrar.cancelBid(bid.account, bid.sealedBid, {from: bid.account}, function(err, txid) {
+					assert.notEqual(err, null, err);
+					done();
+				});
+			},
+			function(done){
+				registrar.sealedBids(bid.account, bid.sealedBid, function(err, result) {
+					assert.equal(err, null, err);
+					assert.notEqual(result, 0);
+					console.log('\t Bid #2 not cancelled pre-reveal');
+					done();
 				});
 			},
 			// Checks the bid exists
 			function(done) {
-				let bid = bidData[1];
+				bid = bidData[1];
 				registrar.sealedBids(bid.account, bid.sealedBid, function(err, result) {
 					assert.notEqual(result, '0x0000000000000000000000000000000000000000');
 					done();
@@ -573,7 +581,7 @@ describe('SimpleHashRegistrar', function() {
 			},
 			// Reveal the second bid
 			function(done) {
-				let bid = bidData[1];				
+				bid = bidData[1];				
 				registrar.unsealBid(web3.sha3('cancelname'), bid.value, bid.salt, {from: bid.account}, function(err, txid) {
 					assert.equal(err, null, err);
 					console.log('\t Bid #2 revealed');
@@ -582,7 +590,7 @@ describe('SimpleHashRegistrar', function() {
 			},
 			// Checks the bid doesn't exist anymore
 			function(done) {
-				let bid = bidData[1];				
+				bid = bidData[1];				
 				registrar.sealedBids(bid.account, bid.sealedBid, function(err, result) {
 					assert.equal(result, '0x0000000000000000000000000000000000000000');
 					done();
@@ -590,24 +598,33 @@ describe('SimpleHashRegistrar', function() {
 			},
 			// Attempt to cancel the second bid and fail
 			function(done) {
-				let bid = bidData[1];
+				bid = bidData[1];
 				registrar.shaBid(web3.sha3('cancelname'), bid.value, bid.salt, function(err, result) {
 					bid.sealedBid = result;
-
-					registrar.sealedBids(bid.account, bid.sealedBid, function(err, result) {
-						// Checks the bid exists
-						assert.equal(result, '0x0000000000000000000000000000000000000000');
-
-						registrar.cancelBid(bid.account, bid.sealedBid, {from: bid.account}, function(err, txid) {
-							assert.notEqual(err, null, err);
-							registrar.sealedBids(bid.account, bid.sealedBid, function(err, result) {
-								assert.equal(err, null, err);
-								assert.equal(result, 0);
-								console.log('\t Bid #2 not cancelled post-reveal. Sealedbid removed');
-								done();
-							});
-						});
-					});
+					done();
+				});
+			},
+			// Checks the bid exists
+			function(done) {
+				registrar.sealedBids(bid.account, bid.sealedBid, function(err, result) {
+					assert.equal(result, '0x0000000000000000000000000000000000000000');
+					done()
+				});
+			},
+			// Cancels the bid
+			function(done){
+				registrar.cancelBid(bid.account, bid.sealedBid, {from: bid.account}, function(err, txid) {
+					assert.notEqual(err, null, err);
+					done();
+				});
+			},
+			// Checks that it does not exist now
+			function(done){
+				registrar.sealedBids(bid.account, bid.sealedBid, function(err, result) {
+					assert.equal(err, null, err);
+					assert.equal(result, 0);
+					console.log('\t Bid #2 not cancelled post-reveal. Sealedbid removed');
+					done();
 				});
 			},
 			// Advance another two days to the end of the auction
@@ -624,59 +641,65 @@ describe('SimpleHashRegistrar', function() {
 			},
 			// Attempt to cancel the third bid and fail
 			function(done) {
-				let bid = bidData[2];
+				bid = bidData[2];
 				registrar.shaBid(web3.sha3('cancelname'), bid.value, bid.salt, function(err, result) {
+					assert.equal(err, null, err);					
 					bid.sealedBid = result;
-
-					registrar.sealedBids(bid.account, bid.sealedBid, function(err, result) {
-						// Bid should exist
-						assert.notEqual(result, '0x0000000000000000000000000000000000000000');
-
-						registrar.cancelBid(bid.account, bid.sealedBid, {from: bid.account}, function(err, txid) {
-							// should give an error
-							assert.ok(err, err);
-							
-							registrar.sealedBids(bid.account, bid.sealedBid, function(err, result) {
-								// Bid should still exist
-								assert.notEqual(result, '0x0000000000000000000000000000000000000000');
-								console.log('\t Bid #3 not cancelled immediately');
-								done();
-							});
-						});
-					});
-
-					
+					done();
+				});
+			},
+			// Bid should exist 
+			function(done) {
+				registrar.sealedBids(bid.account, bid.sealedBid, function(err, result) {
+					assert.equal(err, null, err);					
+					assert.notEqual(result, '0x0000000000000000000000000000000000000000');
+					console.log('err', err, result);
+					done();
+				});	
+			},
+			// should give an error
+			function(done) {
+				registrar.cancelBid(bid.account, bid.sealedBid, {from: bid.account}, function(err, txid) {
+					assert.ok(err, err);
+					done();
+				});
+			},
+			// Bid should still exist
+			function(done) {
+				registrar.sealedBids(bid.account, bid.sealedBid, function(err, result) {
+					assert.notEqual(result, '0x0000000000000000000000000000000000000000');
+					console.log('\t Bid #3 not cancelled immediately');
+					done();
 				});
 			},
 			// Advance 13 weeks
-			function(done) { advanceTime(13 * days(7), done); },
-
-			// Attempt to cancel the third bid again
-			function(done) {
-				let bid = bidData[2];
-				registrar.shaBid(web3.sha3('cancelname'), bid.value, bid.salt, function(err, result) {
-					bid.sealedBid = result;
-
-					registrar.sealedBids(bid.account, bid.sealedBid, function(err, result) {
-						// Bid should exist
-						assert.notEqual(result, 0);
-						
-						registrar.cancelBid(bid.account, bid.sealedBid, {from: bid.account}, function(err, txid) {
-							// should NOT give an error
-							assert.equal(err, null);
-							
-							registrar.sealedBids(bid.account, bid.sealedBid, function(err, result) {
-								// Bid should not exist anymore
-								assert.equal(result, 0);
-								done();
-							});
-						});
-					});					
+			function(done) { advanceTime(13 * days(7), done); },			
+			// Bid should exist
+			function(done){
+				registrar.sealedBids(bid.account, bid.sealedBid, function(err, result) {
+					
+					assert.notEqual(result, 0);
+					done();
+				});	
+			},
+			// should NOT give an error
+			function(done){
+				registrar.cancelBid(bid.account, bid.sealedBid, {from: bid.account}, function(err, txid) {
+					
+					assert.equal(err, null);
+					done();					
+				});
+			},
+			// Bid should not exist anymore
+			function(done){
+				registrar.sealedBids(bid.account, bid.sealedBid, function(err, result) {
+					assert.equal(result, 0);
+					done();
 				});
 			},
 			// Attempt to cancel again and fail
 			function(done) {
-				let bid = bidData[2];
+				bid = bidData[2];
 				registrar.shaBid(web3.sha3('cancelname'), bid.value, bid.salt, function(err, result) {
 					bid.sealedBid = result;
 					registrar.cancelBid(bid.account, bid.sealedBid, {from: bid.account}, function(err, txid) {
@@ -1069,7 +1092,7 @@ describe('SimpleHashRegistrar', function() {
 	});
 
 	it('invalidates short names', function(done) {
-		let bid = {account: accounts[0], value: 1.5e18, deposit: 2e18, salt: 1, description: 'bidded before invalidation' };
+		bid = {account: accounts[0], value: 1.5e18, deposit: 2e18, salt: 1, description: 'bidded before invalidation' };
 		let invalidator = {account: accounts[2]};
 		eth = Promise.promisifyAll(web3.eth);
 		eth.getBalanceAsync(bid.account)
@@ -1314,7 +1337,7 @@ describe('SimpleHashRegistrar', function() {
 	});
 
 	it('prohibits late funding of bids', function(done) {
-		let bid = {account: accounts[0], value: 1.3e18, deposit: 1.0e18, salt: 1, description: 'underfunded bid' };
+		bid = {account: accounts[0], value: 1.3e18, deposit: 1.0e18, salt: 1, description: 'underfunded bid' };
 		let bidWinner = {account: accounts[1], value: 1.2e18, deposit: 1.6e18, salt: 1, description: 'normally funded bid' };
 		let deedAddress = null;
 
@@ -1434,7 +1457,7 @@ describe('SimpleHashRegistrar', function() {
 	});
 
 	it('prohibits bids during the reveal period', function(done) {
-		let bid = {account: accounts[0], value: 1.5e18, deposit: 1e17, salt: 1, description: 'underfunded bid' };
+		bid = {account: accounts[0], value: 1.5e18, deposit: 1e17, salt: 1, description: 'underfunded bid' };
 		async.series([
 			// Advance past soft launch
 			function(done) { advanceTime(launchLength, done); },
@@ -1480,7 +1503,7 @@ describe('SimpleHashRegistrar', function() {
 	});
 
 	it('allows returning deeds from previous registrars', function(done) {
-		var bid = {account: accounts[0], value: 1e18, deposit: 2e18, salt: 1};
+		bid = {account: accounts[0], value: 1e18, deposit: 2e18, salt: 1};
 		var deedAddress = null;
 		var newRegistrar = null;
 		async.series([
@@ -1572,7 +1595,7 @@ describe('SimpleHashRegistrar', function() {
 	})
 
 	it("prohibits starting auctions when it's not the registrar", function(done) {
-		var bid = {account: accounts[0], value: 1e18, deposit: 2e18, salt: 1};
+		bid = {account: accounts[0], value: 1e18, deposit: 2e18, salt: 1};
 		var deedAddress = null;
 		var newRegistrar = null;
 		async.series([
