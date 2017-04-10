@@ -53,7 +53,7 @@ contract Deed {
 
     function setOwner(address newOwner) onlyRegistrar {
         if (newOwner == 0) throw;
-        previousOwner = owner;  // so contracts can check who sent them the ownership
+        previousOwner = owner;  // This allows contracts to check who sent them the ownership
         owner = newOwner;
         OwnerChanged(newOwner);
     }
