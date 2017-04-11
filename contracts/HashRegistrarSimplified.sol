@@ -62,7 +62,7 @@ contract Deed {
         registrar = newRegistrar;
     }
 
-    function setBalance(uint newValue, bool throwOnFailure) onlyRegistrar onlyActive payable {
+    function setBalance(uint newValue, bool throwOnFailure) onlyRegistrar onlyActive {
         // Check if it has enough balance to set the value
         if (value < newValue) throw;
         value = newValue;
