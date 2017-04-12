@@ -52,8 +52,8 @@ contract Deed {
     }
 
     function setOwner(address newOwner) onlyRegistrar {
-        // so contracts can check who sent them the ownership
-        previousOwner = owner;
+        if (newOwner == 0) throw;
+        previousOwner = owner;  // This allows contracts to check who sent them the ownership
         owner = newOwner;
         OwnerChanged(newOwner);
     }
@@ -86,8 +86,9 @@ contract Deed {
      */
     function destroyDeed() {
         if (active) throw;
-        if(owner.send(this.balance))
+        if(owner.send(this.balance)) {
             selfdestruct(burn);
+        }
     }
 }
 
@@ -267,6 +268,16 @@ contract Registrar {
         // right shift operator: a >> b == a / 2**b
     }
     /**
+     * @dev Assign the owner in ENS, if we're still the registrar
+     * @param _hash hash to change owner
+     * @param _newOwner new owner to transfer to
+     */
+    function trySetSubnodeOwner(bytes32 _hash, address _newOwner) internal {
+        if(ens.owner(rootNode) == address(this))
+            ens.setSubnodeOwner(rootNode, _hash, _newOwner);        
+    }
+
+    /**
      * @dev Start an auction for an available hash
      *
      * Anyone can start an auction by sending an array of hashes that they want to bid for.
@@ -423,14 +434,10 @@ contract Registrar {
      */
     function finalizeAuction(bytes32 _hash) onlyOwner(_hash) {
         entry h = _entries[_hash];
-
         h.value =  max(h.value, minPrice);
-
-        // Assign the owner in ENS, if we're still the registrar
-        if(ens.owner(rootNode) == address(this))
-            ens.setSubnodeOwner(rootNode, _hash, h.deed.owner());
-
         h.deed.setBalance(h.value, true);
+
+        trySetSubnodeOwner(_hash, h.deed.owner());
         HashRegistered(_hash, h.deed.owner(), h.value, h.registrationDate);
     }
 
@@ -440,9 +447,11 @@ contract Registrar {
      * @param newOwner The address to transfer ownership to
      */
     function transfer(bytes32 _hash, address newOwner) onlyOwner(_hash) {
+        if (newOwner == 0) throw;
+
         entry h = _entries[_hash];
         h.deed.setOwner(newOwner);
-        ens.setSubnodeOwner(rootNode, _hash, newOwner);
+        trySetSubnodeOwner(_hash, newOwner);
     }
 
     /**
@@ -455,15 +464,13 @@ contract Registrar {
         Deed deedContract = h.deed;
         if(now < h.registrationDate + 1 years && ens.owner(rootNode) == address(this)) throw;
 
-        HashReleased(_hash, h.value);
-
         h.value = 0;
         h.highestBid = 0;
         h.deed = Deed(0);
 
-        if(ens.owner(rootNode) == address(this))
-            ens.setSubnodeOwner(rootNode, _hash, 0);
+        _tryEraseSingleNode(_hash);
         deedContract.closeDeed(1000);
+        HashReleased(_hash, h.value);        
     }
 
     /**
@@ -480,8 +487,7 @@ contract Registrar {
 
         entry h = _entries[hash];
 
-        if(ens.owner(rootNode) == address(this))
-            ens.setSubnodeOwner(rootNode, hash, 0);
+        _tryEraseSingleNode(hash);
 
         if(address(h.deed) != 0) {
             // Reward the discoverer with 50% of the deed
@@ -493,6 +499,45 @@ contract Registrar {
         }
         HashInvalidated(hash, unhashedName, h.value, h.registrationDate);
         h.deed = Deed(0);
+    }
+
+    /**
+     * @dev Allows anyone to delete the owner and resolver records for a (subdomain of) a
+     *      name that is not currently owned in the registrar. If passing, eg, 'foo.bar.eth',
+     *      the owner and resolver fields on 'foo.bar.eth' and 'bar.eth' will all be cleared.
+     * @param labels A series of label hashes identifying the name to zero out, rooted at the
+     *        registrar's root. Must contain at least one element. For instance, to zero 
+     *        'foo.bar.eth' on a registrar that owns '.eth', pass an array containing
+     *        [sha3('foo'), sha3('bar')].
+     */
+    function eraseNode(bytes32[] labels) {
+        if(labels.length == 0) throw;
+        if(state(labels[labels.length - 1]) == Mode.Owned) throw;
+
+        _eraseNodeHierarchy(labels.length - 1, labels, rootNode);
+    }
+
+    function _tryEraseSingleNode(bytes32 label) internal {
+        if(ens.owner(rootNode) == address(this)) {
+            ens.setSubnodeOwner(rootNode, label, address(this));
+            var node = sha3(rootNode, label);
+            ens.setResolver(node, 0);
+            ens.setOwner(node, 0);
+        }
+    }
+
+    function _eraseNodeHierarchy(uint idx, bytes32[] labels, bytes32 node) internal {
+        // Take ownership of the node
+        ens.setSubnodeOwner(node, labels[idx], address(this));
+        node = sha3(node, labels[idx]);
+        
+        // Recurse if there's more labels
+        if(idx > 0)
+            _eraseNodeHierarchy(idx - 1, labels, node);
+
+        // Erase the resolver and owner records
+        ens.setResolver(node, 0);
+        ens.setOwner(node, 0);
     }
 
     /**
@@ -528,14 +573,4 @@ contract Registrar {
      */
     function acceptRegistrarTransfer(bytes32 hash, Deed deed, uint registrationDate) {}
 
-    /**
-     * @dev Returns a deed created by a previous instance of the registrar.
-     * @param deed The address of the deed.
-     */
-    function returnDeed(Deed deed) {
-        // Only return if we own the deed, and it was created before our start date.
-        if(deed.registrar() != address(this) || deed.creationDate() > registryStarted)
-            throw;
-        deed.closeDeed(1000);
-    }
 }
