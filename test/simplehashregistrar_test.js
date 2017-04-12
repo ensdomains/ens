@@ -713,43 +713,53 @@ describe('SimpleHashRegistrar', function() {
 	});
 
 	it("releases deed after one year", function(done) {
-		var sealedBid = null;
-		var winnerBalance = 0;
+		let sealedBid = null;
+		let winnerBalance = 0;
+		let owner = accounts[1];
+		let notOwner = accounts[0];
 
 		advanceTimeAsync(launchLength)
-			.then((done) => registrar.startAuctionAsync(web3.sha3('name'), {from: accounts[0]}))
+			.then((done) => registrar.startAuctionAsync(web3.sha3('name'), {from: owner}))
 			.then((done) => registrar.shaBidAsync(web3.sha3('name'), 1e18, 1))
 			.then((result) => {
 				sealedBid = result;
-				return registrar.newBidAsync(result, {from: accounts[0], value: 1e18});
+				return registrar.newBidAsync(result, {from: notOwner, value: 1e18});
 			})
 			.then((done) => registrar.shaBidAsync(web3.sha3('name'), 2e18, 2))
 			.then((result) => {
 				sealedBid = result;
-				return registrar.newBidAsync(result, {from: accounts[1], value: 2e18});
+				return registrar.newBidAsync(result, {from: owner, value: 2e18});
 			})
 			.then((done) => advanceTimeAsync(days(3) + 1))
-			.then((done) => registrar.unsealBidAsync(web3.sha3('name'), 1e18, 1, {from: accounts[0]}))
-			.then((done) => registrar.unsealBidAsync(web3.sha3('name'), 2e18, 2, {from: accounts[1]}))
+			.then((done) => registrar.unsealBidAsync(web3.sha3('name'), 1e18, 1, {from: notOwner}))
+			.then((done) => registrar.unsealBidAsync(web3.sha3('name'), 2e18, 2, {from: owner}))
 			.then((done) => advanceTimeAsync(days(2) + 1))
-			.then((done) => registrar.finalizeAuctionAsync(web3.sha3('name'), {from: accounts[1]}))
+			.then((done) => registrar.finalizeAuctionAsync(web3.sha3('name'), {from: owner}))
+			.then((done) => registrar.releaseDeedAsync(web3.sha3('name'), {from: owner}))
+			// Cannot release early
+			.then((done) => assert.fail("Expected exception"), (err) => assert.ok(err, err)) 
 			.then((done) => advanceTimeAsync(days(366) + 1))
-			.then((result) => web3.eth.getBalanceAsync(accounts[1]))
+			.then((done) => registrar.releaseDeedAsync(web3.sha3('name'), {from: notOwner}))
+			// Other user cannot release it
+			.then((done) => assert.fail("Expected exception"), (err) => assert.ok(err, err)) 
+			.then((result) => web3.eth.getBalanceAsync(owner))
 			.then((balance) => { winnerBalance = balance.toFixed(); })			
-			.then((done) => registrar.releaseDeedAsync(web3.sha3('name'), {from: accounts[1]}))
+			.then((done) => registrar.releaseDeedAsync(web3.sha3('name'), {from: owner}))
 			.then((done) => registrar.entriesAsync(web3.sha3('name')))
-			.then((result) => assert.equal(result[0], 0))		// Name should be available
-			.then((result) => web3.eth.getBalanceAsync(accounts[1]))
+			// Name should be available
+			.then((result) => assert.equal(result[0], 0))		
+			.then((result) => web3.eth.getBalanceAsync(owner))
 			.then((balance) => {
 				let returnedEther = web3.fromWei(Number(balance.toFixed() - winnerBalance), 'ether');
 				console.log('\t Name released and', returnedEther, 'ether returned to deed owner');
 				assert.equal(1 - returnedEther < 0.01, true);
 			})
-			.then((done) => registrar.releaseDeedAsync(web3.sha3('name'), {from: accounts[1]}))
+			.then((done) => registrar.releaseDeedAsync(web3.sha3('name'), {from: owner}))
 			.then((done) => assert.fail("Expected exception"), (err) => assert.ok(err, err))
-			.then((done) => registrar.startAuctionAsync(web3.sha3('name'), {from: accounts[0]}))
+			.then((done) => registrar.startAuctionAsync(web3.sha3('name'), {from: owner}))
 			.then((done) => registrar.entriesAsync(web3.sha3('name')))
-			.then((result) => assert.equal(result[0], 1))		// Check we can start an auction on the newly released name			
+			// Check we can start an auction on the newly released name				
+			.then((result) => assert.equal(result[0], 1))				
 			.asCallback(done);		
 	});
 
@@ -1060,11 +1070,11 @@ describe('SimpleHashRegistrar', function() {
 			})
 
 			// Advance time and reveal the bid
-			.then((result) => advanceTimeAsync(3 * 24 * 60 * 60 + 1))
+			.then((result) => advanceTimeAsync(days(3) + 1))
 			.then((result) => registrar.unsealBidAsync(web3.sha3('name'), bid.account, bid.value, bid.salt, {from: bid.account}))
 
 			// Advance time and finalise the auction
-			.then((result) => advanceTimeAsync(48 * 24 * 60 * 60))
+			.then((result) => advanceTimeAsync(days(2)))
 			.then((result) => registrar.finalizeAuctionAsync(web3.sha3('name'), {from: bid.account}))
 
 			// Set the resolver record in ENS
@@ -1490,9 +1500,9 @@ describe('SimpleHashRegistrar', function() {
 				sealedBid = result;
 				return registrar.newBidAsync(result, {from: accounts[0], value: 1e18});
 			})
-			.then((done) => advanceTimeAsync(3 * 24 * 60 * 60 + 1))
+			.then((done) => advanceTimeAsync(days(3) + 1))
 			.then((done) => registrar.unsealBidAsync(web3.sha3('longname'), accounts[0], 1e18, 1, {from: accounts[0]}))
-			.then((done) => advanceTimeAsync(2 * 24 * 60 * 60 + 1))
+			.then((done) => advanceTimeAsync(days(2) + 1))
 			.then((done) => registrar.finalizeAuctionAsync(web3.sha3('longname'), {from: accounts[0]}))
 			.then((done) => registrar.eraseNodeAsync([web3.sha3("longname")], {from: accounts[0]}))
 			.then((result) => assert.fail("Expected exception"), (err) => assert.ok(err, err))
