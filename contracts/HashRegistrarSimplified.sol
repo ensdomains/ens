@@ -102,11 +102,12 @@ contract Registrar {
 
     mapping (bytes32 => entry) _entries;
     mapping (address => mapping(bytes32 => Deed)) public sealedBids;
+    
+    enum Mode { Open, Auction, Owned, Forbidden, Reveal, NotYetAvailable }
 
-    enum Mode { Open, Auction, Owned, Forbidden, Reveal }
-    uint32 constant auctionLength = 5 days;
+    uint32 constant totalAuctionLength = 5 days;
     uint32 constant revealPeriod = 48 hours;
-    uint32 constant initialAuctionPeriod = 4 weeks;
+    uint32 constant launchLength = 13 weeks;
     uint constant minPrice = 0.01 ether;
     uint public registryStarted;
 
@@ -133,8 +134,11 @@ contract Registrar {
     //   Owned -> Open (releaseDeed)
     function state(bytes32 _hash) constant returns (Mode) {
         var entry = _entries[_hash];
-        if(now < entry.registrationDate) {
-            if(now < entry.registrationDate - revealPeriod) {
+        
+        if(!isAllowed(_hash, now)) {
+            return Mode.NotYetAvailable;
+        } else if(now < entry.registrationDate) {
+            if (now < entry.registrationDate - revealPeriod) {
                 return Mode.Auction;
             } else {
                 return Mode.Reveal;
@@ -239,7 +243,30 @@ contract Registrar {
         }
         return len;
     }
+    
+    /** 
+     * @dev Determines if a name is available for registration yet
+     * 
+     * Each name will be assigned a random date in which its auction 
+     * can be started, from 0 to 13 weeks
+     * 
+     * @param _hash The hash to start an auction on
+     * @param _timestamp The timestamp to query about
+     */
+     
+    function isAllowed(bytes32 _hash, uint _timestamp) constant returns (bool allowed){
+        return _timestamp > getAllowedTime(_hash);
+    }
 
+    /** 
+     * @dev Returns available date for hash
+     * 
+     * @param _hash The hash to start an auction on
+     */
+    function getAllowedTime(bytes32 _hash) constant returns (uint timestamp) {
+        return registryStarted + (launchLength*(uint(_hash)>>128)>>128);
+        // right shift operator: a >> b == a / 2**b
+    }
     /**
      * @dev Assign the owner in ENS, if we're still the registrar
      * @param _hash hash to change owner
@@ -269,7 +296,7 @@ contract Registrar {
         entry newAuction = _entries[_hash];
 
         // for the first month of the registry, make longer auctions
-        newAuction.registrationDate = max(now + auctionLength, registryStarted + initialAuctionPeriod);
+        newAuction.registrationDate = now + totalAuctionLength;
         newAuction.value = 0;
         newAuction.highestBid = 0;
         AuctionStarted(_hash, newAuction.registrationDate);
@@ -392,7 +419,7 @@ contract Registrar {
         Deed bid = sealedBids[bidder][seal];
         // If the bid hasn't been revealed after any possible auction date, then close it
         if (address(bid) == 0
-            || now < bid.creationDate() + initialAuctionPeriod) throw;
+            || now < bid.creationDate() + totalAuctionLength + 2 weeks) throw;
 
         // Send the canceller 0.5% of the bid, and burn the rest.
         bid.setOwner(msg.sender);
