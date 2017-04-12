@@ -105,7 +105,7 @@ contract Registrar {
     
     enum Mode { Open, Auction, Owned, Forbidden, Reveal, NotYetAvailable }
 
-    uint32 constant auctionLength = 5 days;
+    uint32 constant totalAuctionLength = 5 days;
     uint32 constant revealPeriod = 48 hours;
     uint32 constant launchLength = 13 weeks;
     uint constant minPrice = 0.01 ether;
@@ -296,7 +296,7 @@ contract Registrar {
         entry newAuction = _entries[_hash];
 
         // for the first month of the registry, make longer auctions
-        newAuction.registrationDate = now + auctionLength;
+        newAuction.registrationDate = now + totalAuctionLength;
         newAuction.value = 0;
         newAuction.highestBid = 0;
         AuctionStarted(_hash, newAuction.registrationDate);
@@ -419,7 +419,7 @@ contract Registrar {
         Deed bid = sealedBids[bidder][seal];
         // If the bid hasn't been revealed after any possible auction date, then close it
         if (address(bid) == 0
-            || now < bid.creationDate() + auctionLength + 2 weeks) throw;
+            || now < bid.creationDate() + totalAuctionLength + 2 weeks) throw;
 
         // Send the canceller 0.5% of the bid, and burn the rest.
         bid.setOwner(msg.sender);
