@@ -319,8 +319,8 @@ contract Registrar {
      * @param salt A random value to ensure secrecy of the bid
      * @return The hash of the bid values
      */
-    function shaBid(bytes32 hash, uint value, bytes32 salt) constant returns (bytes32 sealedBid) {
-        return sha3(hash, value, salt);
+    function shaBid(bytes32 hash, address owner, uint value, bytes32 salt) constant returns (bytes32 sealedBid) {
+        return sha3(hash, owner, value, salt);
     }
 
     /**
@@ -365,7 +365,7 @@ contract Registrar {
      * @param _salt The sale in the sealedBid
      */
     function unsealBid(bytes32 _hash, uint _value, bytes32 _salt) {
-        bytes32 seal = shaBid(_hash, _value, _salt);
+        bytes32 seal = shaBid(_hash, msg.sender, _value, _salt);
         Deed bid = sealedBids[msg.sender][seal];
         if (address(bid) == 0 ) throw;
         sealedBids[msg.sender][seal] = Deed(0);
