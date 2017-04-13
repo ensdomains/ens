@@ -90,12 +90,12 @@ A sample implementation in Python is provided below.
 ENS on Ethereum
 ===============
 
-ENS is deployed on mainnet at 0x314159265dd8dbb310642f98f50c066173c1259b_, where users may register names under the eth_ TLD, which uses an auction based registrar.
+ENS is deployed on mainnet at 0x314159265dd8dbb310642f98f50c066173c1259b_, where users may register names under the eth TLD, which uses an auction based registrar.
 
 ENS is also deployed on the Ropsten testnet at 0x112234455c3a32fd11230c42e7bccd4a84e02010_. Users may register names under two top level domains:
 
- - eth_, which uses an auction based registrar with the same functionality as the main network, and allows users to keep names indefinitely.
- - test_, which allows anyone to claim an unused name for test purposes, which expires after 28 days.
+ - .eth, which uses an auction based registrar with the same functionality as the main network, and allows users to keep names indefinitely; see :ref:`auctions`.
+ - .test, which allows anyone to claim an unused name for test purposes, which expires after 28 days; see :ref:`fifs`.
 
 Resources
 =========
@@ -109,8 +109,6 @@ Resources
 
  .. _0x112234455c3a32fd11230c42e7bccd4a84e02010: https://testnet.etherscan.io/address/0x112234455c3a32fd11230c42e7bccd4a84e02010
  .. _0x314159265dd8dbb310642f98f50c066173c1259b: https://etherscan.io/address/0x314159265dd8dbb310642f98f50c066173c1259b
- .. _eth: auctions.html
- .. _test: testnames.html
  .. _EIP137: https://github.com/ethereum/EIPs/issues/137
  .. _EIP162: https://github.com/ethereum/EIPs/issues/162
  .. _ethereum-ens: https://www.npmjs.com/package/ethereum-ens
