@@ -227,6 +227,24 @@ var auctionRegistrarContract = web3.eth.contract([
     "type": "function"
   },
   {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "_hash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getAllowedTime",
+    "outputs": [
+      {
+        "name": "timestamp",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "type": "function"
+  },
+  {
     "constant": false,
     "inputs": [
       {
@@ -270,33 +288,50 @@ var auctionRegistrarContract = web3.eth.contract([
     "type": "function"
   },
   {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "bidder",
+        "type": "address"
+      },
+      {
+        "name": "seal",
+        "type": "bytes32"
+      }
+    ],
+    "name": "cancelBid",
+    "outputs": [],
+    "payable": false,
+    "type": "function"
+  },
+  {
     "constant": true,
     "inputs": [
       {
-        "name": "",
+        "name": "_hash",
         "type": "bytes32"
       }
     ],
     "name": "entries",
     "outputs": [
       {
-        "name": "status",
+        "name": "",
         "type": "uint8"
       },
       {
-        "name": "deed",
+        "name": "",
         "type": "address"
       },
       {
-        "name": "registrationDate",
+        "name": "",
         "type": "uint256"
       },
       {
-        "name": "value",
+        "name": "",
         "type": "uint256"
       },
       {
-        "name": "highestBid",
+        "name": "",
         "type": "uint256"
       }
     ],
@@ -322,6 +357,27 @@ var auctionRegistrarContract = web3.eth.contract([
       {
         "name": "_hash",
         "type": "bytes32"
+      },
+      {
+        "name": "_value",
+        "type": "uint256"
+      },
+      {
+        "name": "_salt",
+        "type": "bytes32"
+      }
+    ],
+    "name": "unsealBid",
+    "outputs": [],
+    "payable": false,
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "_hash",
+        "type": "bytes32"
       }
     ],
     "name": "transferRegistrars",
@@ -334,6 +390,10 @@ var auctionRegistrarContract = web3.eth.contract([
     "inputs": [
       {
         "name": "",
+        "type": "address"
+      },
+      {
+        "name": "",
         "type": "bytes32"
       }
     ],
@@ -342,6 +402,24 @@ var auctionRegistrarContract = web3.eth.contract([
       {
         "name": "",
         "type": "address"
+      }
+    ],
+    "payable": false,
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "_hash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "state",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8"
       }
     ],
     "payable": false,
@@ -365,6 +443,28 @@ var auctionRegistrarContract = web3.eth.contract([
     "type": "function"
   },
   {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "_hash",
+        "type": "bytes32"
+      },
+      {
+        "name": "_timestamp",
+        "type": "uint256"
+      }
+    ],
+    "name": "isAllowed",
+    "outputs": [
+      {
+        "name": "allowed",
+        "type": "bool"
+      }
+    ],
+    "payable": false,
+    "type": "function"
+  },
+  {
     "constant": false,
     "inputs": [
       {
@@ -378,34 +478,9 @@ var auctionRegistrarContract = web3.eth.contract([
     "type": "function"
   },
   {
-    "constant": false,
-    "inputs": [
-      {
-        "name": "_hash",
-        "type": "bytes32"
-      },
-      {
-        "name": "_owner",
-        "type": "address"
-      },
-      {
-        "name": "_value",
-        "type": "uint256"
-      },
-      {
-        "name": "_salt",
-        "type": "bytes32"
-      }
-    ],
-    "name": "unsealBid",
-    "outputs": [],
-    "payable": false,
-    "type": "function"
-  },
-  {
     "constant": true,
     "inputs": [],
-    "name": "registryCreated",
+    "name": "registryStarted",
     "outputs": [
       {
         "name": "",
@@ -432,11 +507,11 @@ var auctionRegistrarContract = web3.eth.contract([
     "constant": false,
     "inputs": [
       {
-        "name": "seal",
-        "type": "bytes32"
+        "name": "labels",
+        "type": "bytes32[]"
       }
     ],
-    "name": "cancelBid",
+    "name": "eraseNode",
     "outputs": [],
     "payable": false,
     "type": "function"
@@ -450,6 +525,27 @@ var auctionRegistrarContract = web3.eth.contract([
       }
     ],
     "name": "startAuctions",
+    "outputs": [],
+    "payable": false,
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "hash",
+        "type": "bytes32"
+      },
+      {
+        "name": "deed",
+        "type": "address"
+      },
+      {
+        "name": "registrationDate",
+        "type": "uint256"
+      }
+    ],
+    "name": "acceptRegistrarTransfer",
     "outputs": [],
     "payable": false,
     "type": "function"
@@ -481,6 +577,23 @@ var auctionRegistrarContract = web3.eth.contract([
     "type": "function"
   },
   {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "hashes",
+        "type": "bytes32[]"
+      },
+      {
+        "name": "sealedBid",
+        "type": "bytes32"
+      }
+    ],
+    "name": "startAuctionsAndBid",
+    "outputs": [],
+    "payable": true,
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "name": "_ens",
@@ -489,8 +602,13 @@ var auctionRegistrarContract = web3.eth.contract([
       {
         "name": "_rootNode",
         "type": "bytes32"
+      },
+      {
+        "name": "_startDate",
+        "type": "uint256"
       }
     ],
+    "payable": false,
     "type": "constructor"
   },
   {
@@ -503,7 +621,7 @@ var auctionRegistrarContract = web3.eth.contract([
       },
       {
         "indexed": false,
-        "name": "auctionExpiryDate",
+        "name": "registrationDate",
         "type": "uint256"
       }
     ],
@@ -517,6 +635,11 @@ var auctionRegistrarContract = web3.eth.contract([
         "indexed": true,
         "name": "hash",
         "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "name": "bidder",
+        "type": "address"
       },
       {
         "indexed": false,
@@ -574,7 +697,7 @@ var auctionRegistrarContract = web3.eth.contract([
       },
       {
         "indexed": false,
-        "name": "now",
+        "name": "registrationDate",
         "type": "uint256"
       }
     ],
@@ -618,7 +741,7 @@ var auctionRegistrarContract = web3.eth.contract([
       },
       {
         "indexed": false,
-        "name": "now",
+        "name": "registrationDate",
         "type": "uint256"
       }
     ],
@@ -679,6 +802,32 @@ var deedContract = web3.eth.contract([
   {
     "constant": true,
     "inputs": [],
+    "name": "value",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "previousOwner",
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "payable": false,
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [],
     "name": "owner",
     "outputs": [
       {
@@ -686,6 +835,23 @@ var deedContract = web3.eth.contract([
         "type": "address"
       }
     ],
+    "payable": false,
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "newValue",
+        "type": "uint256"
+      },
+      {
+        "name": "throwOnFailure",
+        "type": "bool"
+      }
+    ],
+    "name": "setBalance",
+    "outputs": [],
     "payable": false,
     "type": "function"
   },
@@ -716,25 +882,14 @@ var deedContract = web3.eth.contract([
     "type": "function"
   },
   {
-    "constant": false,
     "inputs": [
       {
-        "name": "newValue",
-        "type": "uint256"
+        "name": "_owner",
+        "type": "address"
       }
     ],
-    "name": "setBalance",
-    "outputs": [],
     "payable": true,
-    "type": "function"
-  },
-  {
-    "inputs": [],
     "type": "constructor"
-  },
-  {
-    "payable": true,
-    "type": "fallback"
   },
   {
     "anonymous": false,
