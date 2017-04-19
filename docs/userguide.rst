@@ -55,9 +55,15 @@ Before placing a bid, you need to check if the name is available. Run this code 
 
 ::
 
-    ethRegistrar.entries(web3.sha3('name'))[0]
+    ethRegistrar.entries(web3.sha3('name'))[0];
 
-If the returned value is `0`, the name is available, and not currently up for auction. If the returned value is `1`, the name is currently up for auction. Any other value indicates the name is not available.
+If the returned value is `0`, the name is available, and not currently up for auction. If the returned value is `1`, the name is currently up for auction. If the returned value is `5`, that means that the 'soft launch' is in effect, and your name isn't yet available; you can check when it will be available for auction with:
+
+::
+
+    new Date(ethRegistrar.getAllowedTime(web3.sha3('name')) * 1000);
+
+Any other value from `entries` indicates the name is not available.
 
 To start an auction for a name that's not already up for auction, call `startAuction`:
 
@@ -71,9 +77,9 @@ You can also start auctions for several names simultaneously, to disguise which 
 
     ethRegistrar.startAuctions([web3.sha3('decoy1'), web3.sha3('name'), web3.sha3('decoy2')], {from: eth.accounts[0], gas: 1000000});
 
-Auctions normally run for 1 week, but auctions that start in the first week after deployment of ENS are extended to end 4 weeks after initial deployment.
+Auctions normally run for 5 days: 3 days of bidding and 2 days of reveal phase. When initially deployed, there's a "soft start" phase during which names are released for bidding gradually; this soft start lasts 4 weeks on ropsten, and 13 weeks on mainnet.
 
-When a name is available for auction, you can check the end time of the auction as follows:
+When a name is under auction, you can check the end time of the auction as follows:
 
 ::
 
@@ -101,7 +107,7 @@ Now, you can generate your 'sealed' bid, with the following code:
 
     var bid = ethRegistrar.shaBid(web3.sha3('name'), eth.accounts[0], web3.toWei(1, 'ether'), web3.sha3('secret'));
 
-The arguments are, in order, the name you want to register, the account you want to register it under, your maximum bid, and the secret value you generated earlier.
+The arguments are, in order, the name you want to register, the account you want to register it under, your maximum bid, and the secret value you generated earlier. Note that the account must be one you're able to send transactions from - you'll be required to do so in the reveal step.
 
 Next, submit your bid to the registrar:
 
@@ -126,9 +132,9 @@ To reveal, call the `unsealBid` function with the same values you provided earli
 
 ::
 
-    ethRegistrar.unsealBid(web3.sha3('name'), eth.accounts[0], web3.toWei(1, 'ether'), web3.sha3('secret'), {from: eth.accounts[0], gas: 500000});
+    ethRegistrar.unsealBid(web3.sha3('name'), web3.toWei(1, 'ether'), web3.sha3('secret'), {from: eth.accounts[0], gas: 500000});
 
-The arguments to `unsealBid` have the same order and meaning as those to `shaBid`, described in the bidding step.
+The arguments to `unsealBid` have the same order and meaning as those to `shaBid`, described in the bidding step, except that you don't need to supply the account - it's derived from your sending address.
 
 After revealing your bid, the auction will be updated. If your bid is less than a previously revealed bid, you will be refunded the whole amount of your bid. If your bid is the largest revealed so far, you will be set as the current leading bidder, and the difference between the actual amount of your bid and the amount you sent will be refunded immediately. If you are later outbid, your bid will be sent back to you at that point.
 
