@@ -130,8 +130,7 @@ contract Registrar {
     //   Auction -> Reveal
     //   Reveal -> Owned
     //   Reveal -> Open (if nobody bid)
-    //   Owned -> Forbidden (invalidateName)
-    //   Owned -> Open (releaseDeed)
+    //   Owned -> Open (releaseDeed or invalidateName)
     function state(bytes32 _hash) constant returns (Mode) {
         var entry = _entries[_hash];
         
@@ -146,8 +145,6 @@ contract Registrar {
         } else {
             if(entry.highestBid == 0) {
                 return Mode.Open;
-            } else if(entry.deed == Deed(0)) {
-                return Mode.Forbidden;
             } else {
                 return Mode.Owned;
             }
@@ -497,7 +494,11 @@ contract Registrar {
             h.deed.setOwner(msg.sender);
             h.deed.closeDeed(1000);
         }
+
         HashInvalidated(hash, unhashedName, h.value, h.registrationDate);
+
+        h.value = 0;
+        h.highestBid = 0;
         h.deed = Deed(0);
     }
 

@@ -28,6 +28,10 @@ function days(numberOfDays) {
 	return numberOfDays * 24 * 60 * 60;
 }
 
+function assertIsContractError(err) {
+	return assert.ok(err.toString().indexOf("invalid JUMP") != -1, err);
+}
+
 describe('SimpleHashRegistrar', function() {
 	var registrarABI = null;
 	var registrarBytecode = null;
@@ -188,14 +192,14 @@ describe('SimpleHashRegistrar', function() {
 			function(done) {
 				registrar.startAuction(web3.sha3('ethereum'), {from: accounts[0]}, function(err, result) {
 					// Should NOT be able to open this
-					assert.ok(err, err)
+					assertIsContractError(err);
 					done();
 				});
 			},	
 			function(done) {
 				registrar.startAuction(web3.sha3('unicorn'), {from: accounts[0]}, function(err, result) {
 					// Should NOT be able to open this
-					assert.ok(err, err)
+					assertIsContractError(err);
 					done();
 				});
 			},	
@@ -301,7 +305,7 @@ describe('SimpleHashRegistrar', function() {
 			// Check a duplicate bid would throw
 			function(done) {
 				registrar.newBid.call(bid, {from: accounts[0], value: 2e18}, function(err, result) {
-					assert.ok(err, err);
+					assertIsContractError(err);
 					done();
 				})
 			},
@@ -319,7 +323,7 @@ describe('SimpleHashRegistrar', function() {
 			// Submit a less-than-minimum bid and check it throws
 			function(done)  {
 				registrar.newBid.call(0, {from: accounts[0], value: 1e15 - 1}, function(err, result) {
-					assert.ok(err, err);
+					assertIsContractError(err);
 					done();
 				});
 			},
@@ -384,7 +388,7 @@ describe('SimpleHashRegistrar', function() {
 			// Try to reveal a bid early
 			function(done) {
 				registrar.unsealBid(web3.sha3('name'), bidData[0].value, bidData[0].salt, {from: bidData[0].account}, function(err, txid) {
-					assert.ok(err, err);
+					assertIsContractError(err);
 					done();
 				});
 			},
@@ -659,7 +663,7 @@ describe('SimpleHashRegistrar', function() {
 			// should give an error
 			function(done) {
 				registrar.cancelBid(bid.account, bid.sealedBid, {from: bid.account}, function(err, txid) {
-					assert.ok(err, err);
+					assertIsContractError(err);
 					done();
 				});
 			},
@@ -735,13 +739,15 @@ describe('SimpleHashRegistrar', function() {
 			.then((done) => registrar.unsealBidAsync(web3.sha3('name'), 2e18, 2, {from: owner}))
 			.then((done) => advanceTimeAsync(days(2) + 60))
 			.then((done) => registrar.finalizeAuctionAsync(web3.sha3('name'), {from: owner}))
+			.catch((err) => assert.fail("No exception expected here, but got " + err.toString()))
 			.then((done) => registrar.releaseDeedAsync(web3.sha3('name'), {from: owner}))
 			// Cannot release early
-			.then((done) => assert.fail("Expected exception"), (err) => assert.ok(err, err)) 
+			.then((done) => assert.fail("Expected exception"), assertIsContractError) 
 			.then((done) => advanceTimeAsync(days(366) + 60))
+			.catch((err) => assert.fail("No exception expected here, but got " + err.toString()))
 			.then((done) => registrar.releaseDeedAsync(web3.sha3('name'), {from: notOwner}))
 			// Other user cannot release it
-			.then((done) => assert.fail("Expected exception"), (err) => assert.ok(err, err)) 
+			.then((done) => assert.fail("Expected exception"), assertIsContractError)
 			.then((result) => eth.getBalanceAsync(owner))
 			.then((balance) => { winnerBalance = balance.toFixed(); })			
 			.then((done) => registrar.releaseDeedAsync(web3.sha3('name'), {from: owner}))
@@ -754,8 +760,9 @@ describe('SimpleHashRegistrar', function() {
 				console.log('\t Name released and', returnedEther, 'ether returned to deed owner');
 				assert.equal(1 - returnedEther < 0.01, true);
 			})
+			.catch((err) => assert.fail("No exception expected here, but got " + err.toString()))
 			.then((done) => registrar.releaseDeedAsync(web3.sha3('name'), {from: owner}))
-			.then((done) => assert.fail("Expected exception"), (err) => assert.ok(err, err))
+			.then((done) => assert.fail("Expected exception"), assertIsContractError)
 			.then((done) => registrar.startAuctionAsync(web3.sha3('name'), {from: owner}))
 			.then((done) => registrar.entriesAsync(web3.sha3('name')))
 			// Check we can start an auction on the newly released name				
@@ -798,8 +805,7 @@ describe('SimpleHashRegistrar', function() {
 
 		advanceTimeAsync(launchLength)
 			.then((done) => registrar.startAuctionAsync(web3.sha3('name'), {from: accounts[0]}))			.then((done) => registrar.finalizeAuctionAsync(web3.sha3('name'), {from: accounts[0]}))
-			.then((done) => assert.fail("Expected exception"), (err) => assert.ok(err, err))
-
+			.then((done) => assert.fail("Expected exception"), assertIsContractError)
 			.then((done) => registrar.shaBidAsync(web3.sha3('name'), accounts[0], 1e18, 1))
 			.then((result) => {
 				sealedBid = result;
@@ -807,12 +813,13 @@ describe('SimpleHashRegistrar', function() {
 			})
 			.then((done) => advanceTimeAsync(days(3) + 60))
 			.then((done) => registrar.unsealBidAsync(web3.sha3('name'), 1e18, 1, {from: accounts[0]}))
+			.catch((err) => assert.fail("No exception expected here, but got " + err.toString()))
 			.then((done) => registrar.finalizeAuctionAsync(web3.sha3('name'), {from: accounts[0]}))
-			.then((done) => assert.fail("Expected exception"), (err) => assert.ok(err, err))
+			.then((done) => assert.fail("Expected exception"), assertIsContractError)
 
 			.then((done) => advanceTimeAsync(days(2) + 60))
 			.then((done) => registrar.finalizeAuctionAsync(web3.sha3('name'), {from: accounts[1]}))
-			.then((done) => assert.fail("Expected exception"), (err) => assert.ok(err, err))
+			.then((done) => assert.fail("Expected exception"), assertIsContractError)
 
 			.then((done) => registrar.finalizeAuctionAsync(web3.sha3('name'), {from: accounts[0]}))
 			.then((done) => registrar.finalizeAuctionAsync(web3.sha3('name'), {from: accounts[0]}))
@@ -845,8 +852,9 @@ describe('SimpleHashRegistrar', function() {
 				sealedBid = result;
 				return registrar.newBidAsync(result, {from: accounts[0], value: 1e18});
 			})
+			.catch((err) => assert.fail("No exception expected here, but got " + err.toString()))
 			.then((done) => registrar.unsealBidAsync(web3.sha3('name'), 1e18, 1, {from: accounts[0]}))
-			.then((done) => assert.fail("Expected exception"), (err) => assert.ok(err, err))
+			.then((done) => assert.fail("Expected exception"), assertIsContractError)
 			// Check reveal works after starting the auction
 			.then((done) => advanceTimeAsync(days(1)))
 			.then((done) => registrar.startAuctionAsync(web3.sha3('name'), {from: accounts[0]}))
@@ -868,8 +876,9 @@ describe('SimpleHashRegistrar', function() {
 			.then((done) => registrar.unsealBidAsync(web3.sha3('longname'), 1e18, 1, {from: accounts[0]}))
 			.then((done) => advanceTimeAsync(days(2) + 60))
 			.then((done) => registrar.finalizeAuctionAsync(web3.sha3('longname'), {from: accounts[0]}))
+			.catch((err) => assert.fail("No exception expected here, but got " + err.toString()))
 			.then((done) => registrar.invalidateNameAsync('longname', {from: accounts[0]}))
-			.then((done) => assert.fail("Expected exception"), (err) => assert.ok(err, err))
+			.then((done) => assert.fail("Expected exception"), assertIsContractError)
 			.asCallback(done);
 	});
 
@@ -930,7 +939,7 @@ describe('SimpleHashRegistrar', function() {
 			// Have someone else call startAuction
 			function(done) {
 				registrar.startAuction(web3.sha3('name'), {from: accounts[0]}, function(err, result) {
-					assert.ok(err, err);
+					assertIsContractError(err);
 					done();
 				});
 			},
@@ -1028,12 +1037,12 @@ describe('SimpleHashRegistrar', function() {
 			// Reveal the bid
 			.then((result) => registrar.unsealBidAsync(web3.sha3('name'), bid.value, bid.salt, {from: bid.account}))
 			// Advance to the end of the auction
-			.then((result) => advanceTimeAsync(daysInSec(2)))
+			.then((result) => advanceTimeAsync(days(2)))
 			// Invalidate the name
 			.then((result) => registrar.invalidateNameAsync('name', {from: invalidator.account}))
 			// Check it was invalidated
 			.then((result) => registrar.entriesAsync(web3.sha3('name')))
-			.then((entry) => { assert.equal(entry[0], 3); })
+			.then((entry) => { assert.equal(entry[0], 0); })
 			// Check account balances
 			.then((result) => eth.getBalanceAsync(bid.account))
 			.then((balance) => {
@@ -1052,9 +1061,8 @@ describe('SimpleHashRegistrar', function() {
 			.then((owner) => {
 				assert.equal(owner, 0);
 			})
-			// Check we can't restart the auction process.
+			// Check we can restart the auction process.
 			.then((result) => registrar.startAuctionAsync(web3.sha3('name'), {from: accounts[0]}))
-			.then((done) => assert.fail("Expected exception"), (err) => assert.ok(err, err))
 			.asCallback(done);
 	});
 
@@ -1141,7 +1149,7 @@ describe('SimpleHashRegistrar', function() {
 			// Transferring the deed should fail
 			function(done) {
 				registrar.transferRegistrars(web3.sha3('name'), {from: accounts[0]}, function(err, result) {
-					assert.ok(err, err);
+					assertIsContractError(err);
 					done();
 				});
 			},
@@ -1230,7 +1238,7 @@ describe('SimpleHashRegistrar', function() {
 			// Make sure we can't transfer it yet
 			function(done) {
 				registrar.transfer(web3.sha3('name'), accounts[1], {from: accounts[0]}, function(err, txid) {
-					assert.ok(err, err);
+					assertIsContractError(err);
 					done();
 				});
 			},
@@ -1252,7 +1260,7 @@ describe('SimpleHashRegistrar', function() {
 			// Try and transfer it when we don't own it
 			function(done) {
 				registrar.transfer(web3.sha3('name'), accounts[1], {from: accounts[1]}, function(err, txid) {
-					assert.ok(err, err);
+					assertIsContractError(err);
 					done();
 				});
 			},
@@ -1460,7 +1468,7 @@ describe('SimpleHashRegistrar', function() {
 			function(done) { ens.setSubnodeOwner(0, web3.sha3('eth'), accounts[0], {from: accounts[0]}, done);},
 			function(done) {
 				registrar.startAuction(web3.sha3('name'), {from: accounts[0]}, function(err, txid) {
-					assert.ok(err, err);
+					assertIsContractError(err);
 					done();
 				});
 			},
@@ -1505,14 +1513,15 @@ describe('SimpleHashRegistrar', function() {
 			.then((done) => registrar.unsealBidAsync(web3.sha3('longname'), 1e18, 1, {from: accounts[0]}))
 			.then((done) => advanceTimeAsync(days(2) + 60))
 			.then((done) => registrar.finalizeAuctionAsync(web3.sha3('longname'), {from: accounts[0]}))
+			.catch((err) => assert.fail("No exception expected here, but got " + err.toString()))
 			.then((done) => registrar.eraseNodeAsync([web3.sha3("longname")], {from: accounts[0]}))
-			.then((result) => assert.fail("Expected exception"), (err) => assert.ok(err, err))
+			.then((done) => assert.fail("Expected exception"), assertIsContractError)
 			.asCallback(done);
 	});
 
 	it("does not permit an empty name to be zeroed", function(done) {
 		registrar.eraseNodeAsync([], {from: accounts[0]})
-			.then((result) => assert.fail("Expected exception"), (err) => assert.ok(err, err))
+			.then((done) => assert.fail("Expected exception"), assertIsContractError)
 			.asCallback(done);
 	});
 
@@ -1526,8 +1535,9 @@ describe('SimpleHashRegistrar', function() {
 				return registrar.newBidAsync(result, {from: accounts[0], value: 1e18});
 			})
 			.then((done) => advanceTimeAsync(days(3) + 60))
+			.catch((err) => assert.fail("No exception expected here, but got " + err.toString()))
 			.then((done) => registrar.unsealBidAsync(web3.sha3('longname'), 1e18, 1, {from: accounts[0]}))
-			.then((result) => assert.fail("Expected exception"), (err) => assert.ok(err, err))
+			.then((done) => assert.fail("Expected exception"), assertIsContractError)
 			.asCallback(done);
 	})
 });
