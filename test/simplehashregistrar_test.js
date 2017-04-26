@@ -39,7 +39,7 @@ describe('SimpleHashRegistrar', function() {
 	var registrar = null;
 	var ens = null;
 	var throwingBidder = null;
-	var launchLength = days(7 * 13);
+	var launchLength = days(7 * 8);
 	var bid;
 
 	var dotEth = web3.sha3('0000000000000000000000000000000000000000000000000000000000000000' + web3.sha3('eth').slice(2), {encoding: 'hex'});
@@ -113,7 +113,7 @@ describe('SimpleHashRegistrar', function() {
 					assert.equal(result[0], 1); // status == Auction
 					assert.equal(result[1], 0); // deed == 0x00
 					// Expected to end 5 days from start
-					var expectedEnd = new Date().getTime() / 1000 + days(96);
+					var expectedEnd = new Date().getTime() / 1000 + launchLength + days(5);
 					assert.ok(Math.abs(result[2].toNumber() - expectedEnd) < 5); // registrationDate
 					assert.equal(result[3], 0); // value = 0
 					assert.equal(result[4], 0); // highestBid = 0
@@ -131,7 +131,7 @@ describe('SimpleHashRegistrar', function() {
 				registrar.entries(web3.sha3('anothername'), function(err, result) {
 					assert.equal(err, null, err);
 					// Expected to end 128 days from start (91 + 2 + 30 + 5)
-					var expectedEnd = new Date().getTime() / 1000 + days(128);
+					var expectedEnd = new Date().getTime() / 1000 + launchLength + days(37);
 					assert.ok(Math.abs(result[2].toNumber() - expectedEnd) < 5); // registrationDate
 					done();
 				});
@@ -174,8 +174,8 @@ describe('SimpleHashRegistrar', function() {
 			function(done) { 
 				registrar.getAllowedTime(web3.sha3('ethereum'), function(err, result){ 
 					assert.equal(err, null, err);
-					// 'ethereum' should be available in 30 days
-					assert.equal(Math.round((Number(result)-registryStarted)/days(1)), 30);
+					// 'ethereum' should be available in 18 days
+					assert.equal(Math.round((Number(result)-registryStarted)/days(1)), 18);
 					done();
 				});
 			},
@@ -675,8 +675,8 @@ describe('SimpleHashRegistrar', function() {
 					done();
 				});
 			},
-			// Advance 13 weeks
-			function(done) { advanceTime(13 * days(7), done); },			
+			// Advance 8 weeks
+			function(done) { advanceTime(8 * days(7), done); },			
 			// Bid should exist
 			function(done){
 				registrar.sealedBids(bid.account, bid.sealedBid, function(err, result) {
