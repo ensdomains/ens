@@ -18,32 +18,34 @@ Before registering, check that nobody owns the name you want to register:
 
 If this line returns a date earlier than the current date, the name is available and you're good to go. You can register the domain for yourself by running:
 
+::
+
     testRegistrar.register(web3.sha3('myname'), eth.accounts[0], {from: eth.accounts[0]})
 
 Next, tell the ENS registry to use the public resolver for your name:
 
 ::
 
-    ens.setResolver(namehash('myname.eth'), publicResolver.address, {from: eth.accounts[0]});
+    ens.setResolver(namehash('myname.test'), publicResolver.address, {from: eth.accounts[0]});
 
 Once that transaction is mined, tell the resolver to resolve that name to your account:
 
 ::
 
-    publicResolver.setAddr(namehash('myname.eth'), eth.accounts[0], {from: eth.accounts[0]});
+    publicResolver.setAddr(namehash('myname.test'), eth.accounts[0], {from: eth.accounts[0]});
 
 ...or any other address:
 
 ::
 
-    publicResolver.setAddr(namehash('myname.eth'), '0x1234...', {from: eth.accounts[0]});
+    publicResolver.setAddr(namehash('myname.test'), '0x1234...', {from: eth.accounts[0]});
 
 If you want, create a subdomain and do the whole thing all over again:
 
 ::
 
-    ens.setSubnodeOwner(namehash('myname.eth'), web3.sha3('foo'), eth.accounts[1], {from: eth.accounts[0]});
-    ens.setResolver(namehash('foo.myname.eth'), resolver.address, {from: eth.accounts[1]});
+    ens.setSubnodeOwner(namehash('myname.test'), web3.sha3('foo'), eth.accounts[1], {from: eth.accounts[0]});
+    ens.setResolver(namehash('foo.myname.test'), publicResolver.address, {from: eth.accounts[1]});
     ...
 
 Finally, you can resolve your newly created name:
