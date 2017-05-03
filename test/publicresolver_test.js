@@ -84,75 +84,21 @@ describe('PublicResolver', function() {
 
 	});
 
-	describe('has function', function() {
-
-		it('returns false when checking nonexistent addresses', function() {
-			this.slow(400);
-			return resolver.hasAsync(utils.node, "addr")
-				.then(result => assert.equal(result, false));
-		});
-
-		it('returns true for previously set address', function() {
-			this.slow(400);
-			return resolver.setAddrAsync(utils.node, accounts[1], {from: accounts[0]})
-				.then(txid => resolver.hasAsync(utils.node, "addr"))
-				.then(has => assert.equal(has, true));
-		});
-
-		it('returns false when checking nonexistent hash', function() {
-			this.slow(400);
-			return resolver.hasAsync(utils.node, "hash")
-				.then(result => assert.equal(result, false));
-		});
-
-		it('returns true for previously set content', function() {
-			this.slow(400);
-			return resolver.setContentAsync(utils.node, accounts[1], {from: accounts[0]})
-				.then(txid => resolver.hasAsync(utils.node, "hash"))
-				.then(has => assert.equal(has, true));
-		});
-
-		it('returns false for address node checked as content', function() {
-			this.slow(400);
-			return resolver.setAddrAsync(utils.node, accounts[1], {from: accounts[0]})
-				.then(txid => resolver.hasAsync(utils.node, "hash"))
-				.then(has => assert.equal(has, false));
-		});
-
-		it('returns false for content node checked as address', function() {
-			this.slow(400);
-			return resolver.setContentAsync(utils.node, accounts[1], {from: accounts[0]})
-				.then(txid => resolver.hasAsync(utils.node, "addr"))
-				.then(has => assert.equal(has, false));
-		});
-
-		it('returns false for address node checked as unknown kind', function() {
-			this.slow(400);
-			return resolver.setAddrAsync(utils.node, accounts[1], {from: accounts[0]})
-				.then(txid => resolver.hasAsync(utils.node, "not a kind"))
-				.then(has => assert.equal(has, false));
-		});
-
-		it('returns false for content node checked as unknown kind', function() {
-			this.slow(400);
-			return resolver.setContentAsync(utils.node, accounts[1], {from: accounts[0]})
-				.then(txid => resolver.hasAsync(utils.node, "not a kind"))
-				.then(has => assert.equal(has, false));
-		});
-
-	});
-
 	describe('supportsInterface function', function() {
 
-		it('supports both known interfaces', function() {
+		it('supports known interfaces', function() {
 			this.slow(250);
 			return Promise.all([
 					resolver.supportsInterfaceAsync("0x3b3b57de"),
-					resolver.supportsInterfaceAsync("0xd8389dc5")
+					resolver.supportsInterfaceAsync("0xd8389dc5"),
+					resolver.supportsInterfaceAsync("0x2203ab56"),
+					resolver.supportsInterfaceAsync("0xc8690233")
 				])
 				.then(results => {
 					assert.equal(results[0], true);
 					assert.equal(results[1], true);
+					assert.equal(results[2], true);
+					assert.equal(results[3], true);
 				});
 		});
 
@@ -306,4 +252,125 @@ describe('PublicResolver', function() {
 
 	});
 
+	describe('setPubkey function', function() {
+
+		it('permits setting public key by owner', function() {
+			return resolver.setPubkeyAsync(utils.node, 1, 2, {from: accounts[0]});
+		});
+
+		it('can overwrite previously set value', function() {
+			this.slow(200);
+			return resolver.setPubkeyAsync(utils.node, 1, 2, {from: accounts[0]})
+				.then(txid => resolver.setPubkeyAsync(utils.node, 3, 4, {from: accounts[0]}));
+		});
+
+		it('can overwrite to same value', function() {
+			this.slow(200);
+			return resolver.setPubkeyAsync(utils.node, 1, 2, {from: accounts[0]})
+				.then(txid => resolver.setPubkeyAsync(utils.node, 1, 2, {from: accounts[0]}));
+		});
+
+		it('forbids setting value by non-owners', function() {
+			return resolver.setPubkeyAsync(utils.node, 1, 2, {from: accounts[1]})
+				.then(
+					tx => { throw new Error("expected to be forbidden"); },
+					err => assert.ok(err, err)
+				);
+		});
+
+		it('forbids writing same value by non-owners', function() {
+			return resolver.setPubkeyAsync(utils.node, 1, 2, {from: accounts[0]})
+				.then(txid => resolver.setPubkeyAsync(utils.node, 1, 2, {from: accounts[1]}))
+				.then(
+					tx => { throw new Error("expected to be forbidden"); },
+					err => assert.ok(err, err)
+				);
+		});
+
+		it('forbids overwriting existing value by non-owners', function() {
+			return resolver.setPubkeyAsync(utils.node, 1, 2, {from: accounts[0]})
+				.then(txid => resolver.setPubkeyAsync(utils.node, 3, 4, {from: accounts[1]}))
+				.then(
+					tx => { throw new Error("expected to be forbidden"); },
+					err => assert.ok(err, err)
+				);
+		});
+
+	});
+
+	describe('pubkey function', function() {
+
+		it('returns empty when fetching nonexistent values', function() {
+			this.slow(200);
+			return resolver.pubkeyAsync(utils.node)
+				.then(result => assert.deepEqual(result, [
+					"0x0000000000000000000000000000000000000000000000000000000000000000",
+					"0x0000000000000000000000000000000000000000000000000000000000000000"]));
+		});
+
+		it('returns previously set values', function() {
+			this.slow(200);
+			return resolver.setPubkeyAsync(utils.node, 1, 2, {from: accounts[0]})
+				.then(txid => resolver.pubkeyAsync(utils.node))
+				.then(pubkey => assert.deepEqual(pubkey, [
+					"0x1000000000000000000000000000000000000000000000000000000000000000",
+					"0x2000000000000000000000000000000000000000000000000000000000000000"]));
+		});
+
+		it('returns overwritten values', function() {
+			this.slow(300);
+			return resolver.setPubkeyAsync(utils.node, 1, 2, {from: accounts[0]})
+				.then(txid => resolver.setPubkeyAsync(utils.node, 3, 4, {from: accounts[0]}))
+				.then(txid => resolver.pubkeyAsync(utils.node))
+				.then(pubkey => assert.deepEqual(pubkey, [
+					'0x3000000000000000000000000000000000000000000000000000000000000000',
+  					'0x4000000000000000000000000000000000000000000000000000000000000000']));
+		});
+
+	});
+
+	describe('ABI', function() {
+		it('returns a contentType of 0 when nothing is available', function() {
+			return resolver.ABIAsync(utils.node, 0xFFFFFFFF)
+				.then(result => assert.deepEqual([result[0].toNumber(), result[1]], [0, "0x"]));
+		});
+
+		it('returns an ABI after it has been set', function() {
+			return resolver.setABIAsync(utils.node, 0x1, "foo", {from: accounts[0]})
+				.then(txid => resolver.ABIAsync(utils.node, 0x1))
+				.then(result => assert.deepEqual([result[0].toNumber(), result[1]], [1, "0x666f6f"]));
+		});
+
+		it('returns the first valid ABI', function() {
+			return resolver.setABIAsync(utils.node, 0x2, "foo", {from: accounts[0]})
+				.then(txid => resolver.setABIAsync(utils.node, 0x4, "bar", {from: accounts[0]}))
+				.then(txid => resolver.ABIAsync(utils.node, 0x7))
+				.then(result => assert.deepEqual([result[0].toNumber(), result[1]], [2, "0x666f6f"]))
+				.then(result => resolver.ABIAsync(utils.node, 0x5))
+				.then(result => assert.deepEqual([result[0].toNumber(), result[1]], [4, "0x626172"]));
+		});
+
+		it('allows deleting ABIs', function() {
+			return resolver.setABIAsync(utils.node, 0x1, "foo", {from: accounts[0]})
+				.then(txid => resolver.setABIAsync(utils.node, 0x1, "", {from: accounts[0]}))
+				.then(txid => resolver.ABIAsync(utils.node, 0x1))
+				.then(result => assert.deepEqual([result[0].toNumber(), result[1]], [0, "0x"]));
+		});
+
+		it('rejects invalid content types', function() {
+			return resolver.setABIAsync(utils.node, 0x3, "foo", {from: accounts[0]})
+				.then(
+					tx => { throw new Error("expected to be forbidden"); },
+					err => assert.ok(err, err)
+				);
+		});
+
+		it('forbids setting value by non-owners', function() {
+			return resolver.setABIAsync(utils.node, 0x1, "foo", {from: accounts[1]})
+				.then(
+					tx => { throw new Error("expected to be forbidden"); },
+					err => assert.ok(err, err)
+				);
+		});
+	});
 });
