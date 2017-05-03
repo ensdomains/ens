@@ -126,7 +126,7 @@ Now it's a matter of waiting until the reveal period before revealing your bid. 
 Revealing your bid
 ------------------
 
-In order to win an auction, you must 'reveal' your bid. This can be done at any time after you place your bid, but it's recommended you don't do so until the last 48 hours, at which point new bids are prohibited. If you don't reveal your bid by the time the auction ends, your deposit is forfeit - so make sure you store your salt in a safe place, and come back before the auction ends in order to reveal your bid.
+In order to win an auction, you must 'reveal' your bid. This is only possible during the 'reveal' phase, the last 48 hours of the auction, at which point new bids are prohibited. If you don't reveal your bid by the time the auction ends, your deposit is forfeit - so make sure you store your salt in a safe place, and come back before the auction ends in order to reveal your bid.
 
 To reveal, call the `unsealBid` function with the same values you provided earlier:
 
