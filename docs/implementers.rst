@@ -22,8 +22,14 @@ Resolvers are specified in EIP137_. A resolver must implement the following meth
 +------------------+-------------+--------------+------------+
 | ENS Name         | `name`      | 0x691f3431   | EIP181_    |
 +------------------+-------------+--------------+------------+
+| ABI specification| `ABI`       | 0x2203ab56   | EIP205_    |
++------------------+-------------+--------------+------------+
+| Public key       | `pubkey`    | 0xc8690233   | EIP619_    |
++------------------+-------------+--------------+------------+
 
-Additionally, the `content()` interface is currently used as a defacto standard for Swarm hashes, pending stanardisation.
+`supportsInterface` must also return true for the `interfaceID` value `0x01ffc9a7`, which is the interface ID of `supportsInterface` itself.
+
+Additionally, the `content()` interface is currently used as a defacto standard for Swarm hashes, pending stanardisation, and has an interface ID of `0xd8389dc5`.
 
 For example, a simple resolver that supports only the `addr` type might look something like this:
 
@@ -133,6 +139,8 @@ User agents and other software that display names to users should take counterme
 .. _EIP137: https://github.com/ethereum/EIPs/issues/137
 .. _EIP165: https://github.com/ethereum/EIPs/issues/165
 .. _EIP181: https://github.com/ethereum/EIPs/issues/181
+.. _EIP205: https://github.com/ethereum/EIPs/pull/205
+.. _EIP619: https://github.com/ethereum/EIPs/pull/619
 .. _ethereum-ens: https://www.npmjs.com/package/ethereum-ens
 .. _UTS46: http://unicode.org/reports/tr46/
 .. _`homoglyph attack`: https://en.wikipedia.org/wiki/Internationalized_domain_name#ASCII_spoofing_concerns
