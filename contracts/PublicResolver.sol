@@ -7,6 +7,7 @@ import './AbstractENS.sol';
  * address.
  */
 contract PublicResolver {
+    bytes4 constant INTERFACE_META_ID = 0x01ffc9a7;
     bytes4 constant ADDR_INTERFACE_ID = 0x3b3b57de;
     bytes4 constant CONTENT_INTERFACE_ID = 0xd8389dc5;
     bytes4 constant ABI_INTERFACE_ID = 0x2203ab56;
@@ -49,7 +50,8 @@ contract PublicResolver {
         return interfaceID == ADDR_INTERFACE_ID ||
                interfaceID == CONTENT_INTERFACE_ID ||
                interfaceID == ABI_INTERFACE_ID ||
-               interfaceID == PUBKEY_INTERFACE_ID;
+               interfaceID == PUBKEY_INTERFACE_ID ||
+               interfaceID == INTERFACE_META_ID;
     }
 
     /**
