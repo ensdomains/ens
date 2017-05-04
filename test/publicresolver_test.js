@@ -91,6 +91,7 @@ describe('PublicResolver', function() {
 			return Promise.all([
 					resolver.supportsInterfaceAsync("0x3b3b57de"),
 					resolver.supportsInterfaceAsync("0xd8389dc5"),
+					resolver.supportsInterfaceAsync("0x691f3431"),
 					resolver.supportsInterfaceAsync("0x2203ab56"),
 					resolver.supportsInterfaceAsync("0xc8690233")
 				])
@@ -99,6 +100,7 @@ describe('PublicResolver', function() {
 					assert.equal(results[1], true);
 					assert.equal(results[2], true);
 					assert.equal(results[3], true);
+					assert.equal(results[4], true);
 				});
 		});
 
@@ -248,6 +250,52 @@ describe('PublicResolver', function() {
 				.then(txid => resolver.setContentAsync(utils.node, 'hash2', {from: accounts[0]}))
 				.then(txid => resolver.contentAsync(utils.node))
 				.then(content => assert.equal(web3.toUtf8(content), 'hash2'));
+		});
+
+	});
+
+	describe('setName function', function() {
+
+		it('permits setting name by owner', function() {
+			return resolver.setNameAsync(utils.node, 'name1', {from: accounts[0]});
+		});
+
+		it('can overwrite previously set names', function() {
+			this.slow(200);
+			return resolver.setNameAsync(utils.node, 'name1', {from: accounts[0]})
+				.then(txid => resolver.setNameAsync(utils.node, 'name2', {from: accounts[0]}));
+		});
+
+		it('forbids setting name by non-owners', function() {
+			return resolver.setNameAsync(utils.node, 'name1', {from: accounts[1]})
+				.then(
+					tx => { throw new Error("expected to be forbidden"); },
+					err => assert.ok(err, err)
+				);
+		});
+	});
+
+	describe('name function', function() {
+
+		it('returns empty when fetching nonexistent name', function() {
+			this.slow(200);
+			return resolver.nameAsync(utils.node)
+				.then(result => assert.equal(result, ""));
+		});
+
+		it('returns previously set name', function() {
+			this.slow(200);
+			return resolver.setNameAsync(utils.node, 'name1', {from: accounts[0]})
+				.then(txid => resolver.nameAsync(utils.node))
+				.then(name => assert.equal(name, 'name1'));
+		});
+
+		it('returns overwritten name', function() {
+			this.slow(300);
+			return resolver.setNameAsync(utils.node, 'name1', {from: accounts[0]})
+				.then(txid => resolver.setNameAsync(utils.node, 'name2', {from: accounts[0]}))
+				.then(txid => resolver.nameAsync(utils.node))
+				.then(name => assert.equal(name, 'name2'));
 		});
 
 	});

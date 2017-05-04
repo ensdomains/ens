@@ -10,6 +10,7 @@ contract PublicResolver {
     bytes4 constant INTERFACE_META_ID = 0x01ffc9a7;
     bytes4 constant ADDR_INTERFACE_ID = 0x3b3b57de;
     bytes4 constant CONTENT_INTERFACE_ID = 0xd8389dc5;
+    bytes4 constant NAME_INTERFACE_ID = 0x691f3431;
     bytes4 constant ABI_INTERFACE_ID = 0x2203ab56;
     bytes4 constant PUBKEY_INTERFACE_ID = 0xc8690233;
 
@@ -21,6 +22,7 @@ contract PublicResolver {
     struct Record {
         address addr;
         bytes32 content;
+        string name;
         PublicKey pubkey;
         mapping(uint256=>bytes) abis;
     }
@@ -49,6 +51,7 @@ contract PublicResolver {
     function supportsInterface(bytes4 interfaceID) constant returns (bool) {
         return interfaceID == ADDR_INTERFACE_ID ||
                interfaceID == CONTENT_INTERFACE_ID ||
+               interfaceID == NAME_INTERFACE_ID ||
                interfaceID == ABI_INTERFACE_ID ||
                interfaceID == PUBKEY_INTERFACE_ID ||
                interfaceID == INTERFACE_META_ID;
@@ -95,7 +98,27 @@ contract PublicResolver {
     function setContent(bytes32 node, bytes32 hash) only_owner(node) {
         records[node].content = hash;
     }
+
+    /**
+     * Returns the name associated with an ENS node, for reverse records.
+     * Defined in EIP181.
+     * @param node The ENS node to query.
+     * @return The associated name.
+     */
+    function name(bytes32 node) constant returns (string ret) {
+        ret = records[node].name;
+    }
     
+    /**
+     * Sets the name associated with an ENS node, for reverse records.
+     * May only be called by the owner of that node in the ENS registry.
+     * @param node The node to update.
+     * @param name The name to set.
+     */
+    function setName(bytes32 node, string name) only_owner(node) {
+        records[node].name = name;
+    }
+
     /**
      * Returns the ABI associated with an ENS node.
      * Defined in EIP205.
