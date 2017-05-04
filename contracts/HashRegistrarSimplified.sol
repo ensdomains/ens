@@ -322,6 +322,8 @@ contract Registrar {
      * @return The hash of the bid values
      */
     function shaBid(bytes32 hash, address owner, uint value, bytes32 salt) constant returns (bytes32 sealedBid) {
+        // No checks on `value` because it will be corrected in `unsealBid`.
+        // And if `value < minPrice` bid will be "rejected" in the "Bid too low" case of `unsealBid`
         return sha3(hash, owner, value, salt);
     }
 
@@ -364,7 +366,7 @@ contract Registrar {
      * @dev Submit the properties of a bid to reveal them
      * @param _hash The node in the sealedBid
      * @param _value The bid amount in the sealedBid
-     * @param _salt The sale in the sealedBid
+     * @param _salt The salt in the sealedBid
      */
     function unsealBid(bytes32 _hash, uint _value, bytes32 _salt) {
         bytes32 seal = shaBid(_hash, msg.sender, _value, _salt);
@@ -372,6 +374,8 @@ contract Registrar {
         if (address(bid) == 0 ) throw;
         sealedBids[msg.sender][seal] = Deed(0);
         entry h = _entries[_hash];
+        
+        // handle both cases when user overstates and understates `value` in `shaBid`
         uint value = min(_value, bid.value());
         bid.setBalance(value, true);
 
@@ -384,7 +388,7 @@ contract Registrar {
             // Invalid phase
             throw;
         } else if (value < minPrice || bid.creationDate() > h.registrationDate - revealPeriod) {
-            // Bid too low or too late, refund 99.5%
+            // Bid too low (see `shaBid`) or too late, refund 99.5%
             bid.closeDeed(995);
             BidRevealed(_hash, msg.sender, value, 0);
         } else if (value > h.highestBid) {
