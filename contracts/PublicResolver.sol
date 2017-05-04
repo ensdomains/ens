@@ -14,6 +14,12 @@ contract PublicResolver {
     bytes4 constant ABI_INTERFACE_ID = 0x2203ab56;
     bytes4 constant PUBKEY_INTERFACE_ID = 0xc8690233;
 
+    event AddrChanged(bytes32 indexed node, address a);
+    event ContentChanged(bytes32 indexed node, bytes32 hash);
+    event NameChanged(bytes32 indexed node, string name);
+    event ABIChanged(bytes32 indexed node, uint256 indexed contentType);
+    event PubkeyChanged(bytes32 indexed node, bytes32 x, bytes32 y);
+
     struct PublicKey {
         bytes32 x;
         bytes32 y;
@@ -74,6 +80,7 @@ contract PublicResolver {
      */
     function setAddr(bytes32 node, address addr) only_owner(node) {
         records[node].addr = addr;
+        AddrChanged(node, addr);
     }
 
     /**
@@ -97,6 +104,7 @@ contract PublicResolver {
      */
     function setContent(bytes32 node, bytes32 hash) only_owner(node) {
         records[node].content = hash;
+        ContentChanged(node, hash);
     }
 
     /**
@@ -117,6 +125,7 @@ contract PublicResolver {
      */
     function setName(bytes32 node, string name) only_owner(node) {
         records[node].name = name;
+        NameChanged(node, name);
     }
 
     /**
@@ -151,6 +160,7 @@ contract PublicResolver {
         if(((contentType - 1) & contentType) != 0) throw;
         
         records[node].abis[contentType] = data;
+        ABIChanged(node, contentType);
     }
     
     /**
@@ -171,5 +181,6 @@ contract PublicResolver {
      */
     function setPubkey(bytes32 node, bytes32 x, bytes32 y) only_owner(node) {
         records[node].pubkey = PublicKey(x, y);
+        PubkeyChanged(node, x, y);
     }
 }
