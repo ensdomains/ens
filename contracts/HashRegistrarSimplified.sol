@@ -397,7 +397,7 @@ contract Registrar {
 
             // set new winner
             // per the rules of a vickery auction, the value becomes the previous highestBid
-            h.value = h.highestBid;
+            h.value = h.highestBid;  // will be zero if there's only 1 bidder
             h.highestBid = value;
             h.deed = bid;
             BidRevealed(_hash, msg.sender, value, 2);
@@ -436,6 +436,8 @@ contract Registrar {
      */
     function finalizeAuction(bytes32 _hash) onlyOwner(_hash) {
         entry h = _entries[_hash];
+        
+        // handles the case when there's only a single bidder (h.value is zero)
         h.value =  max(h.value, minPrice);
         h.deed.setBalance(h.value, true);
 
