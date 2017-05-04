@@ -159,7 +159,7 @@ Once the auction has completed, it must be finalized in order for the name to be
 
     ethRegistrar.finalizeAuction(web3.sha3('name'), {from: eth.accounts[0], gas: 500000});
 
-Once called, the winning bidder will be refunded the difference between their bid and the next highest bidder. If you're the only bidder, you get back all but 0.1 eth of your bid. The winner is then assigned the name in ENS.
+Once called, the winning bidder will be refunded the difference between their bid and the next highest bidder. If you're the only bidder, you get back all but 0.01 eth of your bid. The winner is then assigned the name in ENS.
 
 If you are the winning bidder, congratulations!
 
