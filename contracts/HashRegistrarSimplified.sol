@@ -107,7 +107,7 @@ contract Registrar {
     mapping (bytes32 => entry) _entries;
     mapping (address => mapping(bytes32 => Deed)) public sealedBids;
     
-    enum Mode { Open, Auction, Owned, Forbidden, Reveal, NotYetAvailable }
+    enum Mode { Open, Auction, Owned, Reveal, NotYetAvailable }
 
     uint32 constant totalAuctionLength = 5 days;
     uint32 constant revealPeriod = 48 hours;
