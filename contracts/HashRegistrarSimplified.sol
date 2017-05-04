@@ -296,8 +296,6 @@ contract Registrar {
         if(mode != Mode.Open) throw;
 
         entry newAuction = _entries[_hash];
-
-        // for the first month of the registry, make longer auctions
         newAuction.registrationDate = now + totalAuctionLength;
         newAuction.value = 0;
         newAuction.highestBid = 0;
