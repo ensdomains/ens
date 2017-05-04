@@ -417,7 +417,13 @@ contract Registrar {
      */
     function cancelBid(address bidder, bytes32 seal) {
         Deed bid = sealedBids[bidder][seal];
-        // If the bid hasn't been revealed after any possible auction date, then close it
+        
+        // If a sole bidder does not `unsealBid` in time, they have a few more days
+        // where they can call `startAuction` (again) and then `unsealBid` during
+        // the revealPeriod to get back their bid value.
+        // For simplicity, they should call `startAuction` within
+        // 9 days (2 weeks - totalAuctionLength), otherwise their bid will be
+        // cancellable by anyone.
         if (address(bid) == 0
             || now < bid.creationDate() + totalAuctionLength + 2 weeks) throw;
 
