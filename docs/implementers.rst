@@ -9,7 +9,7 @@ Writing a resolver
 
 Resolvers are specified in EIP137_. A resolver must implement the following method:
 
-::
+.. code-block:: solidity
 
     function supportsInterface(bytes4 interfaceID) constant returns (bool)
 
@@ -33,7 +33,7 @@ Additionally, the `content()` interface is currently used as a defacto standard 
 
 For example, a simple resolver that supports only the `addr` type might look something like this:
 
-::
+.. code-block:: solidity
 
     contract SimpleResolver {
         function supportsInterface(bytes4 interfaceID) constant returns (bool) {
@@ -52,7 +52,7 @@ Resolving names onchain
 
 Solidity libraries for onchain resolution are not yet available, but ENS resolution is straightforward enough it can be done trivially without a library. Contracts may use the following interfaces:
 
-::
+.. code-block:: solidity
 
     contract ENS {
         function owner(bytes32 node) constant returns (address);
@@ -72,7 +72,7 @@ For resolution, only the `resolver()` function in the ENS contract is required; 
 
 With these definitions, looking up a name given its node hash is straightforward:
 
-::
+.. code-block:: solidity
 
     contract MyContract {
         ENS ens;
@@ -94,7 +94,7 @@ Writing a registrar
 
 A registrar in ENS is simply any contract that owns a name, and allocates subdomains of it according to some set of rules defined in the contract code. A trivial first in first served contract is demonstrated below, using the ENS interface definition defined earlier.
 
-::
+.. code-block:: solidity
 
     contract FIFSRegistrar {
         ENS ens;
