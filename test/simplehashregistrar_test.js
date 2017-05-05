@@ -1025,7 +1025,7 @@ describe('SimpleHashRegistrar', function() {
 			.then((balance) => { invalidator.startingBalance = balance.toFixed(); })
 			// Advance time past soft launch
 			.then((result) => advanceTimeAsync(launchLength))
-			// Start some auctions (100000 gas for each)
+			// Start some auctions (300000 gas for each)
 			.then((result) => registrar.startAuctionsAsync([web3.sha3('name'), web3.sha3('longname'), web3.sha3('thirdname')], {from: accounts[0], gas: 300000}))
 			// Bid on 'name'
 			.then((result) => registrar.shaBidAsync(web3.sha3('name'), bid.account, bid.value, bid.salt))
