@@ -45,6 +45,7 @@ contract ReverseRegistrar {
      *         input address.
      */
     function sha3HexAddress(address addr) private returns (bytes32 ret) {
+        addr; ret; // Stop warning us about unused variables
         assembly {
             let lookup := 0x3031323334353637383961626364656600000000000000000000000000000000
             let i := 40

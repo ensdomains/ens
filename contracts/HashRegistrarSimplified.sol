@@ -219,6 +219,7 @@ contract Registrar {
      * @return The length of the input string
      */
     function strlen(string s) internal constant returns (uint) {
+        s;
         // Starting here means the LSB will be the byte we care about
         uint ptr;
         uint end;
