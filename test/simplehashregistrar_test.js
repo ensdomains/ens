@@ -55,7 +55,7 @@ describe('SimpleHashRegistrar', function() {
 
 	beforeEach(function(done) {
 
-		this.timeout(5000);
+		this.timeout(10000);
 		async.series([
 			function(done) { ens = utils.deployENS(accounts[0], done); },
 			function(done) {
