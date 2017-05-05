@@ -393,7 +393,7 @@ describe('SimpleHashRegistrar', function() {
 				});
 			},
 			// Advance 3 days to the reveal period
-			function(done) { advanceTime(days(3) + 60, done); },	
+			function(done) { advanceTime(days(3) + 300, done); },	
 			// Start an auction for 'anothername' to force time update
 			function(done) {
 				registrar.startAuction(web3.sha3('anothername'), {from: accounts[0]}, done);
@@ -550,7 +550,7 @@ describe('SimpleHashRegistrar', function() {
 				});
 			},
 			// Advance 3 days to the reveal period
-			function(done) { advanceTime(days(3) + 60, done); },
+			function(done) { advanceTime(days(3) + 300, done); },
 			// Get the bid
 			function(done) {
 				bid = bidData[1];
@@ -922,7 +922,7 @@ describe('SimpleHashRegistrar', function() {
 				});
 			},
 			// Advance 3 days to the reveal period
-			function(done) { advanceTime(days(3) + 60, done); },
+			function(done) { advanceTime(days(3) + 300, done); },
 			// Reveal the bid
 			function(done) {
 				registrar.unsealBid(web3.sha3('name'), 1e18, 1, {from: accounts[0]}, function(err, txid) {
@@ -984,7 +984,7 @@ describe('SimpleHashRegistrar', function() {
 				});
 			},
 			// Advance 3 days to the reveal period
-			function(done) { advanceTime(days(3) + 60, done); },
+			function(done) { advanceTime(days(3) + 300, done); },
 			// Reveal the bids and check they're processed correctly.
 			function(done) {
 				registrar.unsealBid(web3.sha3('name'), 2e18, 1, {from: accounts[0]}, function(err, txid) {
@@ -1108,7 +1108,7 @@ describe('SimpleHashRegistrar', function() {
 		var newRegistrar = null;
 		async.series([
 			// Advance past soft launch
-			function(done) { advanceTime(launchLength + 60, done); },
+			function(done) { advanceTime(launchLength + 300, done); },
 			// Start an auction for 'name'
 			function(done) {
 				registrar.startAuction(web3.sha3('name'), {from: accounts[0]}, done);
@@ -1125,7 +1125,7 @@ describe('SimpleHashRegistrar', function() {
 				});
 			},
 			// Advance 3 days to the reveal period
-			function(done) { advanceTime(days(3) + 60, done); },
+			function(done) { advanceTime(days(3) + 300, done); },
 			// Reveal the bid
 			function(done) {
 				registrar.unsealBid(web3.sha3('name'), 1e18, 1, {from: accounts[0]}, function(err, txid) {
@@ -1226,7 +1226,7 @@ describe('SimpleHashRegistrar', function() {
 				});
 			},
 			// Advance 3 days to the reveal period
-			function(done) { advanceTime(days(3) + 60, done); },
+			function(done) { advanceTime(days(3) + 300, done); },
 			// Reveal the bid
 			function(done) {
 				registrar.unsealBid(web3.sha3('name'), 1e18, 1, {from: accounts[0]}, function(err, txid) {
@@ -1333,7 +1333,7 @@ describe('SimpleHashRegistrar', function() {
 				});
 			},
 			// Advance 3 days to the reveal period
-			function(done) { advanceTime(days(3) + 60, done); },
+			function(done) { advanceTime(days(3) + 300, done); },
 			// Reveal the normal bid
 			function(done) {
 				registrar.unsealBid(web3.sha3('longname'), bidWinner.value, bidWinner.salt, {from: bidWinner.account}, function(err, txid) {
@@ -1428,7 +1428,7 @@ describe('SimpleHashRegistrar', function() {
 				registrar.startAuction(web3.sha3('longname'), {from: accounts[0]}, done);
 			},
 			// Advance 3 days to the reveal period
-			function(done) { advanceTime(days(3) + 60, done); },
+			function(done) { advanceTime(days(3) + 300, done); },
 			// Place the bid
 			function(done) {
 				registrar.shaBid(web3.sha3('longname'), bid.account, bid.value, bid.salt, function(err, result) {
