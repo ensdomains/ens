@@ -219,7 +219,7 @@ contract Registrar {
      * @return The length of the input string
      */
     function strlen(string s) internal constant returns (uint) {
-        s;
+        s; // Don't warn about unused variables
         // Starting here means the LSB will be the byte we care about
         uint ptr;
         uint end;
@@ -584,6 +584,8 @@ contract Registrar {
      * @param deed The Deed object for the name being transferred in.
      * @param registrationDate The date at which the name was originally registered.
      */
-    function acceptRegistrarTransfer(bytes32 hash, Deed deed, uint registrationDate) {}
+    function acceptRegistrarTransfer(bytes32 hash, Deed deed, uint registrationDate) {
+        hash; deed; registrationDate; // Don't warn about unused variables
+    }
 
 }
