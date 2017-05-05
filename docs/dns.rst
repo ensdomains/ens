@@ -16,6 +16,6 @@ The steps to host your own domain on the blockchain are:
 Please note that this feature is still experimental, and shouldn't be used for anything production critical; the DNS gateway is lightly tested, and only a single instance is running at present, providing no backup or failover in case of server issues. The API and configuration may change in backwards-incompatible ways, breaking your nameserver!
 
 .. _`deploy your own ENS registry`: deploying.html
-.. _`DNSResolver`: https://github.com/ethereum/ens/blob/master/DNSResolver.sol
+.. _`DNSResolver`: https://github.com/ethereum/ens/blob/master/contracts/DNSResolver.sol
 .. _`ensdns`: https://github.com/arachnid/ensdns/
 .. _`example zonefile`: https://github.com/ethereum/ens/blob/master/ens.domains.zone
