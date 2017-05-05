@@ -29,7 +29,7 @@ function days(numberOfDays) {
 }
 
 function assertIsContractError(err) {
-	return assert.ok(err.toString().indexOf("invalid JUMP") != -1, err);
+	return assert.ok(err.toString().indexOf("invalid JUMP") != -1 || err.toString().indexOf("invalid opcode") != -1, err);
 }
 
 describe('SimpleHashRegistrar', function() {
