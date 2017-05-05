@@ -98,4 +98,3 @@ alternatively, deploy the `HashRegistrar`:
 	$ truffle migrate --network dev.auction
 
 Check the truffle [documentation](http://truffleframework.com/docs/) for more information.
-
