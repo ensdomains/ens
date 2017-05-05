@@ -29,7 +29,7 @@ Resolvers are specified in EIP137_. A resolver must implement the following meth
 
 `supportsInterface` must also return true for the `interfaceID` value `0x01ffc9a7`, which is the interface ID of `supportsInterface` itself.
 
-Additionally, the `content()` interface is currently used as a defacto standard for Swarm hashes, pending stanardisation, and has an interface ID of `0xd8389dc5`.
+Additionally, the `content()` interface is currently used as a defacto standard for Swarm hashes, pending standardisation, and has an interface ID of `0xd8389dc5`.
 
 For example, a simple resolver that supports only the `addr` type might look something like this:
 
