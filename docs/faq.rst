@@ -7,6 +7,45 @@ Why are names registered as hashes?
 
 Hashes are used for two main reasons. First, to prevent trivial enumeration of the entire set of domains, which helps preserve privacy of names (for instance, so you can register the domain for your startup before you publicly launch). Second, because hashes provide a fixed length identifier that can easily be passed around between contracts with fixed overhead and no issues around passing around variable-length strings.
 
+How do the DApp and the twitter bot know what names people are auctioning?
+-----------------------------------
+
+The DApp and the twitter bot have built in lists of common names, drawn from an English dictionary and Alexa's list of top 1 million internet domain names. They use these lists to show you when common names are being auctioned. We do this because if the app didn't reveal these names, anyone with a little technical skill could find them out anyway, giving them an advantage over those who don't have the capacity to build their own list and code to check names against it.
+
+Which wallets and DApps support ENS so far?
+-----------------------------------
+
+MyEtherWallet supports both registering names via the auction process and sending funds and interacting with contracts identified by their names.
+
+Metamask supports sending funds to ENS names.
+
+Mist is working on ENS support and should announce it soon.
+
+LEth is working on ENS support and should announce it soon.
+
+Status is working on ENS support and should announce it soon.
+
+Why does it say my name isn't available yet?
+-----------------------------------
+
+ENS names are released gradually over a 'slow start' period of 8 weeks starting on May 4th 2017. The time at which any given name becomes available for auction during that period is effectively random. If you enter your desired name into the DApp, it will let you know when the first time you can auction it is.
+
+How is the start time for each name determined?
+-----------------------------------
+
+Internally, we hash the name using keccak256, and express the result as an integer between 0 and 1. Then, we multiply that by the duration of the launch period (8 weeks) and add that to the start date (May 4th 2017 1100 UTC) to generate the time at which that name can first be auctioned. You can see the code for this here_.
+
+Once I own a name, can I create my own subdomains?
+-----------------------------------
+
+Yes! You can create whatever subdomains you wish, and assign ownership of them to other people if you desire. You can even set up your own registrar for your domain!
+
+Can I change the address my name points to after I've bought it?
+-----------------------------------
+
+Yes, you can update the addresses and other resources pointed to by your name at any time.
+
+
 Can I register a TLD of my own in the ENS?
 -----------------------------------
 
@@ -70,3 +109,5 @@ This is the most important aspect to be decided on the Permanent registrar and t
 Just like the current model, this “fee” would not go to the Ethereum Foundation or any third party, but be locked or burned. Ideally, this financial (opportunity and liquidity) cost will make name squatting unprofitable – or at least make the name reselling market a dynamic and competitive one, focused on quick turnout and not on holding names long term for as much money as possible.
 
 Another very possible option creating some sort of dispute resolution process for names, to ensure the “principle of least surprise” but this is a controversial idea and there are no clear ideas on how this process could be achieved in a fair way without risks of centralization and abuse of power.
+
+:: _here: https://github.com/ethereum/ens/blob/13f3aa431f1e90ace80c510251a906f018fc7cc1/contracts/HashRegistrarSimplified.sol#L263
