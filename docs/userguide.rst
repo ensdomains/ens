@@ -331,11 +331,11 @@ This permits a very simple pattern for contracts that wish to delegate control o
 Claiming your account
 ---------------------
 
-Call the `claim` function on the `reverseRegistry` object:
+Call the `claim` function on the `reverseRegistrar` object:
 
 ::
 
-    reverseRegistry.claim(eth.accounts[0], {from: eth.accounts[0]});
+    reverseRegistrar.claim(eth.accounts[0], {from: eth.accounts[0]});
 
 After that transaction is mined, the appropriate reverse record is now owned by your account, and, you can deploy a resolver and set records on it; see :ref:`interacting` for details.
 
