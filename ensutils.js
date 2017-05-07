@@ -1179,7 +1179,7 @@ var reverseRegistrar = reverseRegistrarContract.at(ens.owner(namehash('addr.reve
 function getAddr(name) {
   var node = namehash(name)
   var resolverAddress = ens.resolver(node);
-  if (resolverAddress == '0x0000000000000000000000000000000000000000') {
+  if (resolverAddress === '0x0000000000000000000000000000000000000000') {
     return resolverAddress;
   }
   return resolverContract.at(resolverAddress).addr(node);
@@ -1188,7 +1188,7 @@ function getAddr(name) {
 function getContent(name) {
   var node = namehash(name)
   var resolverAddress = ens.resolver(node);
-  if (resolverAddress == '0x0000000000000000000000000000000000000000') {
+  if (resolverAddress === '0x0000000000000000000000000000000000000000') {
     return "0x0000000000000000000000000000000000000000000000000000000000000000";
   }
   return resolverContract.at(resolverAddress).content(node);
