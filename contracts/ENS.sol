@@ -16,7 +16,7 @@ contract ENS is AbstractENS {
 
     // Permits modifications only by the owner of the specified node.
     modifier only_owner(bytes32 node) {
-        if(records[node].owner != msg.sender) throw;
+        if (records[node].owner != msg.sender) throw;
         _;
     }
 

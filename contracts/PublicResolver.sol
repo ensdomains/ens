@@ -37,7 +37,7 @@ contract PublicResolver {
     mapping(bytes32=>Record) records;
 
     modifier only_owner(bytes32 node) {
-        if(ens.owner(node) != msg.sender) throw;
+        if (ens.owner(node) != msg.sender) throw;
         _;
     }
 
@@ -139,7 +139,7 @@ contract PublicResolver {
     function ABI(bytes32 node, uint256 contentTypes) constant returns (uint256 contentType, bytes data) {
         var record = records[node];
         for(contentType = 1; contentType <= contentTypes; contentType <<= 1) {
-            if((contentType & contentTypes) != 0 && record.abis[contentType].length > 0) {
+            if ((contentType & contentTypes) != 0 && record.abis[contentType].length > 0) {
                 data = record.abis[contentType];
                 return;
             }
@@ -157,7 +157,7 @@ contract PublicResolver {
      */
     function setABI(bytes32 node, uint256 contentType, bytes data) only_owner(node) {
         // Content types must be powers of 2
-        if(((contentType - 1) & contentType) != 0) throw;
+        if (((contentType - 1) & contentType) != 0) throw;
         
         records[node].abis[contentType] = data;
         ABIChanged(node, contentType);

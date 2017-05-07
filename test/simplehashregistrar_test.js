@@ -69,7 +69,7 @@ describe('SimpleHashRegistrar', function() {
 				     	gas: 4700000
 				   	}, function(err, contract) {
 				   	    assert.equal(err, null, err);
-				   	    if(contract.address != undefined) {
+				   	    if (contract.address != undefined) {
 				   	    	registrar = Promise.promisifyAll(registrar);
 				   	    	done();
 					   	}
@@ -83,7 +83,7 @@ describe('SimpleHashRegistrar', function() {
 						gas: 1000000
 					}, function(err, contract) {
 						assert.equal(err, null, err);
-						if(contract.address != undefined) {
+						if (contract.address != undefined) {
 							throwingBidder = Promise.promisifyAll(throwingBidder);
 							done();
 						}
@@ -1166,7 +1166,7 @@ describe('SimpleHashRegistrar', function() {
 				     	gas: 4700000
 				   	}, function(err, contract) {
 				   	    assert.equal(err, null, err);
-				   	    if(contract.address != undefined) {
+				   	    if (contract.address != undefined) {
 				   	    	done();
 					   	}
 				   });
@@ -1358,7 +1358,7 @@ describe('SimpleHashRegistrar', function() {
 					   	},
 							function(err, contract) {
 								assert.equal(err, null, err);
-								if(contract.address != undefined) {
+								if (contract.address != undefined) {
 									// Check the balance was topped up.
 									web3.eth.getBalance(deedAddress, function(err, balance) {
 										assert.equal(err, null, err);
