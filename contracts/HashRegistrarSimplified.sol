@@ -268,12 +268,12 @@ contract Registrar {
      * @dev Returns available date for hash
      * 
      * The available time from the `registryStarted` for a hash is proportional
-     * to its numberic value.
+     * to its numeric value.
      * 
      * @param _hash The hash to start an auction on
      */
     function getAllowedTime(bytes32 _hash) constant returns (uint timestamp) {
-        return registryStarted + ((launchLength * (uint(_hash) >> 128)) >>128);
+        return registryStarted + ((launchLength * (uint(_hash) >> 128)) >> 128);
         // Right shift operator: a >> b == a / 2**b
     }
 
