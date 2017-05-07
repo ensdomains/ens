@@ -34,7 +34,7 @@ module.exports = {
 	node: namehash('eth'),
 	compileContract: compileContract,
 	deployENS: function (account, done) {
-		if(ensCode == null)
+		if (ensCode == null)
 			ensCode = compileContract(['ENS.sol', 'AbstractENS.sol']).contracts['ENS.sol:ENS'];
 		var ens = web3.eth.contract(JSON.parse(ensCode.interface)).new(
 		    {
@@ -43,7 +43,7 @@ module.exports = {
 		     	gas: 4700000
 		   	}, function(err, contract) {
 		   	    assert.equal(err, null, err);
-		   	    if(contract.address != undefined) {
+		   	    if (contract.address != undefined) {
 		   	    	ens = Promise.promisifyAll(ens);
 		   	    	done(null, ens);
 			   	}
@@ -51,7 +51,7 @@ module.exports = {
 		return ens;
 	},
 	deployENSLLL: function(account, done) {
-		if(ensLLLCode == null) {
+		if (ensLLLCode == null) {
 			var lllArtifactPath = './build/contracts/ENS.lll.json';
 			var ensLLLArtifact = JSON.parse(fs.readFileSync(lllArtifactPath).toString());
 
@@ -70,7 +70,7 @@ module.exports = {
 				},
 				function(err, contract) {
 					assert.equal(err, null, err);
-					if(contract.address != undefined) {
+					if (contract.address != undefined) {
 						done();
 					}
 				});

@@ -108,8 +108,8 @@ A registrar in ENS is simply any contract that owns a name, and allocates subdom
         function register(bytes32 subnode, address owner) {
             var node = sha3(rootNode, subnode);
             var currentOwner = ens.owner(node);
-            if(currentOwner != 0 && currentOwner != msg.sender)
-                throw;
+
+            if (currentOwner != 0 && currentOwner != msg.sender) throw;
 
             ens.setSubnodeOwner(rootNode, subnode, owner);
         }

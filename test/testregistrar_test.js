@@ -36,7 +36,7 @@ describe('FIFSRegistrar', function() {
                         data: registrarCode.bytecode,
                         gas: 4700000
                     }, function(err, contract) {
-                        if(contract.address != undefined)
+                        if (contract.address != undefined)
                             ens.setOwner(0, registrar.address, {from: accounts[0]}, done);
                     });
             }],

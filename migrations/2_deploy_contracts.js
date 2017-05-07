@@ -7,7 +7,7 @@ const FIFSRegistrar = artifacts.require('./FIFSRegistrar.sol');
 // TODO: align the contract name with the source code file name.
 const Registrar = artifacts.require('./Registrar.sol');
 const web3 = new (require('web3'))();
-const namehash = require('eth-ens-namehash');
+const namehash = require('../node_modules/eth-ens-namehash');
 
 /**
  * Calculate root node hashes given the top level domain(tld)
@@ -55,7 +55,7 @@ function deployAuctionRegistrar(deployer, tld) {
   deployer.deploy(ENS)
     .then(() => {
       // Deploy the HashRegistrar and bind it with ENS
-      // the last argument `0` specifies the auction start date to `now`
+      // The last argument `0` specifies the auction start date to `now`
       return deployer.deploy(Registrar, ENS.address, rootNode.namehash, 0);
     })
     .then(function() {

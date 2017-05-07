@@ -23,7 +23,7 @@ describe('ENS.lll', function() {
 
 function getEventsForTx(event, txid, cb) {
 	web3.eth.getTransaction(txid, function(err, tx) {
-		if(err != null) {
+		if (err != null) {
 			cb(err, null);
 		} else {
 			event({}, {fromBlock: tx.blockNumber, toBlock: tx.blockNumber}).get(cb);

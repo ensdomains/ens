@@ -29,8 +29,7 @@ contract TestRegistrar {
      * @param owner The address of the new owner.
      */
     function register(bytes32 subnode, address owner) {
-        if(expiryTimes[subnode] >= now)
-            throw;
+        if (expiryTimes[subnode] >= now) throw;
 
         expiryTimes[subnode] = now + registrationPeriod;
         ens.setSubnodeOwner(rootNode, subnode, owner);
