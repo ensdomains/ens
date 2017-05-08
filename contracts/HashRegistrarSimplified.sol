@@ -390,7 +390,7 @@ contract Registrar {
 
         var auctionState = state(_hash);
         if (auctionState == Mode.Owned) {
-            // Too late! Bidder loses their bid. Get's 0.5% back.
+            // Too late! Bidder loses their bid. Gets 0.5% back.
             bid.closeDeed(5);
             BidRevealed(_hash, msg.sender, value, 1);
         } else if (auctionState != Mode.Reveal) {
