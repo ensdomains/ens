@@ -4,11 +4,11 @@ Quickstart
 
 Just want to get a name and make it resolve to something? Here's how.
 
-First, download `ensutils.js`_ or `ensutils-ropsten.js`_ to your local machine, and import it into a running Ethereum console:
+First, download `ensutils-testnet.js`_ to your local machine, and import it into an Ethereum console on a node synced to ropsten or rinkeby:
 
 ::
 
-    loadScript('/path/to/ensutils.js');
+    loadScript('/path/to/ensutils-testnet.js');
 
 Before registering, check that nobody owns the name you want to register:
 
