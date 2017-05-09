@@ -148,7 +148,7 @@ and the value of the current winning bid with
 
 ::
 
-    web3.fromWei(ethRegistrar.entries(web3.sha3('name'))[3], 'ether');
+    web3.fromWei(ethRegistrar.entries(web3.sha3('name'))[4], 'ether');
 
 Finalizing the auction
 ----------------------
