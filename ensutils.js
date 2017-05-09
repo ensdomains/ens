@@ -1094,7 +1094,7 @@ var resolverContract = web3.eth.contract([
     "type": "fallback"
   }
 ]);
-//var publicResolver = resolverContract.at('0x4c641fb9bad9b60ef180c31f56051ce826d21a9a');
+var publicResolver = resolverContract.at('0x1da022710df5002339274aadee8d58218e9d6ab5');
 
 var reverseRegistrarContract = web3.eth.contract([
   {
