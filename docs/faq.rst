@@ -111,3 +111,8 @@ Just like the current model, this “fee” would not go to the Ethereum Foundat
 Another very possible option creating some sort of dispute resolution process for names, to ensure the “principle of least surprise” but this is a controversial idea and there are no clear ideas on how this process could be achieved in a fair way without risks of centralization and abuse of power.
 
 .. _here : https://github.com/ethereum/ens/blob/13f3aa431f1e90ace80c510251a906f018fc7cc1/contracts/HashRegistrarSimplified.sol#L263
+
+Can the bids be revealed during the auction period?
+-----------------------------------
+
+No, you can’t reveal during the auction period, only during the reveal period. Bids revealed during the auction period will have no effect and wouldn't count for the reveal period.
