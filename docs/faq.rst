@@ -33,7 +33,7 @@ ENS names are released gradually over a 'slow start' period of 8 weeks starting 
 How is the start time for each name determined?
 -----------------------------------
 
-Internally, we hash the name using keccak256, and express the result as an integer between 0 and 1. Then, we multiply that by the duration of the launch period (8 weeks) and add that to the start date (May 4th 2017 1100 UTC) to generate the time at which that name can first be auctioned. You can see the code for this here_.
+Internally, we hash the name using keccak256, and express the result as a number between 0 and 1. Then, we multiply that by the duration of the launch period (8 weeks) and add that to the start date (May 4th 2017 1100 UTC) to generate the time at which that name can first be auctioned. You can see the code for this here_.
 
 Once I own a name, can I create my own subdomains?
 -----------------------------------
