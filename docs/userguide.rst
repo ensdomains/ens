@@ -153,7 +153,7 @@ and the value of the current winning bid with
 Finalizing the auction
 ----------------------
 
-Once the auction has completed, it must be finalized in order for the name to be assigned to the winning bidder. Any user can perform this step; to do it yourself, call the `finalizeAuction` function like so:
+Once the auction has completed, it must be finalized in order for the name to be assigned to the winning bidder. Only the winning bidder can do this. To finalize, call the `finalizeAuction` function like so:
 
 ::
 
