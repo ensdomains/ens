@@ -2,7 +2,7 @@
 User Guide
 **********
 
-This user guide is intended for anyone wanting to register, configure, and update ENS names using a Javascript console and web3.js. Before starting, open up a geth console, download ensutils.js_ or `ensutils-ropsten.js`_ to your local machine, and import it into a running Ethereum console:
+This user guide is intended for anyone wanting to register, configure, and update ENS names using a Javascript console and web3.js. Before starting, open up a geth console, download ensutils.js_ or `ensutils-testnet.js`_ to your local machine, and import it into a running Ethereum console:
 
 ::
 
@@ -344,5 +344,5 @@ After that transaction is mined, the appropriate reverse record is now owned by 
 .. _`ENS registry interface`: https://github.com/ethereum/ens/blob/master/contracts/AbstractENS.sol
 .. _EIP162: https://github.com/ethereum/EIPs/issues/162
 .. _ensutils.js: https://github.com/ethereum/ens/blob/master/ensutils.js
-.. _ensutils-ropsten.js: https://github.com/ethereum/ens/blob/master/ensutils-ropsten.js
+.. _ensutils-testnet.js: https://github.com/ethereum/ens/blob/master/ensutils-testnet.js
 .. _random.org: https://www.random.org/strings/?num=1&len=20&digits=on&upperalpha=on&loweralpha=on&unique=off&format=html&rnd=new
