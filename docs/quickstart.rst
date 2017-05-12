@@ -52,13 +52,13 @@ Finally, you can resolve your newly created name:
 
 ::
 
-    getAddr('myname.eth')
+    getAddr('myname.test')
 
 which is shorthand for:
 
 ::
 
-    resolverContract.at(ens.resolver(namehash('myname.eth'))).addr(namehash('myname.eth'))
+    resolverContract.at(ens.resolver(namehash('myname.test'))).addr(namehash('myname.test'))
 
 .. _ensutils.js: https://github.com/ethereum/ens/blob/master/ensutils.js
 .. _ensutils-ropsten.js: https://github.com/ethereum/ens/blob/master/ensutils-ropsten.js
