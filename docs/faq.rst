@@ -12,6 +12,10 @@ How do the DApp and the twitter bot know what names people are auctioning?
 
 The DApp and the twitter bot have built in lists of common names, drawn from an English dictionary and Alexa's list of top 1 million internet domain names. They use these lists to show you when common names are being auctioned. We do this because if the app didn't reveal these names, anyone with a little technical skill could find them out anyway, giving them an advantage over those who don't have the capacity to build their own list and code to check names against it.
 
+What is the disguise amount / extra amount?
+------------------------------
+Although it's difficult for someone to determine what name you are bidding on, in some circumstances it's possible to either determine the exact name, or narrow it down to one of several. The disguise amount allows you to send extra ether along with your bid, to disguise the true amount of your bid. This ether is returned to you as soon as you reveal your bid.
+
 Which wallets and DApps support ENS so far?
 -----------------------------------
 
