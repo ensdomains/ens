@@ -49,6 +49,9 @@ Can I change the address my name points to after I've bought it?
 
 Yes, you can update the addresses and other resources pointed to by your name at any time.
 
+How much do I have to deposit if I'm the only bidder?
+-----------------------------------
+If only one bid is revealed, that bidder deposits 0.01 ether, the minimum bid. The remainder of their bid is refunded as soon as they finalise the auction.
 
 Can I register a TLD of my own in the ENS?
 -----------------------------------
