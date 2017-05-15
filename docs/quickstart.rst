@@ -61,4 +61,4 @@ which is shorthand for:
     resolverContract.at(ens.resolver(namehash('myname.test'))).addr(namehash('myname.test'))
 
 .. _ensutils.js: https://github.com/ethereum/ens/blob/master/ensutils.js
-.. _ensutils-ropsten.js: https://github.com/ethereum/ens/blob/master/ensutils-ropsten.js
+.. _ensutils-testnet.js: https://github.com/ethereum/ens/blob/master/ensutils-testnet.js
