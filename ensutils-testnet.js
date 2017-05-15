@@ -1014,35 +1014,21 @@ var resolverContract = web3.eth.contract([
       {
         "name": "node",
         "type": "bytes32"
-      }
-    ],
-    "name": "addr",
-    "outputs": [
-      {
-        "name": "ret",
-        "type": "address"
-      }
-    ],
-    "payable": false,
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [
-      {
-        "name": "node",
-        "type": "bytes32"
       },
       {
-        "name": "kind",
-        "type": "bytes32"
+        "name": "contentTypes",
+        "type": "uint256"
       }
     ],
-    "name": "has",
+    "name": "ABI",
     "outputs": [
       {
-        "name": "",
-        "type": "bool"
+        "name": "contentType",
+        "type": "uint256"
+      },
+      {
+        "name": "data",
+        "type": "bytes"
       }
     ],
     "payable": false,
@@ -1056,11 +1042,15 @@ var resolverContract = web3.eth.contract([
         "type": "bytes32"
       },
       {
-        "name": "addr",
-        "type": "address"
+        "name": "x",
+        "type": "bytes32"
+      },
+      {
+        "name": "y",
+        "type": "bytes32"
       }
     ],
-    "name": "setAddr",
+    "name": "setPubkey",
     "outputs": [],
     "payable": false,
     "type": "function"
@@ -1084,6 +1074,80 @@ var resolverContract = web3.eth.contract([
     "type": "function"
   },
   {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "node",
+        "type": "bytes32"
+      }
+    ],
+    "name": "addr",
+    "outputs": [
+      {
+        "name": "ret",
+        "type": "address"
+      }
+    ],
+    "payable": false,
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "node",
+        "type": "bytes32"
+      },
+      {
+        "name": "contentType",
+        "type": "uint256"
+      },
+      {
+        "name": "data",
+        "type": "bytes"
+      }
+    ],
+    "name": "setABI",
+    "outputs": [],
+    "payable": false,
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "node",
+        "type": "bytes32"
+      }
+    ],
+    "name": "name",
+    "outputs": [
+      {
+        "name": "ret",
+        "type": "string"
+      }
+    ],
+    "payable": false,
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "node",
+        "type": "bytes32"
+      },
+      {
+        "name": "name",
+        "type": "string"
+      }
+    ],
+    "name": "setName",
+    "outputs": [],
+    "payable": false,
+    "type": "function"
+  },
+  {
     "constant": false,
     "inputs": [
       {
@@ -1101,17 +1165,143 @@ var resolverContract = web3.eth.contract([
     "type": "function"
   },
   {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "node",
+        "type": "bytes32"
+      }
+    ],
+    "name": "pubkey",
+    "outputs": [
+      {
+        "name": "x",
+        "type": "bytes32"
+      },
+      {
+        "name": "y",
+        "type": "bytes32"
+      }
+    ],
+    "payable": false,
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "node",
+        "type": "bytes32"
+      },
+      {
+        "name": "addr",
+        "type": "address"
+      }
+    ],
+    "name": "setAddr",
+    "outputs": [],
+    "payable": false,
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "name": "ensAddr",
         "type": "address"
       }
     ],
+    "payable": false,
     "type": "constructor"
   },
   {
-    "payable": false,
-    "type": "fallback"
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "name": "node",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "name": "a",
+        "type": "address"
+      }
+    ],
+    "name": "AddrChanged",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "name": "node",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "name": "hash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "ContentChanged",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "name": "node",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "name": "name",
+        "type": "string"
+      }
+    ],
+    "name": "NameChanged",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "name": "node",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "name": "contentType",
+        "type": "uint256"
+      }
+    ],
+    "name": "ABIChanged",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "name": "node",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "name": "x",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "name": "y",
+        "type": "bytes32"
+      }
+    ],
+    "name": "PubkeyChanged",
+    "type": "event"
   }
 ]);
 var publicResolver = resolverContract.at('0x4c641fb9bad9b60ef180c31f56051ce826d21a9a');
