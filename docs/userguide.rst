@@ -93,7 +93,7 @@ Bids can be placed at any time during an auction except in the last 48 hours (th
 To bid on an open auction, you need several pieces of data:
 
  - The name you want to register
- - The account you want to register the name under
+ - The account you are sending the bid from
  - The maximum amount you're willing to pay for the name
  - A random 'salt' value
 
@@ -107,7 +107,7 @@ Now, you can generate your 'sealed' bid, with the following code:
 
     var bid = ethRegistrar.shaBid(web3.sha3('name'), eth.accounts[0], web3.toWei(1, 'ether'), web3.sha3('secret'));
 
-The arguments are, in order, the name you want to register, the account you want to register it under, your maximum bid, and the secret value you generated earlier. Note that the account must be one you're able to send transactions from - you'll be required to do so in the reveal step.
+The arguments are, in order, the name you want to register, the account you are sending the bid from, your maximum bid, and the secret value you generated earlier. Note that the bidding account will become the owner. You will lose funds if you seal with one account and send the bid with another!
 
 Next, submit your bid to the registrar:
 
