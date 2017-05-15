@@ -47,6 +47,8 @@ For example, a simple resolver that supports only the `addr` type might look som
 
 This trivial resolver always returns its own address as answer to all queries. Practical resolvers may use any mechanism they wish to determine what results to return, though they should be `constant`, and should minimise gas usage wherever possible.
 
+NOTE: If you are resolving `addr()` records, you MUST treat a return value from the resolver of `0x00...00` as that record being unset. Failing to do so could result in users accidentally sending funds to the null address if they have configured a resolver in ENS, but not set the resolver record!
+
 Resolving names onchain
 =======================
 
