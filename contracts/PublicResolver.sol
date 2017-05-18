@@ -13,12 +13,14 @@ contract PublicResolver {
     bytes4 constant NAME_INTERFACE_ID = 0x691f3431;
     bytes4 constant ABI_INTERFACE_ID = 0x2203ab56;
     bytes4 constant PUBKEY_INTERFACE_ID = 0xc8690233;
+    bytes4 constant TEXT_INTERFACE_ID = 0x59d1d43c;
 
     event AddrChanged(bytes32 indexed node, address a);
     event ContentChanged(bytes32 indexed node, bytes32 hash);
     event NameChanged(bytes32 indexed node, string name);
     event ABIChanged(bytes32 indexed node, uint256 indexed contentType);
     event PubkeyChanged(bytes32 indexed node, bytes32 x, bytes32 y);
+    event TextChanged(bytes32 indexed node, string key, string value);
 
     struct PublicKey {
         bytes32 x;
@@ -30,6 +32,7 @@ contract PublicResolver {
         bytes32 content;
         string name;
         PublicKey pubkey;
+        mapping (string => string) text;
         mapping(uint256=>bytes) abis;
     }
 
@@ -60,6 +63,7 @@ contract PublicResolver {
                interfaceID == NAME_INTERFACE_ID ||
                interfaceID == ABI_INTERFACE_ID ||
                interfaceID == PUBKEY_INTERFACE_ID ||
+               interfaceID == TEXT_INTERFACE_ID ||
                interfaceID == INTERFACE_META_ID;
     }
 
@@ -182,5 +186,27 @@ contract PublicResolver {
     function setPubkey(bytes32 node, bytes32 x, bytes32 y) only_owner(node) {
         records[node].pubkey = PublicKey(x, y);
         PubkeyChanged(node, x, y);
+    }
+
+    /**
+     * Returns the text data associated with an ENS node and key.
+     * @param node The ENS node to query.
+     * @param key The text data key to query.
+     * @return The associated text data.
+     */
+    function text(bytes32 node, string key) constant returns (string ret) {
+        ret = records[node].text[key];
+    }
+
+    /**
+     * Sets the text data associated with an ENS node and key.
+     * May only be called by the owner of that node in the ENS registry.
+     * @param node The node to update.
+     * @param key The key to set.
+     * @param value The text data value to set.
+     */
+    function setText(bytes32 node, string key, string value) only_owner(node) {
+        records[node].text[key] = value;
+        TextChanged(node, key, value);
     }
 }
