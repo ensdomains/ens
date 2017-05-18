@@ -93,7 +93,8 @@ describe('PublicResolver', function() {
 					resolver.supportsInterfaceAsync("0xd8389dc5"),
 					resolver.supportsInterfaceAsync("0x691f3431"),
 					resolver.supportsInterfaceAsync("0x2203ab56"),
-					resolver.supportsInterfaceAsync("0xc8690233")
+					resolver.supportsInterfaceAsync("0xc8690233"),
+					resolver.supportsInterfaceAsync("0x59d1d43c")
 				])
 				.then(results => {
 					assert.equal(results[0], true);
@@ -101,6 +102,7 @@ describe('PublicResolver', function() {
 					assert.equal(results[2], true);
 					assert.equal(results[3], true);
 					assert.equal(results[4], true);
+					assert.equal(results[5], true);
 				});
 		});
 
@@ -421,4 +423,96 @@ describe('PublicResolver', function() {
 				);
 		});
 	});
+
+	describe('setText function', function() {
+	    var url = "https://ethereum.org";
+	    var url2 = "https://github.com/ethereum";
+
+		it('permits setting text by owner', function() {
+			return resolver.setTextAsync(utils.node, "url", url, {from: accounts[0]});
+		});
+
+		it('can overwrite previously set text', function() {
+			this.slow(200);
+			return resolver.setTextAsync(utils.node, "url", url, {from: accounts[0]})
+				.then(txid => resolver.setTextAsync(utils.node, "url", url2, {from: accounts[0]}));
+		});
+
+		it('can overwrite to same text', function() {
+			this.slow(200);
+			return resolver.setTextAsync(utils.node, "url", url, {from: accounts[0]})
+				.then(txid => resolver.setTextAsync(utils.node, "url", url, {from: accounts[0]}));
+		});
+
+		it('forbids setting new text by non-owners', function() {
+			return resolver.setTextAsync(utils.node, "url", url, {from: accounts[1]})
+				.then(
+					tx => { throw new Error("expected to be forbidden"); },
+					err => assert.ok(err, err)
+				);
+		});
+
+		it('forbids writing same text by non-owners', function() {
+			return resolver.setTextAsync(utils.node, "url", url, {from: accounts[0]})
+				.then(txid => resolver.setTextAsync(utils.node, "url", url, {from: accounts[1]}))
+				.then(
+					tx => { throw new Error("expected to be forbidden"); },
+					err => assert.ok(err, err)
+				);
+		});
+
+		it('forbids overwriting existing text by non-owners', function() {
+			return resolver.setTextAsync(utils.node, "url", url, {from: accounts[0]})
+				.then(txid => resolver.setTextAsync(utils.node, "url", url, {from: accounts[1]}))
+				.then(
+					tx => { throw new Error("expected to be forbidden"); },
+					err => assert.ok(err, err)
+				);
+		});
+
+	});
+
+	describe('text function', function() {
+	    var url = "https://ethereum.org";
+	    var email = "test@ethereum.org";
+
+		it('returns empty string when fetching nonexistent addresses', function() {
+			this.slow(200);
+			return resolver.textAsync(utils.node, "url")
+				.then(result => assert.equal(result, ""));
+		});
+
+		it('returns previously set text', function() {
+			this.slow(200);
+			return resolver.setTextAsync(utils.node, "url", url, {from: accounts[0]})
+				.then(txid => resolver.textAsync(utils.node, "url"))
+				.then(result => assert.equal(result, url));
+		});
+
+		it('returns different text values for different keys', function() {
+			this.slow(200);
+			return resolver.setTextAsync(utils.node, "url", url, {from: accounts[0]})
+				.then(txid => resolver.textAsync(utils.node, "url"))
+				.then(result => assert.equal(result, url))
+
+				// Set e-mail
+				.then(txid => resolver.setTextAsync(utils.node, "email", email, {from: accounts[0]}))
+				.then(txid => resolver.textAsync(utils.node, "email"))
+				.then(result => assert.equal(result, email))
+
+				// Check url is still unchanged
+				.then(txid => resolver.textAsync(utils.node, "url"))
+				.then(result => assert.equal(result, url));
+		});
+
+		it('returns overwritten text', function() {
+			this.slow(300);
+			return resolver.setTextAsync(utils.node, "url", url, {from: accounts[0]})
+				.then(txid => resolver.setTextAsync(utils.node, "url", url, {from: accounts[0]}))
+				.then(txid => resolver.textAsync(utils.node, "url"))
+				.then(result => assert.equal(result, url));
+		});
+
+	});
+
 });
