@@ -20,7 +20,7 @@ contract PublicResolver {
     event NameChanged(bytes32 indexed node, string name);
     event ABIChanged(bytes32 indexed node, uint256 indexed contentType);
     event PubkeyChanged(bytes32 indexed node, bytes32 x, bytes32 y);
-    event TextChanged(bytes32 indexed node, string key, string value);
+    event TextChanged(bytes32 indexed node, string indexed indexedKey, string key);
 
     struct PublicKey {
         bytes32 x;
@@ -207,6 +207,6 @@ contract PublicResolver {
      */
     function setText(bytes32 node, string key, string value) only_owner(node) {
         records[node].text[key] = value;
-        TextChanged(node, key, value);
+        TextChanged(node, key, key);
     }
 }
