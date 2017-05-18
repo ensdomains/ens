@@ -32,7 +32,7 @@ contract PublicResolver {
         bytes32 content;
         string name;
         PublicKey pubkey;
-        mapping (string => string) text;
+        mapping(string=>string) text;
         mapping(uint256=>bytes) abis;
     }
 
