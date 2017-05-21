@@ -203,7 +203,7 @@ You can set the resolver contract for a name using `setResolver`:
 
     > ens.setResolver(namehash('somename.eth'), resolverAddress, {from: eth.accounts[0]});
 
-A resolver is any contract that implements the resolver interface implemented in EIP137_. You can deploy your own resolver, or you can use a publicly available one; on the mainnet, a simple resolver that supports 'address' records and is usable by anyone is available; ensutils.js exposes it as `publicResolver`. To use it, first set it as the resolver for your name:
+A resolver is any contract that implements the resolver interface specified in EIP137_. You can deploy your own resolver, or you can use a publicly available one; on the mainnet, a simple resolver that supports 'address' records and is usable by anyone is available; ensutils.js exposes it as `publicResolver`. To use it, first set it as the resolver for your name:
 
 ::
 
@@ -340,7 +340,7 @@ Call the `claim` function on the `reverseRegistrar` object:
 After that transaction is mined, the appropriate reverse record is now owned by your account, and, you can deploy a resolver and set records on it; see :ref:`interacting` for details.
 
 .. _ethereum-ens: https://www.npmjs.com/package/ethereum-ens
-.. _EIP137: https://github.com/ethereum/EIPs/issues/137
+.. _EIP137: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-137.md
 .. _`ENS registry interface`: https://github.com/ethereum/ens/blob/master/contracts/AbstractENS.sol
 .. _EIP162: https://github.com/ethereum/EIPs/issues/162
 .. _ensutils.js: https://github.com/ethereum/ens/blob/master/ensutils.js
