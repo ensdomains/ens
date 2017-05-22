@@ -136,7 +136,14 @@ To reveal, call the `unsealBid` function with the same values you provided earli
 
 The arguments to `unsealBid` have the same order and meaning as those to `shaBid`, described in the bidding step, except that you don't need to supply the account - it's derived from your sending address.
 
-After revealing your bid, the auction will be updated. If your bid is less than a previously revealed bid, you will be refunded the whole amount of your bid. If your bid is the largest revealed so far, you will be set as the current leading bidder, and the difference between the actual amount of your bid and the amount you sent will be refunded immediately. If you are later outbid, your bid will be sent back to you at that point.
+After revealing your bid, the auction will be updated.
+
+If your bid is less than a previously revealed bid, you will be refunded the whole amount of your bid.
+
+If your bid is the largest revealed so far, you will be set as the current leading bidder. The difference between the actual amount of your bid and the amount you sent will be refunded immediately. The remainder - the actual bid - will stay locked. If you are later outbid it will be sent back to you.
+
+Checking auctions
+-----------------
 
 At any time, you can check the current winning bidder with:
 
@@ -203,7 +210,7 @@ You can set the resolver contract for a name using `setResolver`:
 
     > ens.setResolver(namehash('somename.eth'), resolverAddress, {from: eth.accounts[0]});
 
-A resolver is any contract that implements the resolver interface implemented in EIP137_. You can deploy your own resolver, or you can use a publicly available one; on the mainnet, a simple resolver that supports 'address' records and is usable by anyone is available; ensutils.js exposes it as `publicResolver`. To use it, first set it as the resolver for your name:
+A resolver is any contract that implements the resolver interface specified in EIP137_. You can deploy your own resolver, or you can use a publicly available one; on the mainnet, a simple resolver that supports 'address' records and is usable by anyone is available; ensutils.js exposes it as `publicResolver`. To use it, first set it as the resolver for your name:
 
 ::
 
@@ -220,11 +227,13 @@ The above example configures 'somename.eth' to resolve to the address of your pr
 Transferring a name
 -------------------
 
-You can transfer ownership of a name you control to someone else using `setOwner`:
+You can transfer ownership of a name you own in the ENS registry to someone else using `setOwner`:
 
 ::
 
     > ens.setOwner(namehash('somename.eth'), newOwner, {from: eth.accounts[0]});
+
+Note, however, that if the name was acquired through a registrar, such as through an auction described above, this will not transfer ownership of the locked bid! It will also not perform any administrative tasks that a registrar might want to do.
 
 Creating a subdomain
 --------------------
@@ -340,7 +349,7 @@ Call the `claim` function on the `reverseRegistrar` object:
 After that transaction is mined, the appropriate reverse record is now owned by your account, and, you can deploy a resolver and set records on it; see :ref:`interacting` for details.
 
 .. _ethereum-ens: https://www.npmjs.com/package/ethereum-ens
-.. _EIP137: https://github.com/ethereum/EIPs/issues/137
+.. _EIP137: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-137.md
 .. _`ENS registry interface`: https://github.com/ethereum/ens/blob/master/contracts/AbstractENS.sol
 .. _EIP162: https://github.com/ethereum/EIPs/issues/162
 .. _ensutils.js: https://github.com/ethereum/ens/blob/master/ensutils.js
