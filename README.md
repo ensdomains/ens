@@ -4,7 +4,7 @@
 
 Implementations for registrars and local resolvers for the Ethereum Name Service.
 
-For documentation of the ENS system, see [docs.ens.domains](http://docs.ens.domains/).
+For documentation of the ENS system, see [docs.ens.domains](https://docs.ens.domains/).
 
 To run unit tests, clone this repository, and run:
 
