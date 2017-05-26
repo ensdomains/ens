@@ -39,6 +39,16 @@ How is the start time for each name determined?
 
 Internally, we hash the name using keccak256, and express the result as a number between 0 and 1. Then, we multiply that by the duration of the launch period (8 weeks) and add that to the start date (May 4th 2017 1100 UTC) to generate the time at which that name can first be auctioned. You can see the code for this here_.
 
+I bid on an auction and didn't win; why don't I see the refund in my transaction list?
+-----------------------------------
+
+Refunds are sent as part of reveal transactions - when you reveal, if someone already outbid you, or when you're outbid later, if not - and as part of finalise transactions. They're not separate transactions, so they don't show up as such. If you're using etherscan, check the 'internal transctions' tab to find your refund information.
+
+I bid on one name, but Etherscan shows me as bidding on other name(s)! Why?
+-----------------------------------
+
+The registrar DApp opens up to three randomly selected auctions as 'chaff' every time you place a bid, to make it more difficult for people to guess what you are bidding on. The names you see are not necessarily the one you're bidding on; that's contained in the sealed bid hash that was submitted.
+
 Once I own a name, can I create my own subdomains?
 -----------------------------------
 
