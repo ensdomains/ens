@@ -1284,9 +1284,41 @@ var resolverContract = web3.eth.contract([
     "type": "event"
   }
 ]);
-var publicResolver = resolverContract.at('0x1da022710df5002339274aadee8d58218e9d6ab5');
+
+function getAddr(name) {
+  var node = namehash(name)
+  var resolverAddress = ens.resolver(node);
+  if (resolverAddress === '0x0000000000000000000000000000000000000000') {
+    return resolverAddress;
+  }
+  return resolverContract.at(resolverAddress).addr(node);
+}
+
+var publicResolver = resolverContract.at(getAddr('resolver.eth'));
 
 var reverseRegistrarContract = web3.eth.contract([
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "owner",
+        "type": "address"
+      },
+      {
+        "name": "resolver",
+        "type": "address"
+      }
+    ],
+    "name": "claimWithResolver",
+    "outputs": [
+      {
+        "name": "node",
+        "type": "bytes32"
+      }
+    ],
+    "payable": false,
+    "type": "function"
+  },
   {
     "constant": false,
     "inputs": [
@@ -1320,6 +1352,19 @@ var reverseRegistrarContract = web3.eth.contract([
   },
   {
     "constant": true,
+    "inputs": [],
+    "name": "defaultResolver",
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "payable": false,
+    "type": "function"
+  },
+  {
+    "constant": true,
     "inputs": [
       {
         "name": "addr",
@@ -1337,12 +1382,17 @@ var reverseRegistrarContract = web3.eth.contract([
     "type": "function"
   },
   {
-    "constant": true,
-    "inputs": [],
-    "name": "rootNode",
+    "constant": false,
+    "inputs": [
+      {
+        "name": "name",
+        "type": "string"
+      }
+    ],
+    "name": "setName",
     "outputs": [
       {
-        "name": "",
+        "name": "node",
         "type": "bytes32"
       }
     ],
@@ -1356,8 +1406,8 @@ var reverseRegistrarContract = web3.eth.contract([
         "type": "address"
       },
       {
-        "name": "node",
-        "type": "bytes32"
+        "name": "resolverAddr",
+        "type": "address"
       }
     ],
     "payable": false,
@@ -1365,15 +1415,6 @@ var reverseRegistrarContract = web3.eth.contract([
   }
 ]);
 var reverseRegistrar = reverseRegistrarContract.at(ens.owner(namehash('addr.reverse')));
-
-function getAddr(name) {
-  var node = namehash(name)
-  var resolverAddress = ens.resolver(node);
-  if (resolverAddress === '0x0000000000000000000000000000000000000000') {
-    return resolverAddress;
-  }
-  return resolverContract.at(resolverAddress).addr(node);
-}
 
 function getContent(name) {
   var node = namehash(name)
