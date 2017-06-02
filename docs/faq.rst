@@ -39,6 +39,18 @@ How is the start time for each name determined?
 
 Internally, we hash the name using keccak256, and express the result as a number between 0 and 1. Then, we multiply that by the duration of the launch period (8 weeks) and add that to the start date (May 4th 2017 1100 UTC) to generate the time at which that name can first be auctioned. You can see the code for this here_.
 
+Why is my reveal transaction failing?
+-----------------------------------
+
+Confirm all the values you put in during the bid, and try using a blockchain explorer to confirm the state of the ENS auction.  These are situations that cause errors during the reveal transaction:
+
+* You never successfully bid
+* You're trying to reveal too early
+* The domain name is wrong
+* The amount is wrong
+* The secret phrase is wrong
+* You already revealed
+
 I bid on an auction and didn't win; why don't I see the refund in my transaction list?
 -----------------------------------
 
