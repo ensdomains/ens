@@ -341,11 +341,13 @@ For convenience, ensutils.js provides a function, `getAddr` that does all of thi
 Reverse name resolution
 =======================
 
-ENS also supports reverse resolution of Ethereum addresses. This allows an account (contract or external) to associate metadata with itself, such as its canonical name.
+ENS also supports reverse resolution of Ethereum addresses. This allows an account (contract or external) to associate metadata with itself, such as its canonical name - 'Ethereum caller ID' if you will.
 
 Reverse records are in the format `<ethereum address>.addr.reverse` - for instance, the official registry would have its reverse records at `314159265dd8dbb310642f98f50c066173c1259b.addr.reverse`.
 
-`addr.reverse` has a registrar with a `claim` function, which permits any account to take ownership of its reverse record in ENS. The claim function takes one argument, the Ethereum address that should own the reverse record.
+`addr.reverse` has a registrar with `claim`, `claimWithResolver`, and `setName` functions.
+
+The claim function takes one argument, the Ethereum address that should own the reverse record.
 
 This permits a very simple pattern for contracts that wish to delegate control of their reverse record to their creator; they simply need to add this function call to their constructor:
 
@@ -361,8 +363,25 @@ Call the `claim` function on the `reverseRegistrar` object:
 ::
 
     reverseRegistrar.claim(eth.accounts[0], {from: eth.accounts[0]});
-
+    
 After that transaction is mined, the appropriate reverse record is now owned by your account, and, you can deploy a resolver and set records on it; see :ref:`interacting` for details.
+
+Alternately, you can claim and set the resolver record in one operation:
+
+::
+
+    reverseRegistrar.claimWithResolver(eth.accounts[0], publicResolver.address, {from: eth.accounts[0]});
+
+Setting up a reverse name for your address
+---------------------
+
+If you just want to set up a reverse resolver with a name record, a quick convenience function is available in the reverse registrar:
+
+::
+
+    reverseRegistrar.setName('myname.eth', {from: eth.accounts[0]});
+
+This function points your reverse record at a default resolver, then sets the name record on that resolver for you - everything you need to set up 'caller ID' in a single transaction.
 
 .. _ethereum-ens: https://www.npmjs.com/package/ethereum-ens
 .. _EIP137: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-137.md
