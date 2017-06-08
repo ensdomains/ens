@@ -90,7 +90,7 @@ A sample implementation in Python is provided below.
 ENS on Ethereum
 ===============
 
-ENS is deployed on mainnet at 0x314159265dd8dbb310642f98f50c066173c1259b_, where users may register names under the eth TLD, which uses an auction based registrar.
+ENS is deployed on mainnet at `0x6090a6e47849629b7245dfa1ca21d94cd15878ef <https://etherscan.io/address/0x6090a6e47849629b7245dfa1ca21d94cd15878ef>`_, where users may register names under the eth TLD, which uses an auction based registrar.
 
 ENS is also deployed on the Ropsten testnet at 0x112234455c3a32fd11230c42e7bccd4a84e02010_. Users may register names under two top level domains:
 
