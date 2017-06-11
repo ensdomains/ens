@@ -57,13 +57,21 @@ Before placing a bid, you need to check if the name is available. Run this code 
 
     ethRegistrar.entries(web3.sha3('name'))[0];
 
-If the returned value is `0`, the name is available, and not currently up for auction. If the returned value is `1`, the name is currently up for auction. If the returned value is `5`, that means that the 'soft launch' is in effect, and your name isn't yet available; you can check when it will be available for auction with:
+This will return a value with a total of 6 numbers between 0 and 5. The full solidity data structure for this can be viewed `here <https://github.com/ethereum/ens/blob/master/contracts/HashRegistrarSimplified.sol#L110>`_ in the Registrar contract. The numbers represent different 'states' a name is currently in.
+
+- 0 - Name is available and the auction hasn't started
+- 1 - Name is available and the auction has been started
+- 2 - Name is taken and currently owned by someone
+- 3 - Name is forbidden
+- 4 - Name is currently in the 'reveal' stage of the auction
+- 5 - Name is not yet available due to the 'soft launch' of names.
+
+If the returned value is `5`, and is in the 'soft launch' is in effect; you can check when it will be available for auction with:
 
 ::
 
     new Date(ethRegistrar.getAllowedTime(web3.sha3('name')) * 1000);
 
-Any other value from `entries` indicates the name is not available.
 
 To start an auction for a name that's not already up for auction, call `startAuction`:
 
