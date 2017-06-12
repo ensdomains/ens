@@ -57,7 +57,7 @@ Before placing a bid, you need to check if the name is available. Run this code 
 
     ethRegistrar.entries(web3.sha3('name'))[0];
 
-This will return a value with a total of 6 numbers between 0 and 5. The full solidity data structure for this can be viewed `here <https://github.com/ethereum/ens/blob/master/contracts/HashRegistrarSimplified.sol#L110>`_ in the Registrar contract. The numbers represent different 'states' a name is currently in.
+This will return a single integer between 0 and 5. The full solidity data structure for this can be viewed `here <https://github.com/ethereum/ens/blob/master/contracts/HashRegistrarSimplified.sol#L110>`_ in the Registrar contract. The numbers represent different 'states' a name is currently in.
 
 - 0 - Name is available and the auction hasn't started
 - 1 - Name is available and the auction has been started
