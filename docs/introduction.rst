@@ -107,6 +107,7 @@ Resources
  - ethereum-ens_ Javascript library
  - Nick's talk on ENS at DevCon 2: https://www.youtube.com/watch?v=pLDDbCZXvTE
  - DevCon 2 talk slides: https://arachnid.github.io/devcon2/#/title
+ - Web interface for Ethereum enabled browsers: https://registrar.ens.domains
 
 
  .. _0x112234455c3a32fd11230c42e7bccd4a84e02010: https://ropsten.etherscan.io/address/0x112234455c3a32fd11230c42e7bccd4a84e02010
