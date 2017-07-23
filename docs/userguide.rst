@@ -253,13 +253,11 @@ The above example configures 'somename.eth' to resolve to the address of your pr
 Transferring a name
 -------------------
 
-You can transfer ownership of a name you own in the ENS registry to another trusted account using `setOwner`:
+You can transfer ownership of a name you own in the ENS registry to another account using `setOwner`:
 
 ::
 
     > ens.setOwner(namehash('somename.eth'), newOwner, {from: eth.accounts[0]});
-
-This way, the bidding/renewal account ``eth.accounts[0]`` can be kept separate from the day-to-day control account ``newOwner``.
 
 .. NOTE::
 
