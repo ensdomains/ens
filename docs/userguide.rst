@@ -389,7 +389,7 @@ Alternately, you can claim and set the resolver record in one operation:
     reverseRegistrar.claimWithResolver(eth.accounts[0], publicResolver.address, {from: eth.accounts[0]});
 
 Setting up a reverse name for your address
----------------------
+------------------------------------------
 
 If you just want to set up a reverse resolver with a name record, a quick convenience function is available in the reverse registrar:
 
