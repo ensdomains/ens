@@ -179,7 +179,7 @@ Once called, the winning bidder will be refunded the difference between their bi
 If you are the winning bidder, congratulations!
 
 Managing Ownership
-----------------------
+------------------
 
 After finalizing, your account now owns both the name in ENS and the deed in the Auction Registrar.
 
@@ -251,13 +251,19 @@ The above example configures 'somename.eth' to resolve to the address of your pr
 Transferring a name
 -------------------
 
-You can transfer ownership of a name you own in the ENS registry to someone else using `setOwner`:
+You can transfer ownership of a name you own in the ENS registry to another trusted account using `setOwner`:
 
 ::
 
     > ens.setOwner(namehash('somename.eth'), newOwner, {from: eth.accounts[0]});
 
-Note, however, that if the name was acquired through a registrar, such as through an auction described above, this will not transfer ownership of the locked bid! It will also not perform any administrative tasks that a registrar might want to do.
+This way, the bidding/renewal account `eth.accounts[0]` can be kept separate from the day-to-day control account `newOwner`.
+
+.. NOTE::
+
+   If the name was acquired through a registrar, such as through a '.eth' auction process, this will not transfer ownership of the locked bid. It will also not perform any administrative tasks that a registrar might want to do.
+
+   In general, to perform a complete transfer of a name acquired through a registrar, that particular registrar should be used as the interface. For the '.eth' registrar, see :ref:`managing-ownership`.
 
 Creating a subdomain
 --------------------
