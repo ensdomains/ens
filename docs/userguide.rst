@@ -178,8 +178,10 @@ Once called, the winning bidder will be refunded the difference between their bi
 
 If you are the winning bidder, congratulations!
 
+.. _managing-ownership:
+
 Managing Ownership
-----------------------
+------------------
 
 After finalizing, your account now owns both the name in ENS and the deed in the Auction Registrar.
 
@@ -251,13 +253,17 @@ The above example configures 'somename.eth' to resolve to the address of your pr
 Transferring a name
 -------------------
 
-You can transfer ownership of a name you own in the ENS registry to someone else using `setOwner`:
+You can transfer ownership of a name you own in the ENS registry to another account using `setOwner`:
 
 ::
 
     > ens.setOwner(namehash('somename.eth'), newOwner, {from: eth.accounts[0]});
 
-Note, however, that if the name was acquired through a registrar, such as through an auction described above, this will not transfer ownership of the locked bid! It will also not perform any administrative tasks that a registrar might want to do.
+.. NOTE::
+
+   If the name was acquired through a registrar, such as through a '.eth' auction process, this will not transfer ownership of the locked bid. It will also not perform any administrative tasks that a registrar might want to do.
+
+   In general, to perform a complete transfer of a name acquired through a registrar, that particular registrar should be used as the interface. For the '.eth' registrar, see :ref:`managing-ownership`.
 
 Creating a subdomain
 --------------------
@@ -381,7 +387,7 @@ Alternately, you can claim and set the resolver record in one operation:
     reverseRegistrar.claimWithResolver(eth.accounts[0], publicResolver.address, {from: eth.accounts[0]});
 
 Setting up a reverse name for your address
----------------------
+------------------------------------------
 
 If you just want to set up a reverse resolver with a name record, a quick convenience function is available in the reverse registrar:
 
