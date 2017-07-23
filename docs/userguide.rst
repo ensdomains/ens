@@ -178,6 +178,8 @@ Once called, the winning bidder will be refunded the difference between their bi
 
 If you are the winning bidder, congratulations!
 
+.. _managing-ownership:
+
 Managing Ownership
 ------------------
 
@@ -257,7 +259,7 @@ You can transfer ownership of a name you own in the ENS registry to another trus
 
     > ens.setOwner(namehash('somename.eth'), newOwner, {from: eth.accounts[0]});
 
-This way, the bidding/renewal account `eth.accounts[0]` can be kept separate from the day-to-day control account `newOwner`.
+This way, the bidding/renewal account ``eth.accounts[0]`` can be kept separate from the day-to-day control account ``newOwner``.
 
 .. NOTE::
 
