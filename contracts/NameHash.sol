@@ -6,7 +6,7 @@ import "github.com/Arachnid/solidity-stringutils/strings.sol";
 /**
  * Namehash algorighm implementation in Solidity.
  */
-contract NameHash
+library NameHash
  {
     using strings for *;
     
