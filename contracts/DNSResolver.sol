@@ -9,7 +9,7 @@ contract DNSResolver {
     }
     
     modifier owner_only {
-        if (msg.sender != owner) throw;
+        if (msg.sender != owner) revert();
         _;
     }
     
