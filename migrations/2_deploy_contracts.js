@@ -17,7 +17,7 @@ const namehash = require('../node_modules/eth-ens-namehash');
 function getRootNodeFromTLD(tld) {
   return {
     namehash: namehash(tld),
-    sha3: web3.sha3(tld)
+    sha3: web3.util.sha3(tld)
   };
 }
 
