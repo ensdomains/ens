@@ -9,7 +9,7 @@ import './AbstractENS.sol';
 contract PublicResolver {
     bytes4 constant INTERFACE_META_ID = 0x01ffc9a7;
     bytes4 constant ADDR_INTERFACE_ID = 0x3b3b57de;
-    bytes4 constant CONTENT_INTERFACE_ID = 0xd8389dc5;
+    bytes4 constant CONTENT_INTERFACE_ID = 0x2dff6941;
     bytes4 constant NAME_INTERFACE_ID = 0x691f3431;
     bytes4 constant ABI_INTERFACE_ID = 0x2203ab56;
     bytes4 constant PUBKEY_INTERFACE_ID = 0xc8690233;
@@ -120,7 +120,7 @@ contract PublicResolver {
     function name(bytes32 node) constant returns (string ret) {
         ret = records[node].name;
     }
-    
+
     /**
      * Sets the name associated with an ENS node, for reverse records.
      * May only be called by the owner of that node in the ENS registry.
@@ -162,11 +162,11 @@ contract PublicResolver {
     function setABI(bytes32 node, uint256 contentType, bytes data) only_owner(node) {
         // Content types must be powers of 2
         if (((contentType - 1) & contentType) != 0) throw;
-        
+
         records[node].abis[contentType] = data;
         ABIChanged(node, contentType);
     }
-    
+
     /**
      * Returns the SECP256k1 public key associated with an ENS node.
      * Defined in EIP 619.
@@ -176,7 +176,7 @@ contract PublicResolver {
     function pubkey(bytes32 node) constant returns (bytes32 x, bytes32 y) {
         return (records[node].pubkey.x, records[node].pubkey.y);
     }
-    
+
     /**
      * Sets the SECP256k1 public key associated with an ENS node.
      * @param node The ENS node to query
