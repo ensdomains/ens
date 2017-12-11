@@ -10,6 +10,7 @@ contract PublicResolver {
     bytes4 constant INTERFACE_META_ID = 0x01ffc9a7;
     bytes4 constant ADDR_INTERFACE_ID = 0x3b3b57de;
     bytes4 constant CONTENT_INTERFACE_ID = 0xd8389dc5;
+    bytes4 constant MULTIHASH_INTERFACE_ID = 0xe89401a1;
     bytes4 constant NAME_INTERFACE_ID = 0x691f3431;
     bytes4 constant ABI_INTERFACE_ID = 0x2203ab56;
     bytes4 constant PUBKEY_INTERFACE_ID = 0xc8690233;
@@ -17,6 +18,7 @@ contract PublicResolver {
 
     event AddrChanged(bytes32 indexed node, address a);
     event ContentChanged(bytes32 indexed node, bytes32 hash);
+    event MultihashChanged(bytes32 indexed node, bytes multihash);
     event NameChanged(bytes32 indexed node, string name);
     event ABIChanged(bytes32 indexed node, uint256 indexed contentType);
     event PubkeyChanged(bytes32 indexed node, bytes32 x, bytes32 y);
@@ -30,6 +32,7 @@ contract PublicResolver {
     struct Record {
         address addr;
         bytes32 content;
+        bytes multihash;
         string name;
         PublicKey pubkey;
         mapping(string=>string) text;
@@ -60,6 +63,7 @@ contract PublicResolver {
     function supportsInterface(bytes4 interfaceID) constant returns (bool) {
         return interfaceID == ADDR_INTERFACE_ID ||
                interfaceID == CONTENT_INTERFACE_ID ||
+               interfaceID == MULTIHASH_INTERFACE_ID ||
                interfaceID == NAME_INTERFACE_ID ||
                interfaceID == ABI_INTERFACE_ID ||
                interfaceID == PUBKEY_INTERFACE_ID ||
@@ -98,6 +102,8 @@ contract PublicResolver {
         ret = records[node].content;
     }
 
+
+
     /**
      * Sets the content hash associated with an ENS node.
      * May only be called by the owner of that node in the ENS registry.
@@ -112,6 +118,27 @@ contract PublicResolver {
     }
 
     /**
+     * Returns the content multihash associated with an ENS node.
+     * @param node The ENS node to query.
+     * @return The associated content multihash.
+     */
+    function multihash(bytes32 node) public constant returns (bytes ret) {
+        ret = records[node].multihash;
+    }
+
+    /**
+     * Sets the content hash associated with an ENS node.
+     * May only be called by the owner of that node in the ENS registry.
+     * @param node The node to update.
+     * @param multihash The content hash to set
+     */
+    function setMultihash(bytes32 node, bytes multihash) public only_owner(node) {
+        records[node].multihash = multihash;
+        MultihashChanged(node, multihash);
+    }
+
+
+    /**
      * Returns the name associated with an ENS node, for reverse records.
      * Defined in EIP181.
      * @param node The ENS node to query.
@@ -120,7 +147,7 @@ contract PublicResolver {
     function name(bytes32 node) constant returns (string ret) {
         ret = records[node].name;
     }
-    
+
     /**
      * Sets the name associated with an ENS node, for reverse records.
      * May only be called by the owner of that node in the ENS registry.
@@ -162,11 +189,11 @@ contract PublicResolver {
     function setABI(bytes32 node, uint256 contentType, bytes data) only_owner(node) {
         // Content types must be powers of 2
         if (((contentType - 1) & contentType) != 0) throw;
-        
+
         records[node].abis[contentType] = data;
         ABIChanged(node, contentType);
     }
-    
+
     /**
      * Returns the SECP256k1 public key associated with an ENS node.
      * Defined in EIP 619.
@@ -176,7 +203,7 @@ contract PublicResolver {
     function pubkey(bytes32 node) constant returns (bytes32 x, bytes32 y) {
         return (records[node].pubkey.x, records[node].pubkey.y);
     }
-    
+
     /**
      * Sets the SECP256k1 public key associated with an ENS node.
      * @param node The ENS node to query
