@@ -352,8 +352,7 @@ section.section {
 =========================== */
 .navbar {
 	line-height: 100px;
-	height: 100px;
-	background-color: rgba(0,0,0,0.3);
+	background-color: rgba(0,0,0,0.7);
 	display: block;
 	vertical-align: middle;
 	text-align: center;
@@ -414,7 +413,7 @@ h1 a.navbar-brand {
 	padding: 0;
 	display: table-cell;
 	vertical-align: middle;
-	line-height: 90px;
+	line-height: 50px;
 }
 
 .navbar-brand img {
