@@ -1,6 +1,6 @@
 pragma solidity ^0.4.10;
 
-import "./AbstractENS.sol";
+import "./ENS.sol";
 
 contract Resolver {
     function setName(bytes32 node, string name) public;
@@ -14,19 +14,19 @@ contract DefaultReverseResolver is Resolver {
     // namehash('addr.reverse')
     bytes32 constant ADDR_REVERSE_NODE = 0x91d1777781884d03a6757a803996e38de2a42967fb37eeaca72729271025a9e2;
 
-    AbstractENS public ens;
-    mapping(bytes32=>string) public name;
+    ENS public ens;
+    mapping (bytes32 => string) public name;
     
     /**
      * @dev Constructor
      * @param ensAddr The address of the ENS registry.
      */
-    function DefaultReverseResolver(AbstractENS ensAddr) {
+    function DefaultReverseResolver(ENS ensAddr) public {
         ens = ensAddr;
 
         // Assign ownership of the reverse record to our deployer
-        var registrar = ReverseRegistrar(ens.owner(ADDR_REVERSE_NODE));
-        if(address(registrar) != 0) {
+        ReverseRegistrar registrar = ReverseRegistrar(ens.owner(ADDR_REVERSE_NODE));
+        if (address(registrar) != 0) {
             registrar.claim(msg.sender);
         }
     }
@@ -54,7 +54,7 @@ contract ReverseRegistrar {
     // namehash('addr.reverse')
     bytes32 constant ADDR_REVERSE_NODE = 0x91d1777781884d03a6757a803996e38de2a42967fb37eeaca72729271025a9e2;
 
-    AbstractENS public ens;
+    ENS public ens;
     Resolver public defaultResolver;
 
     /**
@@ -62,7 +62,7 @@ contract ReverseRegistrar {
      * @param ensAddr The address of the ENS registry.
      * @param resolverAddr The address of the default reverse resolver.
      */
-    function ReverseRegistrar(AbstractENS ensAddr, Resolver resolverAddr) {
+    function ReverseRegistrar(ENS ensAddr, Resolver resolverAddr) public {
         ens = ensAddr;
         defaultResolver = resolverAddr;
 
@@ -79,7 +79,7 @@ contract ReverseRegistrar {
      * @param owner The address to set as the owner of the reverse record in ENS.
      * @return The ENS node hash of the reverse record.
      */
-    function claim(address owner) returns (bytes32 node) {
+    function claim(address owner) public returns (bytes32) {
         return claimWithResolver(owner, 0);
     }
 
@@ -90,15 +90,15 @@ contract ReverseRegistrar {
      * @param resolver The address of the resolver to set; 0 to leave unchanged.
      * @return The ENS node hash of the reverse record.
      */
-    function claimWithResolver(address owner, address resolver) returns (bytes32 node) {
+    function claimWithResolver(address owner, address resolver) public returns (bytes32) {
         var label = sha3HexAddress(msg.sender);
-        node = sha3(ADDR_REVERSE_NODE, label);
+        bytes32 node = keccak256(ADDR_REVERSE_NODE, label);
         var currentOwner = ens.owner(node);
 
         // Update the resolver if required
-        if(resolver != 0 && resolver != ens.resolver(node)) {
+        if (resolver != 0 && resolver != ens.resolver(node)) {
             // Transfer the name to us first if it's not already
-            if(currentOwner != address(this)) {
+            if (currentOwner != address(this)) {
                 ens.setSubnodeOwner(ADDR_REVERSE_NODE, label, this);
                 currentOwner = address(this);
             }
@@ -106,7 +106,7 @@ contract ReverseRegistrar {
         }
 
         // Update the owner if required
-        if(currentOwner != owner) {
+        if (currentOwner != owner) {
             ens.setSubnodeOwner(ADDR_REVERSE_NODE, label, owner);
         }
 
@@ -120,8 +120,8 @@ contract ReverseRegistrar {
      * @param name The name to set for this address.
      * @return The ENS node hash of the reverse record.
      */
-    function setName(string name) returns (bytes32 node) {
-        node = claimWithResolver(this, defaultResolver);
+    function setName(string name) public returns (bytes32) {
+        bytes32 node = claimWithResolver(this, defaultResolver);
         defaultResolver.setName(node, name);
         return node;
     }
@@ -131,8 +131,8 @@ contract ReverseRegistrar {
      * @param addr The address to hash
      * @return The ENS node hash.
      */
-    function node(address addr) constant returns (bytes32 ret) {
-        return sha3(ADDR_REVERSE_NODE, sha3HexAddress(addr));
+    function node(address addr) public view returns (bytes32) {
+        return keccak256(ADDR_REVERSE_NODE, sha3HexAddress(addr));
     }
 
     /**
@@ -155,7 +155,7 @@ contract ReverseRegistrar {
             mstore8(i, byte(and(addr, 0xf), lookup))
             addr := div(addr, 0x10)
             jumpi(loop, i)
-            ret := sha3(0, 40)
+            ret := keccak256(0, 40)
         }
     }
 }

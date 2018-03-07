@@ -1,6 +1,6 @@
-pragma solidity ^0.4.0;
+pragma solidity ^0.4.18;
 
-import './AbstractENS.sol';
+import './ENS.sol';
 
 /**
  * A simple resolver anyone can use; only allows the owner of a node to set its
@@ -36,11 +36,11 @@ contract PublicResolver {
         mapping(uint256=>bytes) abis;
     }
 
-    AbstractENS ens;
-    mapping(bytes32=>Record) records;
+    ENS ens;
+    mapping (bytes32 => Record) records;
 
     modifier only_owner(bytes32 node) {
-        if (ens.owner(node) != msg.sender) throw;
+        require(ens.owner(node) == msg.sender);
         _;
     }
 
@@ -48,7 +48,7 @@ contract PublicResolver {
      * Constructor.
      * @param ensAddr The ENS registrar contract.
      */
-    function PublicResolver(AbstractENS ensAddr) {
+    function PublicResolver(ENS ensAddr) public {
         ens = ensAddr;
     }
 
@@ -57,7 +57,7 @@ contract PublicResolver {
      * @param interfaceID The ID of the interface to check for.
      * @return True if the contract implements the requested interface.
      */
-    function supportsInterface(bytes4 interfaceID) constant returns (bool) {
+    function supportsInterface(bytes4 interfaceID) public view returns (bool) {
         return interfaceID == ADDR_INTERFACE_ID ||
                interfaceID == CONTENT_INTERFACE_ID ||
                interfaceID == NAME_INTERFACE_ID ||
@@ -72,8 +72,8 @@ contract PublicResolver {
      * @param node The ENS node to query.
      * @return The associated address.
      */
-    function addr(bytes32 node) constant returns (address ret) {
-        ret = records[node].addr;
+    function addr(bytes32 node) public view returns (address) {
+        return records[node].addr;
     }
 
     /**
@@ -82,7 +82,7 @@ contract PublicResolver {
      * @param node The node to update.
      * @param addr The address to set.
      */
-    function setAddr(bytes32 node, address addr) only_owner(node) {
+    function setAddr(bytes32 node, address addr) public only_owner(node) {
         records[node].addr = addr;
         AddrChanged(node, addr);
     }
@@ -94,8 +94,8 @@ contract PublicResolver {
      * @param node The ENS node to query.
      * @return The associated content hash.
      */
-    function content(bytes32 node) constant returns (bytes32 ret) {
-        ret = records[node].content;
+    function content(bytes32 node) public view returns (bytes32) {
+        return records[node].content;
     }
 
     /**
@@ -106,7 +106,7 @@ contract PublicResolver {
      * @param node The node to update.
      * @param hash The content hash to set
      */
-    function setContent(bytes32 node, bytes32 hash) only_owner(node) {
+    function setContent(bytes32 node, bytes32 hash) public only_owner(node) {
         records[node].content = hash;
         ContentChanged(node, hash);
     }
@@ -117,8 +117,8 @@ contract PublicResolver {
      * @param node The ENS node to query.
      * @return The associated name.
      */
-    function name(bytes32 node) constant returns (string ret) {
-        ret = records[node].name;
+    function name(bytes32 node) public view returns (string) {
+        return records[node].name;
     }
     
     /**
@@ -127,7 +127,7 @@ contract PublicResolver {
      * @param node The node to update.
      * @param name The name to set.
      */
-    function setName(bytes32 node, string name) only_owner(node) {
+    function setName(bytes32 node, string name) public only_owner(node) {
         records[node].name = name;
         NameChanged(node, name);
     }
@@ -140,9 +140,9 @@ contract PublicResolver {
      * @return contentType The content type of the return value
      * @return data The ABI data
      */
-    function ABI(bytes32 node, uint256 contentTypes) constant returns (uint256 contentType, bytes data) {
-        var record = records[node];
-        for(contentType = 1; contentType <= contentTypes; contentType <<= 1) {
+    function ABI(bytes32 node, uint256 contentTypes) public view returns (uint256 contentType, bytes data) {
+        Record storage record = records[node];
+        for (contentType = 1; contentType <= contentTypes; contentType <<= 1) {
             if ((contentType & contentTypes) != 0 && record.abis[contentType].length > 0) {
                 data = record.abis[contentType];
                 return;

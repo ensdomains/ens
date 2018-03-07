@@ -1,27 +1,27 @@
-pragma solidity ^0.4.0;
+pragma solidity ^0.4.18;
 
 contract DNSResolver {
     address public owner;
-    mapping(bytes32=>bytes) zones;
-    
-    function DNSResolver() {
-        owner = msg.sender;
-    }
-    
+    mapping (bytes32 => bytes) zones;
+
     modifier owner_only {
-        if (msg.sender != owner) throw;
+        require(msg.sender == owner);
         _;
     }
     
-    function supportsInterface(bytes4 interfaceID) constant returns (bool) {
+    function DNSResolver() public {
+        owner = msg.sender;
+    }
+
+    function setDnsrr(bytes32 node, bytes data) public owner_only {
+        zones[node] = data;
+    }
+
+    function supportsInterface(bytes4 interfaceID) public view returns (bool) {
         return interfaceID == 0x126a710e;
     }
     
-    function dnsrr(bytes32 node) constant returns (bytes data) {
+    function dnsrr(bytes32 node) public view returns (bytes) {
         return zones[node];
-    }
-    
-    function setDnsrr(bytes32 node, bytes data) owner_only {
-        zones[node] = data;
     }
 }

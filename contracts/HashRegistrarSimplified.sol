@@ -1,4 +1,4 @@
-pragma solidity ^0.4.0;
+pragma solidity ^0.4.18;
 
 
 /*
@@ -14,7 +14,7 @@ The plan is to test the basic features and then move to a new contract in at mos
 */
 
 
-import './AbstractENS.sol';
+import './ENS.sol';
 
 
 /**
@@ -101,11 +101,11 @@ contract Deed {
  * @dev The registrar handles the auction process for each subnode of the node it owns.
  */
 contract Registrar {
-    AbstractENS public ens;
+    ENS public ens;
     bytes32 public rootNode;
 
     mapping (bytes32 => entry) _entries;
-    mapping (address => mapping(bytes32 => Deed)) public sealedBids;
+    mapping (address => mapping (bytes32 => Deed)) public sealedBids;
     
     enum Mode { Open, Auction, Owned, Forbidden, Reveal, NotYetAvailable }
 
@@ -130,6 +130,33 @@ contract Registrar {
         uint highestBid;
     }
 
+    modifier inState(bytes32 _hash, Mode _state) {
+        require(state(_hash) == _state);
+        _;
+    }
+
+    modifier onlyOwner(bytes32 _hash) {
+        require(state(_hash) == Mode.Owned && msg.sender == _entries[_hash].deed.owner());
+        _;
+    }
+
+    modifier registryOpen() {
+        require(now >= registryStarted && now <= registryStarted + 4 years && ens.owner(rootNode) == address(this));
+        _;
+    }
+
+    /**
+     * @dev Constructs a new Registrar, with the provided address as the owner of the root node.
+     *
+     * @param _ens The address of the ENS
+     * @param _rootNode The hash of the rootnode.
+     */
+    function Registrar(ENS _ens, bytes32 _rootNode, uint _startDate) public {
+        ens = _ens;
+        rootNode = _rootNode;
+        registryStarted = _startDate > 0 ? _startDate : now;
+    }
+
     // State transitions for names:
     //   Open -> Auction (startAuction)
     //   Auction -> Reveal
@@ -137,7 +164,7 @@ contract Registrar {
     //   Reveal -> Open (if nobody bid)
     //   Owned -> Open (releaseDeed or invalidateName)
     function state(bytes32 _hash) constant returns (Mode) {
-        var entry = _entries[_hash];
+        entry storage entry = _entries[_hash];
         
         if (!isAllowed(_hash, now)) {
             return Mode.NotYetAvailable;
@@ -156,36 +183,9 @@ contract Registrar {
         }
     }
 
-    modifier inState(bytes32 _hash, Mode _state) {
-        if (state(_hash) != _state) throw;
-        _;
-    }
-
-    modifier onlyOwner(bytes32 _hash) {
-        if (state(_hash) != Mode.Owned || msg.sender != _entries[_hash].deed.owner()) throw;
-        _;
-    }
-
-    modifier registryOpen() {
-        if (now < registryStarted  || now > registryStarted + 4 years || ens.owner(rootNode) != address(this)) throw;
-        _;
-    }
-
     function entries(bytes32 _hash) constant returns (Mode, address, uint, uint, uint) {
-        entry h = _entries[_hash];
+        entry storage h = _entries[_hash];
         return (state(_hash), h.deed, h.registrationDate, h.value, h.highestBid);
-    }
-
-    /**
-     * @dev Constructs a new Registrar, with the provided address as the owner of the root node.
-     *
-     * @param _ens The address of the ENS
-     * @param _rootNode The hash of the rootnode.
-     */
-    function Registrar(AbstractENS _ens, bytes32 _rootNode, uint _startDate) {
-        ens = _ens;
-        rootNode = _rootNode;
-        registryStarted = _startDate > 0 ? _startDate : now;
     }
 
     /**
@@ -285,7 +285,7 @@ contract Registrar {
      */
     function trySetSubnodeOwner(bytes32 _hash, address _newOwner) internal {
         if (ens.owner(rootNode) == address(this))
-            ens.setSubnodeOwner(rootNode, _hash, _newOwner);        
+            ens.setSubnodeOwner(rootNode, _hash, _newOwner);
     }
 
     /**
@@ -331,7 +331,7 @@ contract Registrar {
      * @return The hash of the bid values
      */
     function shaBid(bytes32 hash, address owner, uint value, bytes32 salt) constant returns (bytes32 sealedBid) {
-        return sha3(hash, owner, value, salt);
+        return keccak256(hash, owner, value, salt);
     }
 
     /**
@@ -347,9 +347,9 @@ contract Registrar {
      *
      * @param sealedBid A sealedBid, created by the shaBid function
      */
-    function newBid(bytes32 sealedBid) payable {
-        if (address(sealedBids[msg.sender][sealedBid]) > 0) throw;
-        if (msg.value < minPrice) throw;
+    function newBid(bytes32 sealedBid) public payable {
+        require(address(sealedBids[msg.sender][sealedBid]) <= 0);
+        require(msg.value >= minPrice);
 
         // Creates a new hash contract with the owner
         Deed newBid = (new Deed).value(msg.value)(msg.sender);
@@ -366,7 +366,7 @@ contract Registrar {
      * @param hashes A list of hashes to start auctions on.
      * @param sealedBid A sealed bid for one of the auctions.
      */
-    function startAuctionsAndBid(bytes32[] hashes, bytes32 sealedBid) payable {
+    function startAuctionsAndBid(bytes32[] hashes, bytes32 sealedBid) public payable {
         startAuctions(hashes);
         newBid(sealedBid);
     }
@@ -384,7 +384,7 @@ contract Registrar {
         if (address(bid) == 0) throw;
 
         sealedBids[msg.sender][seal] = Deed(0);
-        entry h = _entries[_hash];
+        entry storage h = _entries[_hash];
         uint value = min(_value, bid.value());
         bid.setBalance(value, true);
 
@@ -431,7 +431,7 @@ contract Registrar {
      *
      * @param seal The value returned by the shaBid function
      */
-    function cancelBid(address bidder, bytes32 seal) {
+    function cancelBid(address bidder, bytes32 seal) public {
         Deed bid = sealedBids[bidder][seal];
         
         // If a sole bidder does not `unsealBid` in time, they have a few more days
@@ -440,8 +440,7 @@ contract Registrar {
         // For simplicity, they should call `startAuction` within
         // 9 days (2 weeks - totalAuctionLength), otherwise their bid will be
         // cancellable by anyone.
-        if (address(bid) == 0
-            || now < bid.creationDate() + totalAuctionLength + 2 weeks) throw;
+        require(address(bid) != 0 && now >= bid.creationDate() + totalAuctionLength + 2 weeks);
 
         // Send the canceller 0.5% of the bid, and burn the rest.
         bid.setOwner(msg.sender);
@@ -455,8 +454,8 @@ contract Registrar {
      *
      * @param _hash The hash of the name the auction is for
      */
-    function finalizeAuction(bytes32 _hash) onlyOwner(_hash) {
-        entry h = _entries[_hash];
+    function finalizeAuction(bytes32 _hash) public onlyOwner(_hash) {
+        entry storage h = _entries[_hash];
         
         // Handles the case when there's only a single bidder (h.value is zero)
         h.value =  max(h.value, minPrice);
@@ -472,10 +471,10 @@ contract Registrar {
      * @param _hash The node to transfer
      * @param newOwner The address to transfer ownership to
      */
-    function transfer(bytes32 _hash, address newOwner) onlyOwner(_hash) {
-        if (newOwner == 0) throw;
+    function transfer(bytes32 _hash, address newOwner) public onlyOwner(_hash) {
+        require(newOwner != 0);
 
-        entry h = _entries[_hash];
+        entry storage h = _entries[_hash];
         h.deed.setOwner(newOwner);
         trySetSubnodeOwner(_hash, newOwner);
     }
@@ -486,10 +485,12 @@ contract Registrar {
      *
      * @param _hash The node to release
      */
-    function releaseDeed(bytes32 _hash) onlyOwner(_hash) {
-        entry h = _entries[_hash];
+    function releaseDeed(bytes32 _hash) public onlyOwner(_hash) {
+        entry storage h = _entries[_hash];
         Deed deedContract = h.deed;
-        if (now < h.registrationDate + 1 years && ens.owner(rootNode) == address(this)) throw;
+
+        require(now >= h.registrationDate + 1 years);
+        require(ens.owner(rootNode) != address(this));
 
         h.value = 0;
         h.highestBid = 0;
@@ -509,11 +510,11 @@ contract Registrar {
      *
      * @param unhashedName An invalid name to search for in the registry.
      */
-    function invalidateName(string unhashedName) inState(sha3(unhashedName), Mode.Owned) {
-        if (strlen(unhashedName) > 6) throw;
-        bytes32 hash = sha3(unhashedName);
+    function invalidateName(string unhashedName) public inState(keccak256(unhashedName), Mode.Owned) {
+        require(strlen(unhashedName) <= 6);
+        bytes32 hash = keccak256(unhashedName);
 
-        entry h = _entries[hash];
+        entry storage h = _entries[hash];
 
         _tryEraseSingleNode(hash);
 
@@ -541,11 +542,11 @@ contract Registrar {
      * @param labels A series of label hashes identifying the name to zero out, rooted at the
      *        registrar's root. Must contain at least one element. For instance, to zero 
      *        'foo.bar.eth' on a registrar that owns '.eth', pass an array containing
-     *        [sha3('foo'), sha3('bar')].
+     *        [keccak256('foo'), keccak256('bar')].
      */
-    function eraseNode(bytes32[] labels) {
-        if (labels.length == 0) throw;
-        if (state(labels[labels.length - 1]) == Mode.Owned) throw;
+    function eraseNode(bytes32[] labels) public {
+        require(labels.length != 0);
+        require(state(labels[labels.length - 1]) != Mode.Owned);
 
         _eraseNodeHierarchy(labels.length - 1, labels, rootNode);
     }
@@ -553,7 +554,7 @@ contract Registrar {
     function _tryEraseSingleNode(bytes32 label) internal {
         if (ens.owner(rootNode) == address(this)) {
             ens.setSubnodeOwner(rootNode, label, address(this));
-            var node = sha3(rootNode, label);
+            bytes32 node = keccak256(rootNode, label);
             ens.setResolver(node, 0);
             ens.setOwner(node, 0);
         }
@@ -562,7 +563,7 @@ contract Registrar {
     function _eraseNodeHierarchy(uint idx, bytes32[] labels, bytes32 node) internal {
         // Take ownership of the node
         ens.setSubnodeOwner(node, labels[idx], address(this));
-        node = sha3(node, labels[idx]);
+        node = keccak256(node, labels[idx]);
         
         // Recurse if there are more labels
         if (idx > 0) {
@@ -586,7 +587,7 @@ contract Registrar {
         if (registrar == address(this)) throw;
 
         // Migrate the deed
-        entry h = _entries[_hash];
+        entry storage h = _entries[_hash];
         h.deed.setRegistrar(registrar);
 
         // Call the new registrar to accept the transfer
