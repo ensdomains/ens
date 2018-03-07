@@ -16,7 +16,16 @@ contract DefaultReverseResolver is Resolver {
 
     ENS public ens;
     mapping (bytes32 => string) public name;
-    
+
+    /**
+     * @dev Only permits calls by the reverse registrar.
+     * @param node The node permission is required for.
+     */
+    modifier owner_only(bytes32 node) {
+        require(msg.sender == ens.owner(node));
+        _;
+    }
+
     /**
      * @dev Constructor
      * @param ensAddr The address of the ENS registry.
@@ -29,15 +38,6 @@ contract DefaultReverseResolver is Resolver {
         if (address(registrar) != 0) {
             registrar.claim(msg.sender);
         }
-    }
-
-    /**
-     * @dev Only permits calls by the reverse registrar.
-     * @param node The node permission is required for.
-     */
-    modifier owner_only(bytes32 node) {
-        require(msg.sender == ens.owner(node));
-        _;
     }
 
     /**
@@ -67,7 +67,7 @@ contract ReverseRegistrar {
         defaultResolver = resolverAddr;
 
         // Assign ownership of the reverse record to our deployer
-        var oldRegistrar = ReverseRegistrar(ens.owner(ADDR_REVERSE_NODE));
+        ReverseRegistrar oldRegistrar = ReverseRegistrar(ens.owner(ADDR_REVERSE_NODE));
         if(address(oldRegistrar) != 0) {
             oldRegistrar.claim(msg.sender);
         }
