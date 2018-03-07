@@ -1,6 +1,6 @@
-pragma solidity ^0.4.0;
+pragma solidity ^0.4.18;
 
-import './AbstractENS.sol';
+import './ENS.sol';
 
 /**
  * A registrar that allocates subdomains to the first person to claim them, but
@@ -9,16 +9,16 @@ import './AbstractENS.sol';
 contract TestRegistrar {
     uint constant registrationPeriod = 4 weeks;
 
-    AbstractENS public ens;
+    ENS public ens;
     bytes32 public rootNode;
-    mapping(bytes32=>uint) public expiryTimes;
+    mapping (bytes32 => uint) public expiryTimes;
 
     /**
      * Constructor.
      * @param ensAddr The address of the ENS registry.
      * @param node The node that this registrar administers.
      */
-    function TestRegistrar(AbstractENS ensAddr, bytes32 node) {
+    function TestRegistrar(ENS ensAddr, bytes32 node) public {
         ens = ensAddr;
         rootNode = node;
     }
@@ -28,8 +28,8 @@ contract TestRegistrar {
      * @param subnode The hash of the label to register.
      * @param owner The address of the new owner.
      */
-    function register(bytes32 subnode, address owner) {
-        if (expiryTimes[subnode] >= now) throw;
+    function register(bytes32 subnode, address owner) public {
+        require(expiryTimes[subnode] < now);
 
         expiryTimes[subnode] = now + registrationPeriod;
         ens.setSubnodeOwner(rootNode, subnode, owner);
