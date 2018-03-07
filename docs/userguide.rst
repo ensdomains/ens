@@ -399,7 +399,7 @@ This function points your reverse record at a default resolver, then sets the na
 
 .. _ethereum-ens: https://www.npmjs.com/package/ethereum-ens
 .. _EIP137: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-137.md
-.. _`ENS registry interface`: https://github.com/ethereum/ens/blob/master/contracts/AbstractENS.sol
+.. _`ENS registry interface`: https://github.com/ethereum/ens/blob/master/contracts/ENS.sol
 .. _EIP162: https://github.com/ethereum/EIPs/issues/162
 .. _ensutils.js: https://github.com/ethereum/ens/blob/master/ensutils.js
 .. _ensutils-testnet.js: https://github.com/ethereum/ens/blob/master/ensutils-testnet.js

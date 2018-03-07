@@ -5,7 +5,7 @@ import './ENS.sol';
 /**
  * The ENS registry contract.
  */
-contract ENSRoot is ENS {
+contract ENSRegistry is ENS {
     struct Record {
         address owner;
         address resolver;
@@ -23,7 +23,7 @@ contract ENSRoot is ENS {
     /**
      * @dev Constructs a new ENS registrar.
      */
-    function ENSRoot() public {
+    function ENSRegistry() public {
         records[0].owner = msg.sender;
     }
 
