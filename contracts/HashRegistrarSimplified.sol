@@ -205,7 +205,7 @@ contract Registrar {
      * @param sealedBid A sealedBid, created by the shaBid function
      */
     function newBid(bytes32 sealedBid) public payable {
-        require(address(sealedBids[msg.sender][sealedBid]) <= 0);
+        require(address(sealedBids[msg.sender][sealedBid]) == 0x0);
         require(msg.value >= minPrice);
 
         // Creates a new hash contract with the owner
