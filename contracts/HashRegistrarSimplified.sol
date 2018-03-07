@@ -66,7 +66,7 @@ contract Deed {
         require(value >= newValue);
         value = newValue;
         // Send the difference to the owner
-        require(owner.send(this.balance - newValue) && !throwOnFailure);
+        require(owner.send(this.balance - newValue) || !throwOnFailure);
     }
 
     /**
@@ -205,7 +205,7 @@ contract Registrar {
      * @param sealedBid A sealedBid, created by the shaBid function
      */
     function newBid(bytes32 sealedBid) public payable {
-        require(address(sealedBids[msg.sender][sealedBid]) <= 0);
+        require(address(sealedBids[msg.sender][sealedBid]) == 0x0);
         require(msg.value >= minPrice);
 
         // Creates a new hash contract with the owner
@@ -346,8 +346,7 @@ contract Registrar {
         Entry storage h = _entries[_hash];
         Deed deedContract = h.deed;
 
-        require(now >= h.registrationDate + 1 years);
-        require(ens.owner(rootNode) != address(this));
+        require(now >= h.registrationDate + 1 years || ens.owner(rootNode) != address(this));
 
         h.value = 0;
         h.highestBid = 0;
