@@ -16,9 +16,11 @@
   },
   "homepage": "https://github.com/Arachnid/ens#readme",
   "dependencies": {
-    "bluebird": "^3.5.0",
+    "async": "^2.6.0",
+    "bluebird": "^3.5.1",
     "eth-ens-namehash": "^1.0.2",
-    "solc": "^0.4.9"
+    "ethereumjs-testrpc": "^6.0.3",
+    "solc": "^0.4.20",
   },
   "devDependencies": {
     "mocha": "^3.2.0"
