@@ -18,7 +18,6 @@
   "dependencies": {
     "bluebird": "^3.5.0",
     "eth-ens-namehash": "^1.0.2",
-    "ethereumjs-testrpc": "^3.0.0",
     "solc": "^0.4.9"
   },
   "devDependencies": {
