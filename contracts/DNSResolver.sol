@@ -17,7 +17,7 @@ contract DNSResolver {
         zones[node] = data;
     }
 
-    function supportsInterface(bytes4 interfaceID) public view returns (bool) {
+    function supportsInterface(bytes4 interfaceID) public pure returns (bool) {
         return interfaceID == 0x126a710e;
     }
     

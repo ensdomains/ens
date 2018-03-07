@@ -18,7 +18,7 @@ contract TestRegistrar {
      * @param ensAddr The address of the ENS registry.
      * @param node The node that this registrar administers.
      */
-    function TestRegistrar(ENS ensAddr, bytes32 node) {
+    function TestRegistrar(ENS ensAddr, bytes32 node) public {
         ens = ensAddr;
         rootNode = node;
     }
@@ -28,7 +28,7 @@ contract TestRegistrar {
      * @param subnode The hash of the label to register.
      * @param owner The address of the new owner.
      */
-    function register(bytes32 subnode, address owner) {
+    function register(bytes32 subnode, address owner) public {
         require(expiryTimes[subnode] < now);
 
         expiryTimes[subnode] = now + registrationPeriod;

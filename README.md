@@ -11,7 +11,7 @@ To run unit tests, clone this repository, and run:
     $ npm install
     $ npm test
 
-## ENS.sol
+## ENSRoot.sol
 Implementation of the ENS Registry, the central contract used to look up resolvers and owners for domains.
 
 ## FIFSRegistrar.sol

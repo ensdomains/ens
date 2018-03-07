@@ -57,7 +57,7 @@ contract PublicResolver {
      * @param interfaceID The ID of the interface to check for.
      * @return True if the contract implements the requested interface.
      */
-    function supportsInterface(bytes4 interfaceID) public view returns (bool) {
+    function supportsInterface(bytes4 interfaceID) public pure returns (bool) {
         return interfaceID == ADDR_INTERFACE_ID ||
                interfaceID == CONTENT_INTERFACE_ID ||
                interfaceID == NAME_INTERFACE_ID ||
@@ -159,9 +159,9 @@ contract PublicResolver {
      * @param contentType The content type of the ABI
      * @param data The ABI data.
      */
-    function setABI(bytes32 node, uint256 contentType, bytes data) only_owner(node) {
+    function setABI(bytes32 node, uint256 contentType, bytes data) public only_owner(node) {
         // Content types must be powers of 2
-        if (((contentType - 1) & contentType) != 0) throw;
+        require(((contentType - 1) & contentType) == 0);
         
         records[node].abis[contentType] = data;
         ABIChanged(node, contentType);
@@ -173,7 +173,7 @@ contract PublicResolver {
      * @param node The ENS node to query
      * @return x, y the X and Y coordinates of the curve point for the public key.
      */
-    function pubkey(bytes32 node) constant returns (bytes32 x, bytes32 y) {
+    function pubkey(bytes32 node) public view returns (bytes32 x, bytes32 y) {
         return (records[node].pubkey.x, records[node].pubkey.y);
     }
     
@@ -183,7 +183,7 @@ contract PublicResolver {
      * @param x the X coordinate of the curve point for the public key.
      * @param y the Y coordinate of the curve point for the public key.
      */
-    function setPubkey(bytes32 node, bytes32 x, bytes32 y) only_owner(node) {
+    function setPubkey(bytes32 node, bytes32 x, bytes32 y) public only_owner(node) {
         records[node].pubkey = PublicKey(x, y);
         PubkeyChanged(node, x, y);
     }
@@ -194,8 +194,8 @@ contract PublicResolver {
      * @param key The text data key to query.
      * @return The associated text data.
      */
-    function text(bytes32 node, string key) constant returns (string ret) {
-        ret = records[node].text[key];
+    function text(bytes32 node, string key) public view returns (string) {
+        return records[node].text[key];
     }
 
     /**
@@ -205,7 +205,7 @@ contract PublicResolver {
      * @param key The key to set.
      * @param value The text data value to set.
      */
-    function setText(bytes32 node, string key, string value) only_owner(node) {
+    function setText(bytes32 node, string key, string value) public only_owner(node) {
         records[node].text[key] = value;
         TextChanged(node, key, key);
     }

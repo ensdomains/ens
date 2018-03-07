@@ -20,7 +20,7 @@ contract FIFSRegistrar {
      * @param ensAddr The address of the ENS registry.
      * @param node The node that this registrar administers.
      */
-    function FIFSRegistrar(ENS ensAddr, bytes32 node) {
+    function FIFSRegistrar(ENS ensAddr, bytes32 node) public {
         ens = ensAddr;
         rootNode = node;
     }
@@ -30,7 +30,7 @@ contract FIFSRegistrar {
      * @param subnode The hash of the label to register.
      * @param owner The address of the new owner.
      */
-    function register(bytes32 subnode, address owner) only_owner(subnode) {
+    function register(bytes32 subnode, address owner) public only_owner(subnode) {
         ens.setSubnodeOwner(rootNode, subnode, owner);
     }
 }
