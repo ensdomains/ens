@@ -66,7 +66,7 @@ contract Deed {
         require(value >= newValue);
         value = newValue;
         // Send the difference to the owner
-        require(owner.send(this.balance - newValue) && !throwOnFailure);
+        require(owner.send(this.balance - newValue) || !throwOnFailure);
     }
 
     /**
