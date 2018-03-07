@@ -346,8 +346,7 @@ contract Registrar {
         Entry storage h = _entries[_hash];
         Deed deedContract = h.deed;
 
-        require(now >= h.registrationDate + 1 years);
-        require(ens.owner(rootNode) != address(this));
+        require(now >= h.registrationDate + 1 years || ens.owner(rootNode) != address(this));
 
         h.value = 0;
         h.highestBid = 0;
