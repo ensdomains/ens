@@ -44,3 +44,4 @@ contract('FIFSRegistrar', function (accounts) {
         });
     });
 });
+
