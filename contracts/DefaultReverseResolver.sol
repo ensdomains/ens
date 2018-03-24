@@ -1,3 +1,5 @@
+pragma solidity ^0.4.18;
+
 /**
  * @dev Provides a default implementation of a resolver for reverse records,
  * which permits only the owner to update it.
