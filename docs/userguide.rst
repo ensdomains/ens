@@ -384,7 +384,7 @@ Alternately, you can claim and set the resolver record in one operation:
 
 ::
 
-    reverseRegistrar.claimWithResolver(eth.accounts[0], publicResolver.address, {from: eth.accounts[0]});
+    reverseRegistrar.claimWithResolver(eth.accounts[0], reverseRegistrar.defaultResolver(), {from: eth.accounts[0]});
 
 Setting up a reverse name for your address
 ------------------------------------------
