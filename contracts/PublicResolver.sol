@@ -7,6 +7,7 @@ import './ENS.sol';
  * address.
  */
 contract PublicResolver {
+
     bytes4 constant INTERFACE_META_ID = 0x01ffc9a7;
     bytes4 constant ADDR_INTERFACE_ID = 0x3b3b57de;
     bytes4 constant CONTENT_INTERFACE_ID = 0xd8389dc5;
@@ -37,6 +38,7 @@ contract PublicResolver {
     }
 
     ENS ens;
+
     mapping (bytes32 => Record) records;
 
     modifier only_owner(bytes32 node) {
