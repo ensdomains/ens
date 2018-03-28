@@ -20,19 +20,19 @@ contract('PublicResolver', function (accounts) {
 
         it('forbids calls to the fallback function with 0 value', async () => {
             try {
-            await web3.eth.sendTransaction({
-                from: accounts[0],
-                to: resolver.address,
-                gas: 3000000
-            })
+                await web3.eth.sendTransaction({
+                    from: accounts[0],
+                    to: resolver.address,
+                    gas: 3000000
+                })
 
             } catch (error) {
                 return utils.ensureException(error);
             }
 
             assert.fail('transfer did not fail');
-        });        
-        
+        });
+
         it('forbids calls to the fallback function with 1 value', async () => {
             try {
                 await web3.eth.sendTransaction({
@@ -66,7 +66,7 @@ contract('PublicResolver', function (accounts) {
     });
 
 
-    describe('setAddr function', async () => {
+    describe('addr', async () => {
 
         it('permits setting address by owner', async () => {
             await resolver.setAddr(node, accounts[1], {from: accounts[0]});
@@ -131,7 +131,7 @@ contract('PublicResolver', function (accounts) {
         });
     });
 
-    describe('setContent function', async () => {
+    describe('content', async () => {
 
         it('permits setting content by owner', async () => {
             await resolver.setContent(node, 'hash1', {from: accounts[0]});
@@ -184,7 +184,7 @@ contract('PublicResolver', function (accounts) {
         });
     });
 
-    describe('setName function', async () => {
+    describe('name', async () => {
 
         it('permits setting name by owner', async () => {
             await resolver.setName(node, 'name1', {from: accounts[0]});
@@ -211,4 +211,123 @@ contract('PublicResolver', function (accounts) {
             assert.equal(await resolver.name(node), '');
         });
     });
+
+    describe('pubkey', async () => {
+
+        it('returns empty when fetching nonexistent values', async () => {
+            assert.deepEqual(await resolver.pubkey(node), [
+                "0x0000000000000000000000000000000000000000000000000000000000000000",
+                "0x0000000000000000000000000000000000000000000000000000000000000000"]
+            );
+        });
+
+        it('permits setting public key by owner', async () => {
+            await resolver.setPubkey(node, 1, 2, {from: accounts[0]});
+            assert.deepEqual(await resolver.pubkey(node), [
+                "0x1000000000000000000000000000000000000000000000000000000000000000",
+                "0x2000000000000000000000000000000000000000000000000000000000000000"]
+            );
+        });
+
+        it('can overwrite previously set value', async () => {
+            await resolver.setPubkey(node, 1, 2, {from: accounts[0]});
+            await resolver.setPubkey(node, 3, 4, {from: accounts[0]});
+            assert.deepEqual(await resolver.pubkey(node), [
+                "0x3000000000000000000000000000000000000000000000000000000000000000",
+                "0x4000000000000000000000000000000000000000000000000000000000000000"]
+            );
+        });
+
+        it('can overwrite to same value', async () => {
+            await resolver.setPubkey(node, 1, 2, {from: accounts[0]});
+            await resolver.setPubkey(node, 1, 2, {from: accounts[0]});
+            assert.deepEqual(await resolver.pubkey(node), [
+                "0x1000000000000000000000000000000000000000000000000000000000000000",
+                "0x2000000000000000000000000000000000000000000000000000000000000000"]
+            );
+        });
+
+        it('forbids setting value by non-owners', async () => {
+
+            try {
+                await resolver.setPubkey(node, 1, 2, {from: accounts[1]});
+            } catch (error) {
+                return utils.ensureException(error);
+            }
+
+            assert.fail('setting did not fail');
+        });
+
+        it('forbids writing same value by non-owners', async () => {
+            await resolver.setPubkey(node, 1, 2, {from: accounts[0]});
+
+            try {
+                await resolver.setPubkey(node, 1, 2, {from: accounts[1]});
+            } catch (error) {
+                return utils.ensureException(error);
+            }
+
+            assert.fail('setting did not fail');
+        });
+
+        it('forbids overwriting existing value by non-owners', async () => {
+            await resolver.setPubkey(node, 1, 2, {from: accounts[0]});
+
+            try {
+                await resolver.setPubkey(node, 3, 4, {from: accounts[1]});
+            } catch (error) {
+                return utils.ensureException(error);
+            }
+
+            assert.fail('setting did not fail');
+        });
+    });
+
+    describe('ABI', async () => {
+        it('returns a contentType of 0 when nothing is available', async () => {
+            let result = await resolver.ABI(node, 0xFFFFFFFF);
+            assert.deepEqual([result[0].toNumber(), result[1]], [0, "0x"]);
+        });
+
+        it('returns an ABI after it has been set', async () => {
+            await resolver.setABI(node, 0x1, "foo", {from: accounts[0]})
+            let result = await resolver.ABI(node, 0xFFFFFFFF);
+            assert.deepEqual([result[0].toNumber(), result[1]], [1, "0x666f6f"]);
+        });
+
+        it('returns the first valid ABI', async () => {
+            await resolver.setABI(node, 0x2, "foo", {from: accounts[0]});
+            await resolver.setABI(node, 0x4, "bar", {from: accounts[0]});
+
+            let result = await resolver.ABI(node, 0x7);
+            assert.deepEqual([result[0].toNumber(), result[1]], [2, "0x666f6f"]);
+
+            result = await resolver.ABI(node, 0x5);
+            assert.deepEqual([result[0].toNumber(), result[1]], [4, "0x626172"]);
+        });
+    //
+    //     it('allows deleting ABIs', async () => {
+    //         return resolver.setABI(node, 0x1, "foo", {from: accounts[0]})
+    //             .then(txid => resolver.setABI(node, 0x1, "", {from: accounts[0]}))
+    //             .then(txid => resolver.ABIAsync(node, 0x1))
+    //             .then(result => assert.deepEqual([result[0].toNumber(), result[1]], [0, "0x"]));
+    //     });
+    //
+    //     it('rejects invalid content types', async () => {
+    //         return resolver.setABI(node, 0x3, "foo", {from: accounts[0]})
+    //             .then(
+    //                 tx => { throw new Error("expected to be forbidden"); },
+    //                 err => assert.ok(err, err)
+    //             );
+    //     });
+    //
+    //     it('forbids setting value by non-owners', async () => {
+    //         return resolver.setABI(node, 0x1, "foo", {from: accounts[1]})
+    //             .then(
+    //                 tx => { throw new Error("expected to be forbidden"); },
+    //                 err => assert.ok(err, err)
+    //             );
+    //     });
+    });
+
 });
