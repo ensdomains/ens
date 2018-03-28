@@ -305,29 +305,85 @@ contract('PublicResolver', function (accounts) {
             result = await resolver.ABI(node, 0x5);
             assert.deepEqual([result[0].toNumber(), result[1]], [4, "0x626172"]);
         });
-    //
-    //     it('allows deleting ABIs', async () => {
-    //         return resolver.setABI(node, 0x1, "foo", {from: accounts[0]})
-    //             .then(txid => resolver.setABI(node, 0x1, "", {from: accounts[0]}))
-    //             .then(txid => resolver.ABIAsync(node, 0x1))
-    //             .then(result => assert.deepEqual([result[0].toNumber(), result[1]], [0, "0x"]));
-    //     });
-    //
-    //     it('rejects invalid content types', async () => {
-    //         return resolver.setABI(node, 0x3, "foo", {from: accounts[0]})
-    //             .then(
-    //                 tx => { throw new Error("expected to be forbidden"); },
-    //                 err => assert.ok(err, err)
-    //             );
-    //     });
-    //
-    //     it('forbids setting value by non-owners', async () => {
-    //         return resolver.setABI(node, 0x1, "foo", {from: accounts[1]})
-    //             .then(
-    //                 tx => { throw new Error("expected to be forbidden"); },
-    //                 err => assert.ok(err, err)
-    //             );
-    //     });
+
+        it('allows deleting ABIs', async () => {
+            await resolver.setABI(node, 0x1, "foo", {from: accounts[0]})
+            let result = await resolver.ABI(node, 0xFFFFFFFF);
+            assert.deepEqual([result[0].toNumber(), result[1]], [1, "0x666f6f"]);
+
+            await resolver.setABI(node, 0x1, "", {from: accounts[0]})
+            result = await resolver.ABI(node, 0xFFFFFFFF);
+            assert.deepEqual([result[0].toNumber(), result[1]], [0, "0x"]);
+        });
+
+        it('rejects invalid content types', async () => {
+            try {
+                await resolver.setABI(node, 0x3, "foo", {from: accounts[0]})
+            } catch (error) {
+                return utils.ensureException(error);
+            }
+
+            assert.fail('setting did not fail');
+        });
+
+        it('forbids setting value by non-owners', async () => {
+
+            try {
+                await resolver.setABI(node, 0x1, "foo", {from: accounts[1]})
+            } catch (error) {
+                return utils.ensureException(error);
+            }
+
+            assert.fail('setting did not fail');
+        });
+    });
+
+    describe('text', async () => {
+        var url = "https://ethereum.org";
+        var url2 = "https://github.com/ethereum";
+
+        it('permits setting text by owner', async () => {
+            await resolver.setText(node, "url", url, {from: accounts[0]});
+            assert.equal(await resolver.text(node, "url"), url);
+        });
+
+        it('can overwrite previously set text', async () => {
+            await resolver.setText(node, "url", url, {from: accounts[0]});
+            assert.equal(await resolver.text(node, "url"), url);
+
+            await resolver.setText(node, "url", url2, {from: accounts[0]});
+            assert.equal(await resolver.text(node, "url"), url2);
+        });
+
+        it('can overwrite to same text', async () => {
+            await resolver.setText(node, "url", url, {from: accounts[0]});
+            assert.equal(await resolver.text(node, "url"), url);
+
+            await resolver.setText(node, "url", url, {from: accounts[0]});
+            assert.equal(await resolver.text(node, "url"), url);
+        });
+
+        it('forbids setting new text by non-owners', async () => {
+            try {
+                await resolver.setText(node, "url", url, {from: accounts[1]});
+            } catch (error) {
+                return utils.ensureException(error);
+            }
+
+            assert.fail('setting did not fail');
+        });
+
+        it('forbids writing same text by non-owners', async () => {
+            await resolver.setText(node, "url", url, {from: accounts[0]});
+
+            try {
+                await resolver.setText(node, "url", url, {from: accounts[1]});
+            } catch (error) {
+                return utils.ensureException(error);
+            }
+
+            assert.fail('setting did not fail');
+        });
     });
 
 });
