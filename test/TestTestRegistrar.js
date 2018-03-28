@@ -52,4 +52,3 @@ contract('TestRegistrar', function (accounts) {
         assert.equal(await ens.owner(node), accounts[0]);
     });
 });
-
