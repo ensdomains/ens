@@ -1,4 +1,4 @@
-const ENS = artifacts.require("./ENS.sol");
+const ENS = artifacts.require("./ENSRegistry.sol");
 const FIFSRegistrar = artifacts.require('./FIFSRegistrar.sol');
 
 // Currently the parameter('./ContractName') is only used to imply
