@@ -3,7 +3,6 @@ const ReverseRegistrar = artifacts.require('ReverseRegistrar.sol');
 const ENS = artifacts.require('ENSRegistry.sol');
 
 const utils = require('./helpers/Utils.js');
-const web3Utils = require('web3-utils');
 const namehash = require('eth-ens-namehash');
 
 contract('ReverseRegistar', function (accounts) {
