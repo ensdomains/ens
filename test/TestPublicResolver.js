@@ -183,4 +183,32 @@ contract('PublicResolver', function (accounts) {
             );
         });
     });
+
+    describe('setName function', async () => {
+
+        it('permits setting name by owner', async () => {
+            await resolver.setName(node, 'name1', {from: accounts[0]});
+            assert.equal(await resolver.name(node), 'name1');
+        });
+
+        it('can overwrite previously set names', async () => {
+            await resolver.setName(node, 'name1', {from: accounts[0]});
+            assert.equal(await resolver.name(node), 'name1');
+
+            await resolver.setName(node, 'name2', {from: accounts[0]});
+            assert.equal(await resolver.name(node), 'name2');
+        });
+
+        it('forbids setting name by non-owners', async () => {
+            try {
+                await resolver.setName(node, 'name2', {from: accounts[1]});
+            } catch (error) {
+                return utils.ensureException(error);
+            }
+        });
+
+        it('returns empty when fetching nonexistent name', async () => {
+            assert.equal(await resolver.name(node), '');
+        });
+    });
 });
