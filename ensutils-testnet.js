@@ -1,3 +1,10 @@
+// STOP!
+// Are you thinking of using this in an app? Don't!
+// This script is designed for interactive use in the go-ethereum console.
+// For use in an app, consider one of these fine libraries:
+//  - https://www.npmjs.com/package/ethjs-ens
+//  - https://www.npmjs.com/package/ethereum-ens
+
 function namehash(name) {
     var node = '0x0000000000000000000000000000000000000000000000000000000000000000';
     if (name !== '') {
