@@ -394,7 +394,7 @@ contract('PublicResolver', function (accounts) {
         });
 
         it('can overwrite previously set multihash', async () => {
-            await resolver.setMultihash(node, '0x0000000000000000000000000000000000000000000000000000000000000000', {from: accounts[0]});
+            await resolver.setMultihash(node, '0x0000000000000000000000000000000000000000000000000000000000000001', {from: accounts[0]});
             assert.equal(await resolver.multihash(node), '0x0000000000000000000000000000000000000000000000000000000000000001');
 
             await resolver.setMultihash(node, '0x0000000000000000000000000000000000000000000000000000000000000002', {from: accounts[0]});
@@ -402,16 +402,16 @@ contract('PublicResolver', function (accounts) {
         });
 
         it('can overwrite to same multihash', async () => {
-            await resolver.setMultihash(node, '0x0000000000000000000000000000000000000000000000000000000000000000', {from: accounts[0]});
-            assert.equal(await resolver.multihash(node), '0x0000000000000000000000000000000000000000000000000000000000000000');
+            await resolver.setMultihash(node, '0x0000000000000000000000000000000000000000000000000000000000000001', {from: accounts[0]});
+            assert.equal(await resolver.multihash(node), '0x0000000000000000000000000000000000000000000000000000000000000001');
 
-            await resolver.setMultihash(node, '0x0000000000000000000000000000000000000000000000000000000000000000', {from: accounts[0]});
-            assert.equal(await resolver.multihash(node), '0x0000000000000000000000000000000000000000000000000000000000000000');
+            await resolver.setMultihash(node, '0x0000000000000000000000000000000000000000000000000000000000000002', {from: accounts[0]});
+            assert.equal(await resolver.multihash(node), '0x0000000000000000000000000000000000000000000000000000000000000002');
         });
 
         it('forbids setting multihash by non-owners', async () => {
             try {
-                await resolver.setMultihash(node, '0x0000000000000000000000000000000000000000000000000000000000000000', {from: accounts[1]});
+                await resolver.setMultihash(node, '0x0000000000000000000000000000000000000000000000000000000000000001', {from: accounts[1]});
             } catch (error) {
                 return utils.ensureException(error);
             }
@@ -420,10 +420,10 @@ contract('PublicResolver', function (accounts) {
         });
 
         it('forbids writing same multihash by non-owners', async () => {
-            await resolver.setMultihash(node, '0x0000000000000000000000000000000000000000000000000000000000000000', {from: accounts[0]});
+            await resolver.setMultihash(node, '0x0000000000000000000000000000000000000000000000000000000000000001', {from: accounts[0]});
 
             try {
-                await resolver.setMultihash(node, '0x0000000000000000000000000000000000000000000000000000000000000000', {from: accounts[1]});
+                await resolver.setMultihash(node, '0x0000000000000000000000000000000000000000000000000000000000000001', {from: accounts[1]});
             } catch (error) {
                 return utils.ensureException(error);
             }
