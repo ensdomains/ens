@@ -94,7 +94,8 @@ describe('PublicResolver', function() {
 					resolver.supportsInterfaceAsync("0x691f3431"),
 					resolver.supportsInterfaceAsync("0x2203ab56"),
 					resolver.supportsInterfaceAsync("0xc8690233"),
-					resolver.supportsInterfaceAsync("0x59d1d43c")
+					resolver.supportsInterfaceAsync("0x59d1d43c"),
+					resolver.supportsInterfaceAsync("0xe89401a1")
 				])
 				.then(results => {
 					assert.equal(results[0], true);
@@ -103,6 +104,7 @@ describe('PublicResolver', function() {
 					assert.equal(results[3], true);
 					assert.equal(results[4], true);
 					assert.equal(results[5], true);
+					assert.equal(results[6], true);
 				});
 		});
 
@@ -511,6 +513,77 @@ describe('PublicResolver', function() {
 				.then(txid => resolver.setTextAsync(utils.node, "url", url, {from: accounts[0]}))
 				.then(txid => resolver.textAsync(utils.node, "url"))
 				.then(result => assert.equal(result, url));
+		});
+
+	});
+
+	describe('setMultihash function', function() {
+
+		it('permits setting multihash by owner', function() {
+			return resolver.setMultihashAsync(utils.node, '0x0000000000000000000000000000000000000001', {from: accounts[0]});
+		});
+
+		it('can overwrite previously set multihash', function() {
+			this.slow(200);
+			return resolver.setMultihashAsync(utils.node, '0x0000000000000000000000000000000000000001', {from: accounts[0]})
+				.then(txid => resolver.setMultihashAsync(utils.node, '0x0000000000000000000000000000000000000002', {from: accounts[0]}));
+		});
+
+		it('can overwrite to same multihash', function() {
+			this.slow(200);
+			return resolver.setMultihashAsync(utils.node, '0x0000000000000000000000000000000000000001', {from: accounts[0]})
+				.then(txid => resolver.setMultihashAsync(utils.node, '0x0000000000000000000000000000000000000001', {from: accounts[0]}));
+		});
+
+		it('forbids setting multihash by non-owners', function() {
+			return resolver.setMultihashAsync(utils.node, '0x0000000000000000000000000000000000000001', {from: accounts[1]})
+				.then(
+					tx => { throw new Error("expected to be forbidden"); },
+					err => assert.ok(err, err)
+				);
+		});
+
+		it('forbids writing same multihash by non-owners', function() {
+			return resolver.setMultihashAsync(utils.node, '0x0000000000000000000000000000000000000001', {from: accounts[0]})
+				.then(txid => resolver.setMultihashAsync(utils.node, '0x0000000000000000000000000000000000000001', {from: accounts[1]}))
+				.then(
+					tx => { throw new Error("expected to be forbidden"); },
+					err => assert.ok(err, err)
+				);
+		});
+
+		it('forbids overwriting existing multihash by non-owners', function() {
+			return resolver.setMultihashAsync(utils.node, '0x0000000000000000000000000000000000000001', {from: accounts[0]})
+				.then(txid => resolver.setMultihashAsync(utils.node, '0x0000000000000000000000000000000000000002', {from: accounts[1]}))
+				.then(
+					tx => { throw new Error("expected to be forbidden"); },
+					err => assert.ok(err, err)
+				);
+		});
+
+	});
+
+	describe('multihash function', function() {
+
+		it('returns empty when fetching nonexistent multihash', function() {
+			this.slow(200);
+			return resolver.multihashAsync(utils.node)
+				.then(result => assert.equal(result, "0x0000000000000000000000000000000000000000000000000000000000000000"));
+		});
+
+		it('returns previously set multihash', function() {
+			this.slow(200);
+			return resolver.setMultihashAsync(utils.node, '0x0000000000000000000000000000000000000001', {from: accounts[0]})
+				.then(txid => resolver.multihashAsync(utils.node))
+				.then(multihash => assert.equal(multihash, '0x0000000000000000000000000000000000000001'));
+		});
+
+		it('returns overwritten multihash', function() {
+			this.slow(300);
+			return resolver.setMultihashAsync(utils.node, '0x0000000000000000000000000000000000000001', {from: accounts[0]})
+				.then(txid => resolver.setMultihashAsync(utils.node, '0x0000000000000000000000000000000000000002', {from: accounts[0]}))
+				.then(txid => resolver.multihashAsync(utils.node))
+				.then(multihash => assert.equal(multihash, '0x0000000000000000000000000000000000000002'));
 		});
 
 	});

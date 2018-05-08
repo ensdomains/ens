@@ -15,6 +15,7 @@ contract PublicResolver {
     bytes4 constant ABI_INTERFACE_ID = 0x2203ab56;
     bytes4 constant PUBKEY_INTERFACE_ID = 0xc8690233;
     bytes4 constant TEXT_INTERFACE_ID = 0x59d1d43c;
+    bytes4 constant MULTIHASH_INTERFACE_ID = 0xe89401a1;
 
     event AddrChanged(bytes32 indexed node, address a);
     event ContentChanged(bytes32 indexed node, bytes32 hash);
@@ -22,6 +23,7 @@ contract PublicResolver {
     event ABIChanged(bytes32 indexed node, uint256 indexed contentType);
     event PubkeyChanged(bytes32 indexed node, bytes32 x, bytes32 y);
     event TextChanged(bytes32 indexed node, string indexed indexedKey, string key);
+    event MultihashChanged(bytes32 indexed node, bytes hash);
 
     struct PublicKey {
         bytes32 x;
@@ -35,6 +37,7 @@ contract PublicResolver {
         PublicKey pubkey;
         mapping(string=>string) text;
         mapping(uint256=>bytes) abis;
+        bytes multihash;
     }
 
     ENS ens;
@@ -76,6 +79,17 @@ contract PublicResolver {
     function setContent(bytes32 node, bytes32 hash) public only_owner(node) {
         records[node].content = hash;
         ContentChanged(node, hash);
+    }
+
+    /**
+     * Sets the multihash associated with an ENS node.
+     * May only be called by the owner of that node in the ENS registry.
+     * @param node The node to update.
+     * @param hash The multihash to set
+     */
+    function setMultihash(bytes32 node, bytes hash) public only_owner(node) {
+        records[node].multihash = hash;
+        MultihashChanged(node, hash);
     }
     
     /**
@@ -189,6 +203,15 @@ contract PublicResolver {
     }
 
     /**
+     * Returns the multihash associated with an ENS node.
+     * @param node The ENS node to query.
+     * @return The associated multihash.
+     */
+    function multihash(bytes32 node) public view returns (bytes) {
+        return records[node].multihash;
+    }
+
+    /**
      * Returns the address associated with an ENS node.
      * @param node The ENS node to query.
      * @return The associated address.
@@ -209,6 +232,7 @@ contract PublicResolver {
         interfaceID == ABI_INTERFACE_ID ||
         interfaceID == PUBKEY_INTERFACE_ID ||
         interfaceID == TEXT_INTERFACE_ID ||
-        interfaceID == INTERFACE_META_ID;
+        interfaceID == INTERFACE_META_ID ||
+        interfaceID == MULTIHASH_INTERFACE_ID;
     }
 }
