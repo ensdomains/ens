@@ -232,7 +232,7 @@ contract PublicResolver {
         interfaceID == ABI_INTERFACE_ID ||
         interfaceID == PUBKEY_INTERFACE_ID ||
         interfaceID == TEXT_INTERFACE_ID ||
-        interfaceID == INTERFACE_META_ID ||
-        interfaceID == MULTIHASH_INTERFACE_ID;
+        interfaceID == MULTIHASH_INTERFACE_ID ||
+        interfaceID == INTERFACE_META_ID;
     }
 }
