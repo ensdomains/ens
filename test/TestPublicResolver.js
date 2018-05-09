@@ -434,7 +434,7 @@ contract('PublicResolver', function (accounts) {
         it('returns empty when fetching nonexistent multihash', async () => {
             assert.equal(
                 await resolver.multihash(node),
-                '0x0000000000000000000000000000000000000000000000000000000000000000'
+                '0x'
             );
         });
     });
