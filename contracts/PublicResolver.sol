@@ -22,7 +22,7 @@ contract PublicResolver {
     event NameChanged(bytes32 indexed node, string name);
     event ABIChanged(bytes32 indexed node, uint256 indexed contentType);
     event PubkeyChanged(bytes32 indexed node, bytes32 x, bytes32 y);
-    event TextChanged(bytes32 indexed node, string indexed indexedKey, string key);
+    event TextChanged(bytes32 indexed node, string indexedKey, string key);
     event MultihashChanged(bytes32 indexed node, bytes hash);
 
     struct PublicKey {
