@@ -284,6 +284,8 @@ Note the use of `web3.sha3()` instead of `namehash()` when specifying the subdom
 
 The owner of a name can reassign ownership of subdomains at any time, even if they're owned by someone else.
 
+**Note:** When you first create your registry, the top level TLD is '.' (the root register) and the root register creates "subdomains" like 'test' or 'eth'
+
 Resolving Names
 ---------------
 
