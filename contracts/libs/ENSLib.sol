@@ -37,6 +37,33 @@ library ENSLib {
   }
 
   /**
+   * @dev Returns the address that owns the specified ens.
+   * @param ensName The specified ens name.
+   * @return address of the owner.
+   */
+  function owner(string ensName, address ensAddress) public view returns (address) {
+    return ENS(ensAddress).owner(hashname(ensName));
+  }
+
+  /**
+   * @dev Returns the address of the resolver for the specified ens.
+   * @param ensName The specified ens name.
+   * @return address of the resolver.
+   */
+  function resolver(string ensName, address ensAddress) public view returns (address) {
+    return ENS(ensAddress).resolver(hashname(ensName));
+  }
+
+  /**
+   * @dev Returns the TTL of a ens, and any records associated with it.
+   * @param ensName The specified ens name.
+   * @return ttl of the node.
+   */
+  function ttl(string ensName, address ensAddress) public view returns (uint64) {
+    return ENS(ensAddress).ttl(hashname(ensName));
+  }
+
+  /**
    * Get the hash of an ens by his name
    * @param ensName The name of the ens to hash
    */

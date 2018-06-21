@@ -54,8 +54,7 @@ contract TestRegistryLib {
      * @return address of the owner.
      */
     function ownerByENSName(string ensName) public view returns (address) {
-      bytes32 node = ensName.hashname();
-      return node.owner(ensAddr);
+      return ensName.owner(ensAddr);
     }
 
     /**
