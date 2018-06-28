@@ -4,10 +4,9 @@ import './libs/ENSLib.sol';
 
 
 /**
- * A registrar that allocates subdomains to the first person to claim them, but
- * expires registrations a fixed period after they're initially claimed.
+ * A contract to test the ENSLibrary with a on chain implementation
  */
-contract TestRegistryLib {
+contract TestENSLib {
     using ENSLib for *;
 
     address public ensAddr;
@@ -17,7 +16,7 @@ contract TestRegistryLib {
      * Constructor.
      * @param _ensAddr The address of the ENS registry.
      */
-    function TestRegistryLib(address _ensAddr) {
+    function TestENSLib(address _ensAddr) {
         ensAddr = _ensAddr;
     }
 
@@ -27,7 +26,7 @@ contract TestRegistryLib {
      * @return address of the owner.
      */
     function owner(bytes32 node) public view returns (address) {
-      return node.owner(ensAddr);
+        return node.owner(ensAddr);
     }
 
     /**
@@ -36,7 +35,7 @@ contract TestRegistryLib {
      * @return address of the resolver.
      */
     function resolver(bytes32 node) public view returns (address) {
-      return node.resolver(ensAddr);
+        return node.resolver(ensAddr);
     }
 
     /**
@@ -45,7 +44,7 @@ contract TestRegistryLib {
      * @return ttl of the node.
      */
     function ttl(bytes32 node) public view returns (uint64) {
-      return node.ttl(ensAddr);
+        return node.ttl(ensAddr);
     }
 
     /**
@@ -54,7 +53,7 @@ contract TestRegistryLib {
      * @return address of the owner.
      */
     function ownerByENSName(string ensName) public view returns (address) {
-      return ensName.owner(ensAddr);
+        return ensName.owner(ensAddr);
     }
 
     /**
@@ -63,7 +62,7 @@ contract TestRegistryLib {
      * @return resolver of the ens.
      */
     function resolverByENSName(string ensName) public view returns (address) {
-      return ensName.resolver(ensAddr);
+        return ensName.resolver(ensAddr);
     }
 
     /**
@@ -72,7 +71,7 @@ contract TestRegistryLib {
      * @return ttl of the ens.
      */
     function ttlByENSName(string ensName) public view returns (uint64) {
-      return ensName.ttl(ensAddr);
+        return ensName.ttl(ensAddr);
     }
 
     /**
@@ -80,6 +79,6 @@ contract TestRegistryLib {
      * @param ensName The name of the ens to hash
      */
     function hashname(string ensName) public view returns (bytes32){
-      return ensName.hashname();
+        return ensName.hashname();
     }
 }
