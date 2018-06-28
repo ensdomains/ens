@@ -4,7 +4,14 @@ import '../ENS.sol';
 import './strings.sol';
 
 /**
- * The ENS library.
+ * @title ENS utility library for Solidity contracts.
+ * @author Augusto Lemble <me@augustolemble.com>
+ *
+ * @dev This library allows the access to ens information by their name.
+ *      It uses the strings library to split the string of the ens name and
+ *      generate the namehash of it.
+ *      Once the namehash of the ens is available it only need the address of
+ *      the ENS registry to get the ens information.
  */
 library ENSLib {
   using strings for *;
@@ -77,7 +84,7 @@ library ENSLib {
         parts[i] = s.split(delim).toString();
     }
 
-    // Generate teh hash from teh labels
+    // Generate the hash from the labels
     bytes32 nodeHash = bytes32(0);
     bytes32 labelHash;
     for(i = parts.length; i > 0; i--) {
