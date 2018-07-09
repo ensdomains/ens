@@ -32,32 +32,16 @@ contract('ENSLib', function (accounts) {
       assert.equal(await ens.owner(namehash('testdomain.eth')), accounts[1]);
     });
 
-    it('should get the right hashname of subnode', async () => {
-      assert.equal(await testENSLib.hashname('testdomain.eth'), namehash('testdomain.eth'));
-    });
-
     it('should get the right info of ens node by namehash', async () => {
       assert.equal(await testENSLib.owner(namehash('eth')), registrar.address);
       assert.equal(await testENSLib.resolver(namehash('eth')), '0x0000000000000000000000000000000000000000');
       assert.equal(await testENSLib.ttl(namehash('eth')), 0);
     });
 
-    it('should get the right info of ens node by string', async () => {
-      assert.equal(await testENSLib.ownerByENSName('eth'), registrar.address);
-      assert.equal(await testENSLib.resolverByENSName('eth'), '0x0000000000000000000000000000000000000000');
-      assert.equal(await testENSLib.ttlByENSName('eth'), 0);
-    });
-
     it('should get the right info of ens subnode by namehash', async () => {
       assert.equal(await testENSLib.owner(namehash('testdomain.eth')), accounts[1]);
       assert.equal(await testENSLib.resolver(namehash('testdomain.eth')), accounts[2]);
       assert.equal(await testENSLib.ttl(namehash('testdomain.eth')), 10);
-    });
-
-    it('should get the right info of ens subnode by string', async () => {
-      assert.equal(await testENSLib.ownerByENSName('testdomain.eth'), accounts[1]);
-      assert.equal(await testENSLib.resolverByENSName('testdomain.eth'), accounts[2]);
-      assert.equal(await testENSLib.ttlByENSName('testdomain.eth'), 10);
     });
 
 });
