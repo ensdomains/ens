@@ -14,6 +14,7 @@ Welcome to ENS's documentation!
    quickstart
    userguide
    implementers
+   libraries
    deploying
    dns
    faq
