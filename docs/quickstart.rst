@@ -4,6 +4,8 @@ Quickstart
 
 Just want to get a name and make it resolve to something? Here's how.
 
+**NOTE**: This quickstart uses 'ensutils.js', a simple Javascript file that facilitates getting started with ENS. You should *NOT* use this in production code - it exists purely for interactive experimentation with the console!
+
 First, make sure your client is in **sync with a network** (mainnet, ropsten, rinkeby, etc.). You can use eth.syncing in your Ethereum console to track progress.
 
 You can utilize geth: https://github.com/ethereum/go-ethereum to connect a network and begin the process of syncing the chain.
