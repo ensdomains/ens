@@ -166,7 +166,7 @@ contract Registrar {
         uint value = min(_value, bid.value());
         bid.setBalance(value, true);
 
-        var auctionState = state(_hash);
+        Mode auctionState = state(_hash);
         if (auctionState == Mode.Owned) {
             // Too late! Bidder loses their bid. Gets 0.5% back.
             bid.closeDeed(5);
