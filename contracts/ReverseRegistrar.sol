@@ -47,9 +47,9 @@ contract ReverseRegistrar {
      * @return The ENS node hash of the reverse record.
      */
     function claimWithResolver(address owner, address resolver) public returns (bytes32) {
-        var label = sha3HexAddress(msg.sender);
+        bytes32 label = sha3HexAddress(msg.sender);
         bytes32 node = keccak256(ADDR_REVERSE_NODE, label);
-        var currentOwner = ens.owner(node);
+        address currentOwner = ens.owner(node);
 
         // Update the resolver if required
         if (resolver != 0 && resolver != ens.resolver(node)) {
