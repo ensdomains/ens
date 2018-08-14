@@ -18,7 +18,7 @@ contract ReverseRegistrar {
      * @param ensAddr The address of the ENS registry.
      * @param resolverAddr The address of the default reverse resolver.
      */
-    function ReverseRegistrar(ENS ensAddr, Resolver resolverAddr) public {
+    constructor(ENS ensAddr, Resolver resolverAddr) public {
         ens = ensAddr;
         defaultResolver = resolverAddr;
 
