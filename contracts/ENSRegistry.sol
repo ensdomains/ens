@@ -44,7 +44,7 @@ contract ENSRegistry is ENS {
      * @param owner The address of the new owner.
      */
     function setSubnodeOwner(bytes32 node, bytes32 label, address owner) public only_owner(node) {
-        bytes32 subnode = keccak256(node, label);
+        bytes32 subnode = keccak256(abi.encodePacked(node, label));
         emit NewOwner(node, label, owner);
         records[subnode].owner = owner;
     }
@@ -55,7 +55,7 @@ contract ENSRegistry is ENS {
      * @param resolver The address of the resolver.
      */
     function setResolver(bytes32 node, address resolver) public only_owner(node) {
-        emit NewResolver(node, resolver);
+        emit NewResolver(node, resolver);   
         records[node].resolver = resolver;
     }
 

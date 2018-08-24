@@ -48,7 +48,7 @@ contract ReverseRegistrar {
      */
     function claimWithResolver(address owner, address resolver) public returns (bytes32) {
         bytes32 label = sha3HexAddress(msg.sender);
-        bytes32 node = keccak256(ADDR_REVERSE_NODE, label);
+        bytes32 node = keccak256(abi.encodePacked(ADDR_REVERSE_NODE, label));
         address currentOwner = ens.owner(node);
 
         // Update the resolver if required
@@ -88,7 +88,7 @@ contract ReverseRegistrar {
      * @return The ENS node hash.
      */
     function node(address addr) public view returns (bytes32) {
-        return keccak256(ADDR_REVERSE_NODE, sha3HexAddress(addr));
+        return keccak256(abi.encodePacked(ADDR_REVERSE_NODE, sha3HexAddress(addr)));
     }
 
     /**

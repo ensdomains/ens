@@ -431,13 +431,13 @@ contract Registrar {
      * @return The hash of the bid values
      */
     function shaBid(bytes32 hash, address owner, uint value, bytes32 salt) public pure returns (bytes32) {
-        return keccak256(hash, owner, value, salt);
+        return keccak256(abi.encodePacked(hash, owner, value, salt));
     }
 
     function _tryEraseSingleNode(bytes32 label) internal {
         if (ens.owner(rootNode) == address(this)) {
             ens.setSubnodeOwner(rootNode, label, address(this));
-            bytes32 node = keccak256(rootNode, label);
+            bytes32 node = keccak256(abi.encodePacked(rootNode, label));
             ens.setResolver(node, 0);
             ens.setOwner(node, 0);
         }
@@ -446,7 +446,7 @@ contract Registrar {
     function _eraseNodeHierarchy(uint idx, bytes32[] labels, bytes32 node) internal {
         // Take ownership of the node
         ens.setSubnodeOwner(node, labels[idx], address(this));
-        node = keccak256(node, labels[idx]);
+        node = keccak256(abi.encodePacked(node, labels[idx]));
 
         // Recurse if there are more labels
         if (idx > 0) {
