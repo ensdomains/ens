@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.24;
 
 contract ResolverInterface {
     function PublicResolver(address ensAddr) public;

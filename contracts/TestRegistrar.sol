@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.24;
 
 import './ENS.sol';
 
@@ -18,7 +18,7 @@ contract TestRegistrar {
      * @param ensAddr The address of the ENS registry.
      * @param node The node that this registrar administers.
      */
-    function TestRegistrar(ENS ensAddr, bytes32 node) public {
+    constructor(ENS ensAddr, bytes32 node) public {
         ens = ensAddr;
         rootNode = node;
     }

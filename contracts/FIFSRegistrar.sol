@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.24;
 
 import './ENS.sol';
 
@@ -20,7 +20,7 @@ contract FIFSRegistrar {
      * @param ensAddr The address of the ENS registry.
      * @param node The node that this registrar administers.
      */
-    function FIFSRegistrar(ENS ensAddr, bytes32 node) public {
+    constructor(ENS ensAddr, bytes32 node) public {
         ens = ensAddr;
         rootNode = node;
     }

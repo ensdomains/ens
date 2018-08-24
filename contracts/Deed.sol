@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.24;
 
 /**
  * @title Deed to hold ether in exchange for ownership of a node
@@ -30,7 +30,7 @@ contract Deed {
         _;
     }
 
-    function Deed(address _owner) public payable {
+    constructor(address _owner) public payable {
         owner = _owner;
         registrar = msg.sender;
         creationDate = now;
@@ -42,7 +42,7 @@ contract Deed {
         require(newOwner != 0);
         previousOwner = owner;  // This allows contracts to check who sent them the ownership
         owner = newOwner;
-        OwnerChanged(newOwner);
+        emit OwnerChanged(newOwner);
     }
 
     function setRegistrar(address newRegistrar) public onlyRegistrar {
@@ -54,7 +54,7 @@ contract Deed {
         require(value >= newValue);
         value = newValue;
         // Send the difference to the owner
-        require(owner.send(this.balance - newValue) || !throwOnFailure);
+        require(owner.send(address(this).balance - newValue) || !throwOnFailure);
     }
 
     /**
@@ -64,8 +64,8 @@ contract Deed {
      */
     function closeDeed(uint refundRatio) public onlyRegistrar onlyActive {
         active = false;
-        require(burn.send(((1000 - refundRatio) * this.balance)/1000));
-        DeedClosed();
+        require(burn.send(((1000 - refundRatio) * address(this).balance)/1000));
+        emit DeedClosed();
         destroyDeed();
     }
 
@@ -78,7 +78,7 @@ contract Deed {
         // Instead of selfdestruct(owner), invoke owner fallback function to allow
         // owner to log an event if desired; but owner should also be aware that
         // its fallback function can also be invoked by setBalance
-        if (owner.send(this.balance)) {
+        if (owner.send(address(this).balance)) {
             selfdestruct(burn);
         }
     }

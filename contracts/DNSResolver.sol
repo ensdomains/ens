@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.24;
 
 contract DNSResolver {
     address public owner;
@@ -9,7 +9,7 @@ contract DNSResolver {
         _;
     }
     
-    function DNSResolver() public {
+    constructor() public {
         owner = msg.sender;
     }
 
