@@ -15,7 +15,7 @@ The plan is to test the basic features and then move to a new contract in at mos
 
 
 import "./ENS.sol";
-import './Deed.sol';
+import "./Deed.sol";
 
 /**
  * @title Registrar
