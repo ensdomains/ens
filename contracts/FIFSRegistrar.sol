@@ -9,8 +9,8 @@ contract FIFSRegistrar {
     ENS ens;
     bytes32 rootNode;
 
-    modifier only_owner(bytes32 subnode) {
-        address currentOwner = ens.owner(keccak256(rootNode, subnode));
+    modifier only_owner(bytes32 label) {
+        address currentOwner = ens.owner(keccak256(rootNode, label));
         require(currentOwner == 0 || currentOwner == msg.sender);
         _;
     }
@@ -27,10 +27,10 @@ contract FIFSRegistrar {
 
     /**
      * Register a name, or change the owner of an existing registration.
-     * @param subnode The hash of the label to register.
+     * @param label The hash of the label to register.
      * @param owner The address of the new owner.
      */
-    function register(bytes32 subnode, address owner) public only_owner(subnode) {
-        ens.setSubnodeOwner(rootNode, subnode, owner);
+    function register(bytes32 label, address owner) public only_owner(label) {
+        ens.setSubnodeOwner(rootNode, label, owner);
     }
 }

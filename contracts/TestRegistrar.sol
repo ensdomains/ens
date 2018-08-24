@@ -25,13 +25,13 @@ contract TestRegistrar {
 
     /**
      * Register a name that's not currently registered
-     * @param subnode The hash of the label to register.
+     * @param label The hash of the label to register.
      * @param owner The address of the new owner.
      */
-    function register(bytes32 subnode, address owner) public {
-        require(expiryTimes[subnode] < now);
+    function register(bytes32 label, address owner) public {
+        require(expiryTimes[label] < now);
 
-        expiryTimes[subnode] = now + registrationPeriod;
-        ens.setSubnodeOwner(rootNode, subnode, owner);
+        expiryTimes[label] = now + registrationPeriod;
+        ens.setSubnodeOwner(rootNode, label, owner);
     }
 }
