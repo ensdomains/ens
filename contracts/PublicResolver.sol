@@ -53,7 +53,7 @@ contract PublicResolver {
      * Constructor.
      * @param ensAddr The ENS registrar contract.
      */
-    function PublicResolver(ENS ensAddr) public {
+    constructor(ENS ensAddr) public {
         ens = ensAddr;
     }
 
@@ -65,7 +65,7 @@ contract PublicResolver {
      */
     function setAddr(bytes32 node, address addr) public only_owner(node) {
         records[node].addr = addr;
-        AddrChanged(node, addr);
+        emit AddrChanged(node, addr);
     }
 
     /**
@@ -78,7 +78,7 @@ contract PublicResolver {
      */
     function setContent(bytes32 node, bytes32 hash) public only_owner(node) {
         records[node].content = hash;
-        ContentChanged(node, hash);
+        emit ContentChanged(node, hash);
     }
 
     /**
@@ -89,7 +89,7 @@ contract PublicResolver {
      */
     function setMultihash(bytes32 node, bytes hash) public only_owner(node) {
         records[node].multihash = hash;
-        MultihashChanged(node, hash);
+        emit MultihashChanged(node, hash);
     }
     
     /**
@@ -100,7 +100,7 @@ contract PublicResolver {
      */
     function setName(bytes32 node, string name) public only_owner(node) {
         records[node].name = name;
-        NameChanged(node, name);
+        emit NameChanged(node, name);
     }
 
     /**
@@ -116,7 +116,7 @@ contract PublicResolver {
         require(((contentType - 1) & contentType) == 0);
         
         records[node].abis[contentType] = data;
-        ABIChanged(node, contentType);
+        emit ABIChanged(node, contentType);
     }
     
     /**
@@ -127,7 +127,7 @@ contract PublicResolver {
      */
     function setPubkey(bytes32 node, bytes32 x, bytes32 y) public only_owner(node) {
         records[node].pubkey = PublicKey(x, y);
-        PubkeyChanged(node, x, y);
+        emit PubkeyChanged(node, x, y);
     }
 
     /**
@@ -139,7 +139,7 @@ contract PublicResolver {
      */
     function setText(bytes32 node, string key, string value) public only_owner(node) {
         records[node].text[key] = value;
-        TextChanged(node, key, key);
+        emit TextChanged(node, key, key);
     }
 
     /**
