@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.24;
 
 
 /*
@@ -72,7 +72,7 @@ contract Registrar {
      * @param _ens The address of the ENS
      * @param _rootNode The hash of the rootnode.
      */
-    function Registrar(ENS _ens, bytes32 _rootNode, uint _startDate) public {
+    constructor(ENS _ens, bytes32 _rootNode, uint _startDate) public {
         ens = _ens;
         rootNode = _rootNode;
         registryStarted = _startDate > 0 ? _startDate : now;
@@ -92,7 +92,7 @@ contract Registrar {
         newAuction.registrationDate = now + totalAuctionLength;
         newAuction.value = 0;
         newAuction.highestBid = 0;
-        AuctionStarted(_hash, newAuction.registrationDate);
+        emit AuctionStarted(_hash, newAuction.registrationDate);
     }
 
     /**
@@ -132,7 +132,7 @@ contract Registrar {
         // Creates a new hash contract with the owner
         Deed newBid = (new Deed).value(msg.value)(msg.sender);
         sealedBids[msg.sender][sealedBid] = newBid;
-        NewBid(sealedBid, msg.sender, msg.value);
+        emit NewBid(sealedBid, msg.sender, msg.value);
     }
 
     /**
@@ -170,14 +170,14 @@ contract Registrar {
         if (auctionState == Mode.Owned) {
             // Too late! Bidder loses their bid. Gets 0.5% back.
             bid.closeDeed(5);
-            BidRevealed(_hash, msg.sender, value, 1);
+            emit BidRevealed(_hash, msg.sender, value, 1);
         } else if (auctionState != Mode.Reveal) {
             // Invalid phase
             revert();
         } else if (value < minPrice || bid.creationDate() > h.registrationDate - revealPeriod) {
             // Bid too low or too late, refund 99.5%
             bid.closeDeed(995);
-            BidRevealed(_hash, msg.sender, value, 0);
+            emit BidRevealed(_hash, msg.sender, value, 0);
         } else if (value > h.highestBid) {
             // New winner
             // Cancel the other bid, refund 99.5%
@@ -191,16 +191,16 @@ contract Registrar {
             h.value = h.highestBid;  // will be zero if there's only 1 bidder
             h.highestBid = value;
             h.deed = bid;
-            BidRevealed(_hash, msg.sender, value, 2);
+            emit BidRevealed(_hash, msg.sender, value, 2);
         } else if (value > h.value) {
             // Not winner, but affects second place
             h.value = value;
             bid.closeDeed(995);
-            BidRevealed(_hash, msg.sender, value, 3);
+            emit BidRevealed(_hash, msg.sender, value, 3);
         } else {
             // Bid doesn't affect auction
             bid.closeDeed(995);
-            BidRevealed(_hash, msg.sender, value, 4);
+            emit BidRevealed(_hash, msg.sender, value, 4);
         }
     }
 
@@ -224,7 +224,7 @@ contract Registrar {
         bid.setOwner(msg.sender);
         bid.closeDeed(5);
         sealedBids[bidder][seal] = Deed(0);
-        BidRevealed(seal, bidder, 0, 5);
+        emit BidRevealed(seal, bidder, 0, 5);
     }
 
     /**
@@ -240,7 +240,7 @@ contract Registrar {
         h.deed.setBalance(h.value, true);
 
         trySetSubnodeOwner(_hash, h.deed.owner());
-        HashRegistered(_hash, h.deed.owner(), h.value, h.registrationDate);
+        emit HashRegistered(_hash, h.deed.owner(), h.value, h.registrationDate);
     }
 
     /**
@@ -275,7 +275,7 @@ contract Registrar {
 
         _tryEraseSingleNode(_hash);
         deedContract.closeDeed(1000);
-        HashReleased(_hash, h.value);        
+        emit HashReleased(_hash, h.value);        
     }
 
     /**
@@ -304,7 +304,7 @@ contract Registrar {
             h.deed.closeDeed(1000);
         }
 
-        HashInvalidated(hash, unhashedName, h.value, h.registrationDate);
+        emit HashInvalidated(hash, unhashedName, h.value, h.registrationDate);
 
         h.value = 0;
         h.highestBid = 0;
@@ -431,13 +431,13 @@ contract Registrar {
      * @return The hash of the bid values
      */
     function shaBid(bytes32 hash, address owner, uint value, bytes32 salt) public pure returns (bytes32) {
-        return keccak256(hash, owner, value, salt);
+        return keccak256(abi.encodePacked(hash, owner, value, salt));
     }
 
     function _tryEraseSingleNode(bytes32 label) internal {
         if (ens.owner(rootNode) == address(this)) {
             ens.setSubnodeOwner(rootNode, label, address(this));
-            bytes32 node = keccak256(rootNode, label);
+            bytes32 node = keccak256(abi.encodePacked(rootNode, label));
             ens.setResolver(node, 0);
             ens.setOwner(node, 0);
         }
@@ -446,7 +446,7 @@ contract Registrar {
     function _eraseNodeHierarchy(uint idx, bytes32[] labels, bytes32 node) internal {
         // Take ownership of the node
         ens.setSubnodeOwner(node, labels[idx], address(this));
-        node = keccak256(node, labels[idx]);
+        node = keccak256(abi.encodePacked(node, labels[idx]));
 
         // Recurse if there are more labels
         if (idx > 0) {
