@@ -5,7 +5,7 @@ const FIFSRegistrar = artifacts.require('./FIFSRegistrar.sol');
 // the compiled contract JSON file name. So even though `Registrar.sol` is
 // not existed, it's valid to put it here.
 // TODO: align the contract name with the source code file name.
-const Registrar = artifacts.require('./Registrar.sol');
+const Registrar = artifacts.require('./HashRegistrar.sol');
 const web3 = new (require('web3'))();
 const namehash = require('eth-ens-namehash');
 
