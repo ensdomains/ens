@@ -338,7 +338,7 @@ contract HashRegistrar is Registrar {
         h.deed.setRegistrar(registrar);
 
         // Call the new registrar to accept the transfer
-        HashRegistrar(registrar).acceptRegistrarTransfer(_hash, h.deed, h.registrationDate); // @todo use registrar
+        Registrar(registrar).acceptRegistrarTransfer(_hash, h.deed, h.registrationDate);
 
         // Zero out the Entry
         h.deed = Deed(0);
