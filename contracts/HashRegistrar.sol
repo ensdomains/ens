@@ -15,7 +15,7 @@ The plan is to test the basic features and then move to a new contract in at mos
 
 
 import "./ENS.sol";
-import "./Deed.sol";
+import "./DeedImplementation.sol";
 import "./Registrar.sol";
 
 /**
@@ -124,7 +124,7 @@ contract HashRegistrar is Registrar {
         require(msg.value >= minPrice);
 
         // Creates a new hash contract with the owner
-        Deed newBid = (new Deed).value(msg.value)(msg.sender);
+        Deed newBid = (new DeedImplementation).value(msg.value)(msg.sender);
         sealedBids[msg.sender][sealedBid] = newBid;
         emit NewBid(sealedBid, msg.sender, msg.value);
     }

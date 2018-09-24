@@ -1,5 +1,7 @@
 pragma solidity ^0.4.24;
 
+import "./Deed.sol";
+
 interface Registrar {
 
     event AuctionStarted(bytes32 indexed hash, uint registrationDate);
@@ -22,4 +24,5 @@ interface Registrar {
     function invalidateName(string unhashedName) public;
     function eraseNode(bytes32[] labels) public;
     function transferRegistrars(bytes32 _hash) public;
+    function acceptRegistrarTransfer(bytes32 hash, Deed deed, uint registrationDate) public;
 }
