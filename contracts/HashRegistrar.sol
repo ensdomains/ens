@@ -16,12 +16,13 @@ The plan is to test the basic features and then move to a new contract in at mos
 
 import "./ENS.sol";
 import "./Deed.sol";
+import "./Registrar.sol";
 
 /**
  * @title Registrar
  * @dev The registrar handles the auction process for each subnode of the node it owns.
  */
-contract Registrar {
+contract HashRegistrar is Registrar {
     ENS public ens;
     bytes32 public rootNode;
 
@@ -36,13 +37,6 @@ contract Registrar {
 
     uint constant minPrice = 0.01 ether;
     uint public registryStarted;
-
-    event AuctionStarted(bytes32 indexed hash, uint registrationDate);
-    event NewBid(bytes32 indexed hash, address indexed bidder, uint deposit);
-    event BidRevealed(bytes32 indexed hash, address indexed owner, uint value, uint8 status);
-    event HashRegistered(bytes32 indexed hash, address indexed owner, uint value, uint registrationDate);
-    event HashReleased(bytes32 indexed hash, uint value);
-    event HashInvalidated(bytes32 indexed hash, string indexed name, uint value, uint registrationDate);
 
     struct Entry {
         Deed deed;
@@ -344,7 +338,7 @@ contract Registrar {
         h.deed.setRegistrar(registrar);
 
         // Call the new registrar to accept the transfer
-        Registrar(registrar).acceptRegistrarTransfer(_hash, h.deed, h.registrationDate);
+        HashRegistrar(registrar).acceptRegistrarTransfer(_hash, h.deed, h.registrationDate); // @todo use registrar
 
         // Zero out the Entry
         h.deed = Deed(0);
