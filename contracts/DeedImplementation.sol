@@ -89,6 +89,10 @@ contract DeedImplementation is Deed {
         return owner;
     }
 
+    function previousOwner() public view returns (address) {
+        return previousOwner;
+    }
+
     function value() public view returns (uint) {
         return value;
     }
