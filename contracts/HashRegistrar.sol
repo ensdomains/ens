@@ -28,8 +28,6 @@ contract HashRegistrar is Registrar {
 
     mapping (bytes32 => Entry) _entries;
     mapping (address => mapping (bytes32 => Deed)) public sealedBids;
-    
-    enum Mode { Open, Auction, Owned, Forbidden, Reveal, NotYetAvailable }
 
     uint32 constant totalAuctionLength = 5 days;
     uint32 constant revealPeriod = 48 hours;
