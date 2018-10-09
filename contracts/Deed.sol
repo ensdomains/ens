@@ -9,6 +9,7 @@ interface Deed {
     function destroyDeed() public;
 
     function owner() public view returns (address);
+    function previousOwner() public view returns (address);
     function value() public view returns (uint);
     function creationDate() public view returns (uint);
 
