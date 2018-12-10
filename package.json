@@ -1,6 +1,6 @@
 {
   "name": "@ensdomains/ens",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Implementations for registrars and local resolvers for the Ethereum Name Service",
   "scripts": {
     "test": "truffle test",
@@ -9,14 +9,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Arachnid/ens.git"
+    "url": "git+https://github.com/ensdomains/ens.git"
   },
   "author": "Nick Johnson <nick@ethereum.org>",
   "license": "CC0-1.0",
   "bugs": {
-    "url": "https://github.com/Arachnid/ens/issues"
+    "url": "https://github.com/ensdomains/ens/issues"
   },
-  "homepage": "https://github.com/Arachnid/ens#readme",
+  "homepage": "https://github.com/ensdomains/ens#readme",
   "dependencies": {
     "ganache-cli": "^6.1.0",
     "testrpc": "0.0.1",
