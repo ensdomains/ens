@@ -287,7 +287,7 @@ contract('PublicResolver', function (accounts) {
     describe('ABI', async () => {
         it('returns a contentType of 0 when nothing is available', async () => {
             let result = await resolver.ABI(node, 0xFFFFFFFF);
-            assert.deepEqual([result[0].toNumber(), result[1]], [0, "0x"]);
+            assert.equal(result[0], 0);
         });
 
         it('returns an ABI after it has been set', async () => {
@@ -435,7 +435,7 @@ contract('PublicResolver', function (accounts) {
         it('returns empty when fetching nonexistent multihash', async () => {
             assert.equal(
                 await resolver.multihash(node),
-                '0x'
+                null
             );
         });
     });
