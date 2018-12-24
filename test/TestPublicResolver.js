@@ -3,6 +3,7 @@ const PublicResolver = artifacts.require('PublicResolver.sol');
 
 const utils = require('./helpers/Utils.js');
 const namehash = require('eth-ens-namehash');
+const web3Utils = require('web3-utils');
 
 contract('PublicResolver', function (accounts) {
 
@@ -13,7 +14,7 @@ contract('PublicResolver', function (accounts) {
         node = namehash('eth');
         ens = await ENS.new();
         resolver = await PublicResolver.new(ens.address);
-        await ens.setSubnodeOwner(0, web3.sha3('eth'), accounts[0], {from: accounts[0]});
+        await ens.setSubnodeOwner('0x0', web3Utils.sha3('eth'), accounts[0], {from: accounts[0]});
     });
 
     describe('fallback function', async () => {
@@ -290,14 +291,14 @@ contract('PublicResolver', function (accounts) {
         });
 
         it('returns an ABI after it has been set', async () => {
-            await resolver.setABI(node, 0x1, "foo", {from: accounts[0]})
+            await resolver.setABI(node, 0x1, '0x666f6f', {from: accounts[0]})
             let result = await resolver.ABI(node, 0xFFFFFFFF);
             assert.deepEqual([result[0].toNumber(), result[1]], [1, "0x666f6f"]);
         });
 
         it('returns the first valid ABI', async () => {
-            await resolver.setABI(node, 0x2, "foo", {from: accounts[0]});
-            await resolver.setABI(node, 0x4, "bar", {from: accounts[0]});
+            await resolver.setABI(node, 0x2, "0x666f6f", {from: accounts[0]});
+            await resolver.setABI(node, 0x4, "0x626172", {from: accounts[0]});
 
             let result = await resolver.ABI(node, 0x7);
             assert.deepEqual([result[0].toNumber(), result[1]], [2, "0x666f6f"]);
@@ -307,7 +308,7 @@ contract('PublicResolver', function (accounts) {
         });
 
         it('allows deleting ABIs', async () => {
-            await resolver.setABI(node, 0x1, "foo", {from: accounts[0]})
+            await resolver.setABI(node, 0x1, "0x666f6f", {from: accounts[0]})
             let result = await resolver.ABI(node, 0xFFFFFFFF);
             assert.deepEqual([result[0].toNumber(), result[1]], [1, "0x666f6f"]);
 
@@ -329,7 +330,7 @@ contract('PublicResolver', function (accounts) {
         it('forbids setting value by non-owners', async () => {
 
             try {
-                await resolver.setABI(node, 0x1, "foo", {from: accounts[1]})
+                await resolver.setABI(node, 0x1, "0x666f6f", {from: accounts[1]})
             } catch (error) {
                 return utils.ensureException(error);
             }

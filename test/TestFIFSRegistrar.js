@@ -11,14 +11,14 @@ contract('FIFSRegistrar', function (accounts) {
 
     beforeEach(async () => {
         ens = await ENS.new();
-        registrar = await FIFSRegistrar.new(ens.address, 0);
+        registrar = await FIFSRegistrar.new(ens.address, '0x0');
 
-        await ens.setOwner(0, registrar.address, {from: accounts[0]})
+        await ens.setOwner('0x0', registrar.address, {from: accounts[0]})
     });
 
     it('should allow registration of names', async () => {
         await registrar.register(web3Utils.sha3('eth'), accounts[0], {from: accounts[0]});
-        assert.equal(await ens.owner(0), registrar.address);
+        assert.equal(await ens.owner('0x0'), registrar.address);
         assert.equal(await ens.owner(namehash('eth')), accounts[0]);
     });
 
