@@ -1,9 +1,9 @@
-pragma solidity ^0.4.24;
+pragma solidity >=0.4.24;
 
 import "./ENS.sol";
 
 contract Resolver {
-    function setName(bytes32 node, string name) public;
+    function setName(bytes32 node, string memory name) public;
 }
 
 contract ReverseRegistrar {
@@ -76,7 +76,7 @@ contract ReverseRegistrar {
      * @param name The name to set for this address.
      * @return The ENS node hash of the reverse record.
      */
-    function setName(string name) public returns (bytes32) {
+    function setName(string memory name) public returns (bytes32) {
         bytes32 node = claimWithResolver(this, defaultResolver);
         defaultResolver.setName(node, name);
         return node;

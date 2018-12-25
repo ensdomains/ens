@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity >=0.4.24;
 
 import "./ReverseRegistrar.sol";
 
@@ -41,7 +41,7 @@ contract DefaultReverseResolver is Resolver {
      * @param node The node to update.
      * @param _name The name to set.
      */
-    function setName(bytes32 node, string _name) public owner_only(node) {
+    function setName(bytes32 node, string memory _name) public owner_only(node) {
         name[node] = _name;
     }
 }

@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity >=0.4.24;
 
 
 /*
@@ -100,7 +100,7 @@ contract HashRegistrar is Registrar {
      *
      * @param _hashes An array of hashes, at least one of which you presumably want to bid on
      */
-    function startAuctions(bytes32[] _hashes) public {
+    function startAuctions(bytes32[] memory _hashes) public {
         for (uint i = 0; i < _hashes.length; i ++) {
             startAuction(_hashes[i]);
         }
@@ -138,7 +138,7 @@ contract HashRegistrar is Registrar {
      * @param hashes A list of hashes to start auctions on.
      * @param sealedBid A sealed bid for one of the auctions.
      */
-    function startAuctionsAndBid(bytes32[] hashes, bytes32 sealedBid) public payable {
+    function startAuctionsAndBid(bytes32[] memory hashes, bytes32 sealedBid) public payable {
         startAuctions(hashes);
         newBid(sealedBid);
     }
@@ -153,7 +153,7 @@ contract HashRegistrar is Registrar {
     function unsealBid(bytes32 _hash, uint _value, bytes32 _salt) public {
         bytes32 seal = shaBid(_hash, msg.sender, _value, _salt);
         Deed bid = sealedBids[msg.sender][seal];
-        require(address(bid) != 0);
+        require(address(bid) != address(0x0));
 
         sealedBids[msg.sender][seal] = Deed(0);
         Entry storage h = _entries[_hash];
@@ -244,7 +244,7 @@ contract HashRegistrar is Registrar {
      * @param newOwner The address to transfer ownership to
      */
     function transfer(bytes32 _hash, address newOwner) public onlyOwner(_hash) {
-        require(newOwner != 0);
+        require(newOwner != address(0x0));
 
         Entry storage h = _entries[_hash];
         h.deed.setOwner(newOwner);
@@ -281,7 +281,7 @@ contract HashRegistrar is Registrar {
      *
      * @param unhashedName An invalid name to search for in the registry.
      */
-    function invalidateName(string unhashedName) public inState(keccak256(unhashedName), Mode.Owned) {
+    function invalidateName(string memory unhashedName) public inState(keccak256(unhashedName), Mode.Owned) {
         require(strlen(unhashedName) <= 6);
         bytes32 hash = keccak256(unhashedName);
 
@@ -289,7 +289,7 @@ contract HashRegistrar is Registrar {
 
         _tryEraseSingleNode(hash);
 
-        if (address(h.deed) != 0) {
+        if (address(h.deed) != address(0x0)) {
             // Reward the discoverer with 50% of the deed
             // The previous owner gets 50%
             h.value = max(h.value, minPrice);
@@ -315,7 +315,7 @@ contract HashRegistrar is Registrar {
      *        'foo.bar.eth' on a registrar that owns '.eth', pass an array containing
      *        [keccak256('foo'), keccak256('bar')].
      */
-    function eraseNode(bytes32[] labels) public {
+    function eraseNode(bytes32[] memory labels) public {
         require(labels.length != 0);
         require(state(labels[labels.length - 1]) != Mode.Owned);
 
@@ -432,12 +432,12 @@ contract HashRegistrar is Registrar {
         if (ens.owner(rootNode) == address(this)) {
             ens.setSubnodeOwner(rootNode, label, address(this));
             bytes32 node = keccak256(abi.encodePacked(rootNode, label));
-            ens.setResolver(node, 0);
-            ens.setOwner(node, 0);
+            ens.setResolver(node, address(0x0));
+            ens.setOwner(node, address(0x0));
         }
     }
 
-    function _eraseNodeHierarchy(uint idx, bytes32[] labels, bytes32 node) internal {
+    function _eraseNodeHierarchy(uint idx, bytes32[] memory labels, bytes32 node) internal {
         // Take ownership of the node
         ens.setSubnodeOwner(node, labels[idx], address(this));
         node = keccak256(abi.encodePacked(node, labels[idx]));
@@ -448,8 +448,8 @@ contract HashRegistrar is Registrar {
         }
 
         // Erase the resolver and owner records
-        ens.setResolver(node, 0);
-        ens.setOwner(node, 0);
+        ens.setResolver(node, address(0x0));
+        ens.setOwner(node, address(0x0));
     }
 
     /**
@@ -497,7 +497,7 @@ contract HashRegistrar is Registrar {
      * @param s The string to measure the length of
      * @return The length of the input string
      */
-    function strlen(string s) internal pure returns (uint) {
+    function strlen(string memory s) internal pure returns (uint) {
         s; // Don't warn about unused variables
         // Starting here means the LSB will be the byte we care about
         uint ptr;
@@ -506,7 +506,8 @@ contract HashRegistrar is Registrar {
             ptr := add(s, 1)
             end := add(mload(s), ptr)
         }
-        for (uint len = 0; ptr < end; len++) {
+        uint len = 0;
+        for (len; ptr < end; len++) {
             uint8 b;
             assembly { b := and(mload(ptr), 0xFF) }
             if (b < 0x80) {

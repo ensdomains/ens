@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity >=0.4.24;
 
 import "./Deed.sol";
 
@@ -13,16 +13,16 @@ interface Registrar {
 
 
     function startAuction(bytes32 _hash) public;
-    function startAuctions(bytes32[] _hashes) public;
+    function startAuctions(bytes32[] memory _hashes) public;
     function newBid(bytes32 sealedBid) public payable;
-    function startAuctionsAndBid(bytes32[] hashes, bytes32 sealedBid) public payable;
+    function startAuctionsAndBid(bytes32[] memory hashes, bytes32 sealedBid) public payable;
     function unsealBid(bytes32 _hash, uint _value, bytes32 _salt) public;
     function cancelBid(address bidder, bytes32 seal) public;
     function finalizeAuction(bytes32 _hash) public;
     function transfer(bytes32 _hash, address newOwner) public;
     function releaseDeed(bytes32 _hash) public;
-    function invalidateName(string unhashedName) public;
-    function eraseNode(bytes32[] labels) public;
+    function invalidateName(string memory unhashedName) public;
+    function eraseNode(bytes32[] memory labels) public;
     function transferRegistrars(bytes32 _hash) public;
     function acceptRegistrarTransfer(bytes32 hash, Deed deed, uint registrationDate) public;
 }

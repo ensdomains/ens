@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity >=0.4.24;
 
 import "./Deed.sol";
 
@@ -8,11 +8,11 @@ import "./Deed.sol";
  */
 contract DeedImplementation is Deed {
 
-    address constant burn = 0xdead;
+    address payable constant burn = address(0xdead);
 
-    address public registrar;
-    address public owner;
+    address payable public owner;
     address public previousOwner;
+    address public registrar;
 
     uint public creationDate;
     uint public value;
@@ -41,7 +41,7 @@ contract DeedImplementation is Deed {
     }
 
     function setOwner(address newOwner) public onlyRegistrar {
-        require(newOwner != 0);
+        require(newOwner != address(0x0));
         previousOwner = owner;  // This allows contracts to check who sent them the ownership
         owner = newOwner;
         emit OwnerChanged(newOwner);
