@@ -135,29 +135,37 @@ contract('PublicResolver', function (accounts) {
     describe('content', async () => {
 
         it('permits setting content by owner', async () => {
-            await resolver.setContent(node, 'hash1', {from: accounts[0]});
-            assert.equal(web3.toUtf8(await resolver.content(node)), 'hash1');
+            let content = '0x0f00000000000000000000000000000000000000000000000000000000000000'
+
+            await resolver.setContent(node, content, {from: accounts[0]});
+            assert.equal(await resolver.content(node), content);
         });
 
         it('can overwrite previously set content', async () => {
-            await resolver.setContent(node, 'hash1', {from: accounts[0]});
-            assert.equal(web3.toUtf8(await resolver.content(node)), 'hash1');
+            let content = '0x0f00000000000000000000000000000000000000000000000000000000000000'
 
-            await resolver.setContent(node, 'hash2', {from: accounts[0]});
-            assert.equal(web3.toUtf8(await resolver.content(node)), 'hash2');
+            await resolver.setContent(node, content, {from: accounts[0]});
+            assert.equal(await resolver.content(node), content);
+
+            content = '0x0f10000000000000000000000000000000000000000000000000000000000000'
+
+            await resolver.setContent(node, content, {from: accounts[0]});
+            assert.equal(await resolver.content(node), content);
         });
 
         it('can overwrite to same content', async () => {
-            await resolver.setContent(node, 'hash1', {from: accounts[0]});
-            assert.equal(web3.toUtf8(await resolver.content(node)), 'hash1');
+            let content = '0x0f00000000000000000000000000000000000000000000000000000000000000'
 
-            await resolver.setContent(node, 'hash1', {from: accounts[0]});
-            assert.equal(web3.toUtf8(await resolver.content(node)), 'hash1');
+            await resolver.setContent(node, content, {from: accounts[0]});
+            assert.equal(await resolver.content(node), content);
+
+            await resolver.setContent(node, content, {from: accounts[0]});
+            assert.equal(await resolver.content(node), content);
         });
 
         it('forbids setting content by non-owners', async () => {
             try {
-                await resolver.setContent(node, 'hash1', {from: accounts[1]});
+                await resolver.setContent(node, '0xf00', {from: accounts[1]});
             } catch (error) {
                 return utils.ensureException(error);
             }
@@ -166,10 +174,10 @@ contract('PublicResolver', function (accounts) {
         });
 
         it('forbids writing same content by non-owners', async () => {
-            await resolver.setContent(node, 'hash1', {from: accounts[0]});
+            await resolver.setContent(node, '0xf00', {from: accounts[0]});
 
             try {
-                await resolver.setContent(node, 'hash1', {from: accounts[1]});
+                await resolver.setContent(node, '0xf00', {from: accounts[1]});
             } catch (error) {
                 return utils.ensureException(error);
             }
