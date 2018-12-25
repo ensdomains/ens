@@ -2,7 +2,7 @@ pragma solidity >=0.4.24;
 
 interface Deed {
 
-    function setOwner(address newOwner) public;
+    function setOwner(address payable newOwner) public;
     function setRegistrar(address newRegistrar) public;
     function setBalance(uint newValue, bool throwOnFailure) public;
     function closeDeed(uint refundRatio) public;

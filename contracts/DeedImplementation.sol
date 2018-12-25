@@ -40,7 +40,7 @@ contract DeedImplementation is Deed {
         value = msg.value;
     }
 
-    function setOwner(address newOwner) public onlyRegistrar {
+    function setOwner(address payable newOwner) public onlyRegistrar {
         require(newOwner != address(0x0));
         previousOwner = owner;  // This allows contracts to check who sent them the ownership
         owner = newOwner;

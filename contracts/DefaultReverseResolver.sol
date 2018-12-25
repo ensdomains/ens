@@ -31,7 +31,7 @@ contract DefaultReverseResolver is Resolver {
 
         // Assign ownership of the reverse record to our deployer
         ReverseRegistrar registrar = ReverseRegistrar(ens.owner(ADDR_REVERSE_NODE));
-        if (address(registrar) != 0) {
+        if (address(registrar) != address(0x0)) {
             registrar.claim(msg.sender);
         }
     }

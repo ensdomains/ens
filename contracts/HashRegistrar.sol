@@ -120,7 +120,7 @@ contract HashRegistrar is Registrar {
      * @param sealedBid A sealedBid, created by the shaBid function
      */
     function newBid(bytes32 sealedBid) public payable {
-        require(address(sealedBids[msg.sender][sealedBid]) == 0x0);
+        require(address(sealedBids[msg.sender][sealedBid]) == address(0x0));
         require(msg.value >= minPrice);
 
         // Creates a new hash contract with the owner
@@ -155,7 +155,7 @@ contract HashRegistrar is Registrar {
         Deed bid = sealedBids[msg.sender][seal];
         require(address(bid) != address(0x0));
 
-        sealedBids[msg.sender][seal] = Deed(0);
+        sealedBids[msg.sender][seal] = Deed(address(0x0));
         Entry storage h = _entries[_hash];
         uint value = min(_value, bid.value());
         bid.setBalance(value, true);
@@ -175,7 +175,7 @@ contract HashRegistrar is Registrar {
         } else if (value > h.highestBid) {
             // New winner
             // Cancel the other bid, refund 99.5%
-            if (address(h.deed) != 0) {
+            if (address(h.deed) != address(0x0)) {
                 Deed previousWinner = h.deed;
                 previousWinner.closeDeed(995);
             }
@@ -212,7 +212,7 @@ contract HashRegistrar is Registrar {
         // For simplicity, they should call `startAuction` within
         // 9 days (2 weeks - totalAuctionLength), otherwise their bid will be
         // cancellable by anyone.
-        require(address(bid) != 0 && now >= bid.creationDate() + totalAuctionLength + 2 weeks);
+        require(address(bid) != address(0x0) && now >= bid.creationDate() + totalAuctionLength + 2 weeks);
 
         // Send the canceller 0.5% of the bid, and burn the rest.
         bid.setOwner(msg.sender);

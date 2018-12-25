@@ -24,7 +24,7 @@ contract ReverseRegistrar {
 
         // Assign ownership of the reverse record to our deployer
         ReverseRegistrar oldRegistrar = ReverseRegistrar(ens.owner(ADDR_REVERSE_NODE));
-        if (address(oldRegistrar) != 0) {
+        if (address(oldRegistrar) != address(0x0)) {
             oldRegistrar.claim(msg.sender);
         }
     }
@@ -36,7 +36,7 @@ contract ReverseRegistrar {
      * @return The ENS node hash of the reverse record.
      */
     function claim(address owner) public returns (bytes32) {
-        return claimWithResolver(owner, 0);
+        return claimWithResolver(owner, address(0x0));
     }
 
     /**
@@ -52,7 +52,7 @@ contract ReverseRegistrar {
         address currentOwner = ens.owner(node);
 
         // Update the resolver if required
-        if (resolver != 0 && resolver != ens.resolver(node)) {
+        if (resolver != address(0x0) && resolver != ens.resolver(node)) {
             // Transfer the name to us first if it's not already
             if (currentOwner != address(this)) {
                 ens.setSubnodeOwner(ADDR_REVERSE_NODE, label, this);
