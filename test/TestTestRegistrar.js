@@ -43,11 +43,7 @@ contract('TestRegistrar', function (accounts) {
         await registrar.register(web3Utils.sha3('eth'), accounts[1], {from: accounts[0]});
         assert.equal(await ens.owner(node), accounts[1]);
 
-        await web3.currentProvider.send({
-            jsonrpc: "2.0",
-            "method": "evm_increaseTime",
-            params: [28 * 24 * 60 * 60 + 1]
-        });
+        await utils.advanceTime(28 * 24 * 60 * 60 + 1);
 
         await registrar.register(web3Utils.sha3('eth'), accounts[0], {from: accounts[0]});
         assert.equal(await ens.owner(node), accounts[0]);
