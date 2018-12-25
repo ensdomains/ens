@@ -3,7 +3,7 @@ const PublicResolver = artifacts.require('PublicResolver.sol');
 
 const utils = require('./helpers/Utils.js');
 const namehash = require('eth-ens-namehash');
-const web3Utils = require('web3-utils');
+const sha3 = require('web3-utils').sha3;
 
 contract('PublicResolver', function (accounts) {
 
@@ -14,7 +14,7 @@ contract('PublicResolver', function (accounts) {
         node = namehash('eth');
         ens = await ENS.new();
         resolver = await PublicResolver.new(ens.address);
-        await ens.setSubnodeOwner('0x0', web3Utils.sha3('eth'), accounts[0], {from: accounts[0]});
+        await ens.setSubnodeOwner('0x0', sha3('eth'), accounts[0], {from: accounts[0]});
     });
 
     describe('fallback function', async () => {
