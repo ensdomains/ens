@@ -55,7 +55,7 @@ contract ReverseRegistrar {
         if (resolver != address(0x0) && resolver != ens.resolver(node)) {
             // Transfer the name to us first if it's not already
             if (currentOwner != address(this)) {
-                ens.setSubnodeOwner(ADDR_REVERSE_NODE, label, this);
+                ens.setSubnodeOwner(ADDR_REVERSE_NODE, label, address(this));
                 currentOwner = address(this);
             }
             ens.setResolver(node, resolver);
@@ -77,7 +77,7 @@ contract ReverseRegistrar {
      * @return The ENS node hash of the reverse record.
      */
     function setName(string memory name) public returns (bytes32) {
-        bytes32 node = claimWithResolver(this, defaultResolver);
+        bytes32 node = claimWithResolver(address(this), address(defaultResolver));
         defaultResolver.setName(node, name);
         return node;
     }

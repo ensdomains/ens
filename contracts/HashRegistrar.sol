@@ -56,7 +56,7 @@ contract HashRegistrar is Registrar {
     }
 
     modifier registryOpen() {
-        require(now >= registryStarted && now <= registryStarted + 4 years && ens.owner(rootNode) == address(this));
+        require(now >= registryStarted && now <= registryStarted + (365 * 4) * 1 days && ens.owner(rootNode) == address(this));
         _;
     }
 
@@ -243,7 +243,7 @@ contract HashRegistrar is Registrar {
      * @param _hash The node to transfer
      * @param newOwner The address to transfer ownership to
      */
-    function transfer(bytes32 _hash, address newOwner) public onlyOwner(_hash) {
+    function transfer(bytes32 _hash, address payable newOwner) public onlyOwner(_hash) {
         require(newOwner != address(0x0));
 
         Entry storage h = _entries[_hash];
@@ -261,7 +261,7 @@ contract HashRegistrar is Registrar {
         Entry storage h = _entries[_hash];
         Deed deedContract = h.deed;
 
-        require(now >= h.registrationDate + 1 years || ens.owner(rootNode) != address(this));
+        require(now >= h.registrationDate + 365 days || ens.owner(rootNode) != address(this));
 
         h.value = 0;
         h.highestBid = 0;

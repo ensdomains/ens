@@ -32,7 +32,7 @@ contract DeedImplementation is Deed {
         _;
     }
 
-    constructor(address _owner) public payable {
+    constructor(address payable _owner) public payable {
         owner = _owner;
         registrar = msg.sender;
         creationDate = now;
