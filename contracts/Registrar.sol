@@ -19,7 +19,7 @@ interface Registrar {
     function unsealBid(bytes32 _hash, uint _value, bytes32 _salt) external;
     function cancelBid(address bidder, bytes32 seal) external;
     function finalizeAuction(bytes32 _hash) external;
-    function transfer(bytes32 _hash, address newOwner) external;
+    function transfer(bytes32 _hash, address payable newOwner) external;
     function releaseDeed(bytes32 _hash) external;
     function invalidateName(string calldata unhashedName) external;
     function eraseNode(bytes32[] calldata labels) external;

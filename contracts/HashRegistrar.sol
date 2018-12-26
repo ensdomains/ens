@@ -265,9 +265,12 @@ contract HashRegistrar is Registrar {
      *
      * @param unhashedName An invalid name to search for in the registry.
      */
-    function invalidateName(string calldata unhashedName) external inState(keccak256(unhashedName), Mode.Owned) {
+    function invalidateName(string calldata unhashedName)
+        external
+        inState(keccak256(abi.encode(unhashedName)), Mode.Owned)
+    {
         require(strlen(unhashedName) <= 6);
-        bytes32 hash = keccak256(unhashedName);
+        bytes32 hash = keccak256(abi.encode(unhashedName));
 
         Entry storage h = _entries[hash];
 
@@ -371,7 +374,7 @@ contract HashRegistrar is Registrar {
 
     function entries(bytes32 _hash) public view returns (Mode, address, uint, uint, uint) {
         Entry storage h = _entries[_hash];
-        return (state(_hash), h.deed, h.registrationDate, h.value, h.highestBid);
+        return (state(_hash), address(h.deed), h.registrationDate, h.value, h.highestBid);
     }
 
     /**
@@ -444,8 +447,8 @@ contract HashRegistrar is Registrar {
         require(msg.value >= minPrice);
 
         // Creates a new hash contract with the owner
-        Deed newBid = (new DeedImplementation).value(msg.value)(msg.sender);
-        sealedBids[msg.sender][sealedBid] = newBid;
+        Deed bid = (new DeedImplementation).value(msg.value)(msg.sender);
+        sealedBids[msg.sender][sealedBid] = bid;
         emit NewBid(sealedBid, msg.sender, msg.value);
     }
 
