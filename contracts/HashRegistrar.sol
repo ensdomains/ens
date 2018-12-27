@@ -31,11 +31,11 @@ contract HashRegistrar is Registrar {
     
     enum Mode { Open, Auction, Owned, Forbidden, Reveal, NotYetAvailable }
 
-    uint32 constant totalAuctionLength = 5 days;
-    uint32 constant revealPeriod = 48 hours;
-    uint32 public constant launchLength = 8 weeks;
+    uint32 constant TOTAL_AUCTION_LENGTH = 5 days;
+    uint32 constant REVEAL_PERIOD = 48 hours;
+    uint32 public constant LAUNCH_LENGTH = 8 weeks;
 
-    uint constant minPrice = 0.01 ether;
+    uint constant MIN_PRICE = 0.01 ether;
     uint public registryStarted;
 
     struct Entry {
@@ -83,7 +83,7 @@ contract HashRegistrar is Registrar {
         require(mode == Mode.Open);
 
         Entry storage newAuction = _entries[_hash];
-        newAuction.registrationDate = now + totalAuctionLength;
+        newAuction.registrationDate = now + TOTAL_AUCTION_LENGTH;
         newAuction.value = 0;
         newAuction.highestBid = 0;
         emit AuctionStarted(_hash, newAuction.registrationDate);
@@ -121,7 +121,7 @@ contract HashRegistrar is Registrar {
      */
     function newBid(bytes32 sealedBid) public payable {
         require(address(sealedBids[msg.sender][sealedBid]) == 0x0);
-        require(msg.value >= minPrice);
+        require(msg.value >= MIN_PRICE);
 
         // Creates a new hash contract with the owner
         Deed newBid = (new DeedImplementation).value(msg.value)(msg.sender);
@@ -168,7 +168,7 @@ contract HashRegistrar is Registrar {
         } else if (auctionState != Mode.Reveal) {
             // Invalid phase
             revert();
-        } else if (value < minPrice || bid.creationDate() > h.registrationDate - revealPeriod) {
+        } else if (value < MIN_PRICE || bid.creationDate() > h.registrationDate - REVEAL_PERIOD) {
             // Bid too low or too late, refund 99.5%
             bid.closeDeed(995);
             emit BidRevealed(_hash, msg.sender, value, 0);
@@ -208,11 +208,11 @@ contract HashRegistrar is Registrar {
         
         // If a sole bidder does not `unsealBid` in time, they have a few more days
         // where they can call `startAuction` (again) and then `unsealBid` during
-        // the revealPeriod to get back their bid value.
+        // the REVEAL_PERIOD to get back their bid value.
         // For simplicity, they should call `startAuction` within
-        // 9 days (2 weeks - totalAuctionLength), otherwise their bid will be
+        // 9 days (2 weeks - TOTAL_AUCTION_LENGTH), otherwise their bid will be
         // cancellable by anyone.
-        require(address(bid) != 0 && now >= bid.creationDate() + totalAuctionLength + 2 weeks);
+        require(address(bid) != 0 && now >= bid.creationDate() + TOTAL_AUCTION_LENGTH + 2 weeks);
 
         // Send the canceller 0.5% of the bid, and burn the rest.
         bid.setOwner(msg.sender);
@@ -230,7 +230,7 @@ contract HashRegistrar is Registrar {
         Entry storage h = _entries[_hash];
         
         // Handles the case when there's only a single bidder (h.value is zero)
-        h.value =  max(h.value, minPrice);
+        h.value =  max(h.value, MIN_PRICE);
         h.deed.setBalance(h.value, true);
 
         trySetSubnodeOwner(_hash, h.deed.owner());
@@ -292,7 +292,7 @@ contract HashRegistrar is Registrar {
         if (address(h.deed) != 0) {
             // Reward the discoverer with 50% of the deed
             // The previous owner gets 50%
-            h.value = max(h.value, minPrice);
+            h.value = max(h.value, MIN_PRICE);
             h.deed.setBalance(h.value/2, false);
             h.deed.setOwner(msg.sender);
             h.deed.closeDeed(1000);
@@ -371,7 +371,7 @@ contract HashRegistrar is Registrar {
         if (!isAllowed(_hash, now)) {
             return Mode.NotYetAvailable;
         } else if (now < entry.registrationDate) {
-            if (now < entry.registrationDate - revealPeriod) {
+            if (now < entry.registrationDate - REVEAL_PERIOD) {
                 return Mode.Auction;
             } else {
                 return Mode.Reveal;
@@ -412,7 +412,7 @@ contract HashRegistrar is Registrar {
      * @param _hash The hash to start an auction on
      */
     function getAllowedTime(bytes32 _hash) public view returns (uint) {
-        return registryStarted + ((launchLength * (uint(_hash) >> 128)) >> 128);
+        return registryStarted + ((LAUNCH_LENGTH * (uint(_hash) >> 128)) >> 128);
         // Right shift operator: a >> b == a / 2**b
     }
 

@@ -7,7 +7,7 @@ import "./ENS.sol";
  * expires registrations a fixed period after they're initially claimed.
  */
 contract TestRegistrar {
-    uint constant registrationPeriod = 4 weeks;
+    uint constant REGISTRATION_PERIOD = 4 weeks;
 
     ENS public ens;
     bytes32 public rootNode;
@@ -31,7 +31,7 @@ contract TestRegistrar {
     function register(bytes32 label, address owner) public {
         require(expiryTimes[label] < now);
 
-        expiryTimes[label] = now + registrationPeriod;
+        expiryTimes[label] = now + REGISTRATION_PERIOD;
         ens.setSubnodeOwner(rootNode, label, owner);
     }
 }

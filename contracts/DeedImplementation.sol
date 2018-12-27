@@ -8,7 +8,7 @@ import "./Deed.sol";
  */
 contract DeedImplementation is Deed {
 
-    address constant burn = 0xdead;
+    address constant BURN = 0xdead;
 
     address public registrar;
     address public owner;
@@ -66,7 +66,7 @@ contract DeedImplementation is Deed {
      */
     function closeDeed(uint refundRatio) public onlyRegistrar onlyActive {
         active = false;
-        require(burn.send(((1000 - refundRatio) * address(this).balance)/1000));
+        require(BURN.send(((1000 - refundRatio) * address(this).balance)/1000));
         emit DeedClosed();
         destroyDeed();
     }
@@ -81,7 +81,7 @@ contract DeedImplementation is Deed {
         // owner to log an event if desired; but owner should also be aware that
         // its fallback function can also be invoked by setBalance
         if (owner.send(address(this).balance)) {
-            selfdestruct(burn);
+            selfdestruct(BURN);
         }
     }
 
