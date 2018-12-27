@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.5.0;
 
 
 /*
@@ -56,7 +56,7 @@ contract HashRegistrar is Registrar {
     }
 
     modifier registryOpen() {
-        require(now >= registryStarted && now <= registryStarted + 4 years && ens.owner(rootNode) == address(this));
+        require(now >= registryStarted && now <= registryStarted + (365 * 4) * 1 days && ens.owner(rootNode) == address(this));
         _;
     }
 
@@ -77,16 +77,8 @@ contract HashRegistrar is Registrar {
      *
      * @param _hash The hash to start an auction on
      */
-    function startAuction(bytes32 _hash) public registryOpen() {
-        Mode mode = state(_hash);
-        if (mode == Mode.Auction) return;
-        require(mode == Mode.Open);
-
-        Entry storage newAuction = _entries[_hash];
-        newAuction.registrationDate = now + totalAuctionLength;
-        newAuction.value = 0;
-        newAuction.highestBid = 0;
-        emit AuctionStarted(_hash, newAuction.registrationDate);
+    function startAuction(bytes32 _hash) external {
+        _startAuction(_hash);
     }
 
     /**
@@ -100,10 +92,8 @@ contract HashRegistrar is Registrar {
      *
      * @param _hashes An array of hashes, at least one of which you presumably want to bid on
      */
-    function startAuctions(bytes32[] _hashes) public {
-        for (uint i = 0; i < _hashes.length; i ++) {
-            startAuction(_hashes[i]);
-        }
+    function startAuctions(bytes32[] calldata _hashes) external {
+        _startAuctions(_hashes);
     }
 
     /**
@@ -119,14 +109,8 @@ contract HashRegistrar is Registrar {
      *
      * @param sealedBid A sealedBid, created by the shaBid function
      */
-    function newBid(bytes32 sealedBid) public payable {
-        require(address(sealedBids[msg.sender][sealedBid]) == 0x0);
-        require(msg.value >= minPrice);
-
-        // Creates a new hash contract with the owner
-        Deed newBid = (new DeedImplementation).value(msg.value)(msg.sender);
-        sealedBids[msg.sender][sealedBid] = newBid;
-        emit NewBid(sealedBid, msg.sender, msg.value);
+    function newBid(bytes32 sealedBid) external payable {
+        _newBid(sealedBid);
     }
 
     /**
@@ -138,9 +122,9 @@ contract HashRegistrar is Registrar {
      * @param hashes A list of hashes to start auctions on.
      * @param sealedBid A sealed bid for one of the auctions.
      */
-    function startAuctionsAndBid(bytes32[] hashes, bytes32 sealedBid) public payable {
-        startAuctions(hashes);
-        newBid(sealedBid);
+    function startAuctionsAndBid(bytes32[] calldata hashes, bytes32 sealedBid) external payable {
+        _startAuctions(hashes);
+        _newBid(sealedBid);
     }
 
     /**
@@ -150,12 +134,12 @@ contract HashRegistrar is Registrar {
      * @param _value The bid amount in the sealedBid
      * @param _salt The sale in the sealedBid
      */
-    function unsealBid(bytes32 _hash, uint _value, bytes32 _salt) public {
+    function unsealBid(bytes32 _hash, uint _value, bytes32 _salt) external {
         bytes32 seal = shaBid(_hash, msg.sender, _value, _salt);
         Deed bid = sealedBids[msg.sender][seal];
-        require(address(bid) != 0);
+        require(address(bid) != address(0x0));
 
-        sealedBids[msg.sender][seal] = Deed(0);
+        sealedBids[msg.sender][seal] = Deed(address(0x0));
         Entry storage h = _entries[_hash];
         uint value = min(_value, bid.value());
         bid.setBalance(value, true);
@@ -175,7 +159,7 @@ contract HashRegistrar is Registrar {
         } else if (value > h.highestBid) {
             // New winner
             // Cancel the other bid, refund 99.5%
-            if (address(h.deed) != 0) {
+            if (address(h.deed) != address(0x0)) {
                 Deed previousWinner = h.deed;
                 previousWinner.closeDeed(995);
             }
@@ -203,7 +187,7 @@ contract HashRegistrar is Registrar {
      *
      * @param seal The value returned by the shaBid function
      */
-    function cancelBid(address bidder, bytes32 seal) public {
+    function cancelBid(address bidder, bytes32 seal) external {
         Deed bid = sealedBids[bidder][seal];
         
         // If a sole bidder does not `unsealBid` in time, they have a few more days
@@ -212,7 +196,7 @@ contract HashRegistrar is Registrar {
         // For simplicity, they should call `startAuction` within
         // 9 days (2 weeks - totalAuctionLength), otherwise their bid will be
         // cancellable by anyone.
-        require(address(bid) != 0 && now >= bid.creationDate() + totalAuctionLength + 2 weeks);
+        require(address(bid) != address(0x0) && now >= bid.creationDate() + totalAuctionLength + 2 weeks);
 
         // Send the canceller 0.5% of the bid, and burn the rest.
         bid.setOwner(msg.sender);
@@ -226,11 +210,11 @@ contract HashRegistrar is Registrar {
      *
      * @param _hash The hash of the name the auction is for
      */
-    function finalizeAuction(bytes32 _hash) public onlyOwner(_hash) {
+    function finalizeAuction(bytes32 _hash) external onlyOwner(_hash) {
         Entry storage h = _entries[_hash];
         
         // Handles the case when there's only a single bidder (h.value is zero)
-        h.value =  max(h.value, minPrice);
+        h.value = max(h.value, minPrice);
         h.deed.setBalance(h.value, true);
 
         trySetSubnodeOwner(_hash, h.deed.owner());
@@ -243,8 +227,8 @@ contract HashRegistrar is Registrar {
      * @param _hash The node to transfer
      * @param newOwner The address to transfer ownership to
      */
-    function transfer(bytes32 _hash, address newOwner) public onlyOwner(_hash) {
-        require(newOwner != 0);
+    function transfer(bytes32 _hash, address payable newOwner) external onlyOwner(_hash) {
+        require(newOwner != address(0x0));
 
         Entry storage h = _entries[_hash];
         h.deed.setOwner(newOwner);
@@ -257,11 +241,11 @@ contract HashRegistrar is Registrar {
      *
      * @param _hash The node to release
      */
-    function releaseDeed(bytes32 _hash) public onlyOwner(_hash) {
+    function releaseDeed(bytes32 _hash) external onlyOwner(_hash) {
         Entry storage h = _entries[_hash];
         Deed deedContract = h.deed;
 
-        require(now >= h.registrationDate + 1 years || ens.owner(rootNode) != address(this));
+        require(now >= h.registrationDate + 365 days || ens.owner(rootNode) != address(this));
 
         h.value = 0;
         h.highestBid = 0;
@@ -281,15 +265,18 @@ contract HashRegistrar is Registrar {
      *
      * @param unhashedName An invalid name to search for in the registry.
      */
-    function invalidateName(string unhashedName) public inState(keccak256(unhashedName), Mode.Owned) {
+    function invalidateName(string calldata unhashedName)
+        external
+        inState(keccak256(abi.encode(unhashedName)), Mode.Owned)
+    {
         require(strlen(unhashedName) <= 6);
-        bytes32 hash = keccak256(unhashedName);
+        bytes32 hash = keccak256(abi.encode(unhashedName));
 
         Entry storage h = _entries[hash];
 
         _tryEraseSingleNode(hash);
 
-        if (address(h.deed) != 0) {
+        if (address(h.deed) != address(0x0)) {
             // Reward the discoverer with 50% of the deed
             // The previous owner gets 50%
             h.value = max(h.value, minPrice);
@@ -315,7 +302,7 @@ contract HashRegistrar is Registrar {
      *        'foo.bar.eth' on a registrar that owns '.eth', pass an array containing
      *        [keccak256('foo'), keccak256('bar')].
      */
-    function eraseNode(bytes32[] labels) public {
+    function eraseNode(bytes32[] calldata labels) external {
         require(labels.length != 0);
         require(state(labels[labels.length - 1]) != Mode.Owned);
 
@@ -329,7 +316,7 @@ contract HashRegistrar is Registrar {
      *
      * @param _hash The name hash to transfer.
      */
-    function transferRegistrars(bytes32 _hash) public onlyOwner(_hash) {
+    function transferRegistrars(bytes32 _hash) external onlyOwner(_hash) {
         address registrar = ens.owner(rootNode);
         require(registrar != address(this));
 
@@ -355,7 +342,7 @@ contract HashRegistrar is Registrar {
      * @param deed The Deed object for the name being transferred in.
      * @param registrationDate The date at which the name was originally registered.
      */
-    function acceptRegistrarTransfer(bytes32 hash, Deed deed, uint registrationDate) public {
+    function acceptRegistrarTransfer(bytes32 hash, Deed deed, uint registrationDate) external {
         hash; deed; registrationDate; // Don't warn about unused variables
     }
 
@@ -387,7 +374,7 @@ contract HashRegistrar is Registrar {
 
     function entries(bytes32 _hash) public view returns (Mode, address, uint, uint, uint) {
         Entry storage h = _entries[_hash];
-        return (state(_hash), h.deed, h.registrationDate, h.value, h.highestBid);
+        return (state(_hash), address(h.deed), h.registrationDate, h.value, h.highestBid);
     }
 
     /**
@@ -432,12 +419,40 @@ contract HashRegistrar is Registrar {
         if (ens.owner(rootNode) == address(this)) {
             ens.setSubnodeOwner(rootNode, label, address(this));
             bytes32 node = keccak256(abi.encodePacked(rootNode, label));
-            ens.setResolver(node, 0);
-            ens.setOwner(node, 0);
+            ens.setResolver(node, address(0x0));
+            ens.setOwner(node, address(0x0));
         }
     }
 
-    function _eraseNodeHierarchy(uint idx, bytes32[] labels, bytes32 node) internal {
+    function _startAuction(bytes32 _hash) internal registryOpen() {
+        Mode mode = state(_hash);
+        if (mode == Mode.Auction) return;
+        require(mode == Mode.Open);
+
+        Entry storage newAuction = _entries[_hash];
+        newAuction.registrationDate = now + totalAuctionLength;
+        newAuction.value = 0;
+        newAuction.highestBid = 0;
+        emit AuctionStarted(_hash, newAuction.registrationDate);
+    }
+
+    function _startAuctions(bytes32[] memory _hashes) internal {
+        for (uint i = 0; i < _hashes.length; i ++) {
+            _startAuction(_hashes[i]);
+        }
+    }
+
+    function _newBid(bytes32 sealedBid) internal {
+        require(address(sealedBids[msg.sender][sealedBid]) == address(0x0));
+        require(msg.value >= minPrice);
+
+        // Creates a new hash contract with the owner
+        Deed bid = (new DeedImplementation).value(msg.value)(msg.sender);
+        sealedBids[msg.sender][sealedBid] = bid;
+        emit NewBid(sealedBid, msg.sender, msg.value);
+    }
+
+    function _eraseNodeHierarchy(uint idx, bytes32[] memory labels, bytes32 node) internal {
         // Take ownership of the node
         ens.setSubnodeOwner(node, labels[idx], address(this));
         node = keccak256(abi.encodePacked(node, labels[idx]));
@@ -448,8 +463,8 @@ contract HashRegistrar is Registrar {
         }
 
         // Erase the resolver and owner records
-        ens.setResolver(node, 0);
-        ens.setOwner(node, 0);
+        ens.setResolver(node, address(0x0));
+        ens.setOwner(node, address(0x0));
     }
 
     /**
@@ -497,7 +512,7 @@ contract HashRegistrar is Registrar {
      * @param s The string to measure the length of
      * @return The length of the input string
      */
-    function strlen(string s) internal pure returns (uint) {
+    function strlen(string memory s) internal pure returns (uint) {
         s; // Don't warn about unused variables
         // Starting here means the LSB will be the byte we care about
         uint ptr;
@@ -506,7 +521,8 @@ contract HashRegistrar is Registrar {
             ptr := add(s, 1)
             end := add(mload(s), ptr)
         }
-        for (uint len = 0; ptr < end; len++) {
+        uint len = 0;
+        for (len; ptr < end; len++) {
             uint8 b;
             assembly { b := and(mload(ptr), 0xFF) }
             if (b < 0x80) {

@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.5.0;
 
 import "./ENS.sol";
 
@@ -11,7 +11,7 @@ contract FIFSRegistrar {
 
     modifier only_owner(bytes32 label) {
         address currentOwner = ens.owner(keccak256(abi.encodePacked(rootNode, label)));
-        require(currentOwner == 0 || currentOwner == msg.sender);
+        require(currentOwner == address(0x0) || currentOwner == msg.sender);
         _;
     }
 

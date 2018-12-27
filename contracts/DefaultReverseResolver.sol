@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.5.0;
 
 import "./ReverseRegistrar.sol";
 
@@ -31,7 +31,7 @@ contract DefaultReverseResolver is Resolver {
 
         // Assign ownership of the reverse record to our deployer
         ReverseRegistrar registrar = ReverseRegistrar(ens.owner(ADDR_REVERSE_NODE));
-        if (address(registrar) != 0) {
+        if (address(registrar) != address(0x0)) {
             registrar.claim(msg.sender);
         }
     }
@@ -41,7 +41,7 @@ contract DefaultReverseResolver is Resolver {
      * @param node The node to update.
      * @param _name The name to set.
      */
-    function setName(bytes32 node, string _name) public owner_only(node) {
+    function setName(bytes32 node, string memory _name) public owner_only(node) {
         name[node] = _name;
     }
 }

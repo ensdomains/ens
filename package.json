@@ -23,11 +23,12 @@
     "eth-ens-namehash": "^1.0.2",
     "web3-utils": "^1.0.0-beta.31",
     "ethereumjs-testrpc": "^6.0.3",
-    "solc": "^0.4.20"
+    "solc": "^0.4.20",
+    "bluebird": "^3.5.2"
   },
   "devDependencies": {
     "solidity-coverage": "^0.3.5",
     "solium": "^1.0.4",
-    "truffle": "^4.0.0"
+    "truffle": "^5.0.0"
   }
 }

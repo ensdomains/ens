@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.5.0;
 
 contract DNSResolver {
     address public owner;
@@ -13,11 +13,11 @@ contract DNSResolver {
         owner = msg.sender;
     }
 
-    function setDnsrr(bytes32 node, bytes data) public owner_only {
+    function setDnsrr(bytes32 node, bytes memory data) public owner_only {
         zones[node] = data;
     }
 
-    function dnsrr(bytes32 node) public view returns (bytes) {
+    function dnsrr(bytes32 node) public view returns (bytes memory) {
         return zones[node];
     }
 

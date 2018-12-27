@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity >=0.4.24;
 
 import "./Deed.sol";
 
@@ -12,17 +12,17 @@ interface Registrar {
     event HashInvalidated(bytes32 indexed hash, string indexed name, uint value, uint registrationDate);
 
 
-    function startAuction(bytes32 _hash) public;
-    function startAuctions(bytes32[] _hashes) public;
-    function newBid(bytes32 sealedBid) public payable;
-    function startAuctionsAndBid(bytes32[] hashes, bytes32 sealedBid) public payable;
-    function unsealBid(bytes32 _hash, uint _value, bytes32 _salt) public;
-    function cancelBid(address bidder, bytes32 seal) public;
-    function finalizeAuction(bytes32 _hash) public;
-    function transfer(bytes32 _hash, address newOwner) public;
-    function releaseDeed(bytes32 _hash) public;
-    function invalidateName(string unhashedName) public;
-    function eraseNode(bytes32[] labels) public;
-    function transferRegistrars(bytes32 _hash) public;
-    function acceptRegistrarTransfer(bytes32 hash, Deed deed, uint registrationDate) public;
+    function startAuction(bytes32 _hash) external;
+    function startAuctions(bytes32[] calldata _hashes) external;
+    function newBid(bytes32 sealedBid) external payable;
+    function startAuctionsAndBid(bytes32[] calldata hashes, bytes32 sealedBid) external payable;
+    function unsealBid(bytes32 _hash, uint _value, bytes32 _salt) external;
+    function cancelBid(address bidder, bytes32 seal) external;
+    function finalizeAuction(bytes32 _hash) external;
+    function transfer(bytes32 _hash, address payable newOwner) external;
+    function releaseDeed(bytes32 _hash) external;
+    function invalidateName(string calldata unhashedName) external;
+    function eraseNode(bytes32[] calldata labels) external;
+    function transferRegistrars(bytes32 _hash) external;
+    function acceptRegistrarTransfer(bytes32 hash, Deed deed, uint registrationDate) external;
 }
