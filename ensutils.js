@@ -904,7 +904,7 @@ var fifsRegistrarContract = web3.eth.contract([
         constant: false,
         inputs: [
             {
-                name: "subnode",
+                name: "label",
                 type: "bytes32"
             },
             {
