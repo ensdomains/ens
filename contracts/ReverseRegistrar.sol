@@ -1,14 +1,14 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.5.0;
 
 import "./ENS.sol";
 
 contract Resolver {
-    function setName(bytes32 node, string name) public;
+    function setName(bytes32 node, string memory name) public;
 }
 
 contract ReverseRegistrar {
     // namehash('addr.reverse')
-    bytes32 constant ADDR_REVERSE_NODE = 0x91d1777781884d03a6757a803996e38de2a42967fb37eeaca72729271025a9e2;
+    bytes32 public constant ADDR_REVERSE_NODE = 0x91d1777781884d03a6757a803996e38de2a42967fb37eeaca72729271025a9e2;
 
     ENS public ens;
     Resolver public defaultResolver;
@@ -24,7 +24,7 @@ contract ReverseRegistrar {
 
         // Assign ownership of the reverse record to our deployer
         ReverseRegistrar oldRegistrar = ReverseRegistrar(ens.owner(ADDR_REVERSE_NODE));
-        if (address(oldRegistrar) != 0) {
+        if (address(oldRegistrar) != address(0x0)) {
             oldRegistrar.claim(msg.sender);
         }
     }
@@ -36,7 +36,7 @@ contract ReverseRegistrar {
      * @return The ENS node hash of the reverse record.
      */
     function claim(address owner) public returns (bytes32) {
-        return claimWithResolver(owner, 0);
+        return claimWithResolver(owner, address(0x0));
     }
 
     /**
@@ -52,10 +52,10 @@ contract ReverseRegistrar {
         address currentOwner = ens.owner(node);
 
         // Update the resolver if required
-        if (resolver != 0 && resolver != ens.resolver(node)) {
+        if (resolver != address(0x0) && resolver != ens.resolver(node)) {
             // Transfer the name to us first if it's not already
             if (currentOwner != address(this)) {
-                ens.setSubnodeOwner(ADDR_REVERSE_NODE, label, this);
+                ens.setSubnodeOwner(ADDR_REVERSE_NODE, label, address(this));
                 currentOwner = address(this);
             }
             ens.setResolver(node, resolver);
@@ -76,8 +76,8 @@ contract ReverseRegistrar {
      * @param name The name to set for this address.
      * @return The ENS node hash of the reverse record.
      */
-    function setName(string name) public returns (bytes32) {
-        bytes32 node = claimWithResolver(this, defaultResolver);
+    function setName(string memory name) public returns (bytes32) {
+        bytes32 node = claimWithResolver(address(this), address(defaultResolver));
         defaultResolver.setName(node, name);
         return node;
     }
@@ -87,7 +87,7 @@ contract ReverseRegistrar {
      * @param addr The address to hash
      * @return The ENS node hash.
      */
-    function node(address addr) public view returns (bytes32) {
+    function node(address addr) public pure returns (bytes32) {
         return keccak256(abi.encodePacked(ADDR_REVERSE_NODE, sha3HexAddress(addr)));
     }
 
@@ -98,20 +98,21 @@ contract ReverseRegistrar {
      * @return The SHA3 hash of the lower-case hexadecimal encoding of the
      *         input address.
      */
-    function sha3HexAddress(address addr) private returns (bytes32 ret) {
+    function sha3HexAddress(address addr) private pure returns (bytes32 ret) {
         addr;
         ret; // Stop warning us about unused variables
         assembly {
             let lookup := 0x3031323334353637383961626364656600000000000000000000000000000000
-            let i := 40
-        loop:
-            i := sub(i, 1)
-            mstore8(i, byte(and(addr, 0xf), lookup))
-            addr := div(addr, 0x10)
-            i := sub(i, 1)
-            mstore8(i, byte(and(addr, 0xf), lookup))
-            addr := div(addr, 0x10)
-            jumpi(loop, i)
+
+            for { let i := 40 } gt(i, 0) { } {
+                i := sub(i, 1)
+                mstore8(i, byte(and(addr, 0xf), lookup))
+                addr := div(addr, 0x10)
+                i := sub(i, 1)
+                mstore8(i, byte(and(addr, 0xf), lookup))
+                addr := div(addr, 0x10)
+            }
+
             ret := keccak256(0, 40)
         }
     }
