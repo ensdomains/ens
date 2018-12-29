@@ -28,8 +28,6 @@ contract HashRegistrar is Registrar {
 
     mapping (bytes32 => Entry) _entries;
     mapping (address => mapping (bytes32 => Deed)) public sealedBids;
-    
-    enum Mode { Open, Auction, Owned, Forbidden, Reveal, NotYetAvailable }
 
     uint32 constant totalAuctionLength = 5 days;
     uint32 constant revealPeriod = 48 hours;
@@ -346,6 +344,11 @@ contract HashRegistrar is Registrar {
         hash; deed; registrationDate; // Don't warn about unused variables
     }
 
+    function entries(bytes32 _hash) external view returns (Mode, address, uint, uint, uint) {
+        Entry storage h = _entries[_hash];
+        return (state(_hash), address(h.deed), h.registrationDate, h.value, h.highestBid);
+    }
+
     // State transitions for names:
     //   Open -> Auction (startAuction)
     //   Auction -> Reveal
@@ -370,11 +373,6 @@ contract HashRegistrar is Registrar {
                 return Mode.Owned;
             }
         }
-    }
-
-    function entries(bytes32 _hash) public view returns (Mode, address, uint, uint, uint) {
-        Entry storage h = _entries[_hash];
-        return (state(_hash), address(h.deed), h.registrationDate, h.value, h.highestBid);
     }
 
     /**
