@@ -102,7 +102,7 @@ The registrar works exclusively with 'label hashes' - the ``keccak256`` of the f
 
     mapping(bytes32=>Registration) public registrations;
  
- ``registrations`` provides access to the registration information of names, keyed by their label hash. Note that registrations from the legacy registrar that have not been migrated are *not* recorded here.
+``registrations`` provides access to the registration information of names, keyed by their label hash. Note that registrations from the legacy registrar that have not been migrated are *not* recorded here.
 
 
 ::
