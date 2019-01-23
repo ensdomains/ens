@@ -18,11 +18,11 @@ Code for the permanent registrar can be found in the ethregistrar_ repository.
 
 The registrar itself is called BaseRegistrar_. This contract implements several key functions:
 
- - The owner of the registrar may add and remove 'controllers'.
- - Controllers may register new domains and extend the expiry of (renew) existing domains. They can not change the ownership or reduce the expiration time of existing domains.
- - Name owners may transfer ownership to another address.
- - Name owners may reclaim ownership in the ENS registry if they have lost it.
- - Owners of names in the legacy registrar may transfer them to the new registrar, during the 1 year transition period. When they do so, their deposit is returned to them in its entirety.
+- The owner of the registrar may add and remove 'controllers'.
+- Controllers may register new domains and extend the expiry of (renew) existing domains. They can not change the ownership or reduce the expiration time of existing domains.
+- Name owners may transfer ownership to another address.
+- Name owners may reclaim ownership in the ENS registry if they have lost it.
+- Owners of names in the legacy registrar may transfer them to the new registrar, during the 1 year transition period. When they do so, their deposit is returned to them in its entirety.
 
 Users will interact directly with this contract when transferring ownership of names, or recovering ownership in the ENS registry of a name (for example, one whose ownership was previously transferred to a contract). Users can also query names to see their registration status and expiry date. For initial registration and for renewals, users will need to interact with a controller contract.
 
@@ -87,6 +87,7 @@ The ``NameRegistered`` event is emitted when a name is registered for the first 
 The registrar works exclusively with 'label hashes' - the ``keccak256`` of the first component of the label (eg, ``keccak256('ens')`` for ``ens.eth``). The namehash can be derived by computing ``keccak256(baseNode, labelHash)``.
 
 ::
+
     uint public transferPeriodEnds;
 
 ``transferPeriodEnds`` documents the unix timestamp at which it is no longer possible to migrate over names from the legacy registrar, and any non-migrated names become available for registration.
