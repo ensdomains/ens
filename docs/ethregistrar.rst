@@ -11,6 +11,21 @@ The target deployment date for the permanent registrar is the 4th of May, 2019. 
 
 This document assumes you have a basic understanding of the architecture of ENS. :ref:`introduction` gives an overview of this.
 
+Terminology
+-----------
+
+ - *Name*: An ENS identifier. Names may consist of multiple parts, called labels, separated by dots.
+ - *Label*: An individual component of a name.
+ - *Labelhash*: The keccak-256 hash of an individual label.
+ - *Namehash*: The algorithm used to process an ENS name and return a cryptographic hash uniquely identifying that name. Namehash takes a name as input and produces a *node*.
+ - *Node*: A cryptographic hash uniquely identifying a name.
+ - *Owner*: The owner of a name is the entity referenced in the ENS registry's `owner` field. An owner may transfer ownership, set a resolver or TTL, and create or reassign subdomains.
+ - *Registry*: The core contract of ENS, the registry maintains a mapping from domain name (at any level - x, y.x, z.y.x etc) to owner, resolver, and time-to-live.
+ - *Resolver*: A resolver is a contract that maps from name to resource (eg, Ethereum account address, public key, content hash, etc). Resolvers are pointed to by the `resolver` field of the registry.
+ - *Registrar*: A registrar is a contract responsible for allocating subdomains. Registrars can be configured at any level of ENS, and are pointed to by the `owner` field of the registry.
+ - *Registration*: A registration is the system's record of a user's ownership of a name. This is distinct from name ownership; registrations are maintained in the registrar contract and additionally store information on expiry date, rent paid, etc.
+ - *Registrant*: The owner of a registration. The registrant may transfer the registration, pay rent ('renew' the name), and reclaim ownership of the name in the registry if required.
+
 System architecture
 -------------------
 
@@ -23,6 +38,8 @@ The registrar itself is called BaseRegistrar_. This contract implements several 
 - Name owners may transfer ownership to another address.
 - Name owners may reclaim ownership in the ENS registry if they have lost it.
 - Owners of names in the legacy registrar may transfer them to the new registrar, during the 1 year transition period. When they do so, their deposit is returned to them in its entirety.
+
+In addition, the registrar is an ERC721_ compliant nonfungeable token contract, meaning that .eth registrations can be transferred in the same fashion as other NFTs.
 
 Users will interact directly with this contract when transferring ownership of names, or recovering ownership in the ENS registry of a name (for example, one whose ownership was previously transferred to a contract). Users can also query names to see their registration status and expiry date. For initial registration and for renewals, users will need to interact with a controller contract.
 
@@ -48,17 +65,6 @@ Registrar Interface
 
 This section documents the parts of the registrar interface relevant to implementers of tools that interact with it. Functionality exclusive to the registrar owner or to controllers is omitted for brevity.
 
-::
-
-     struct Registration {
-        address owner;
-        uint expiresAt; // Expiration timestamp
-    }
-
-The Registration struct encapsulates relevant information about a name registration: The address of the owner, and the unix timestamp at which the name will expire.
-
-::
-
     event ControllerAdded(address indexed controller);
     event ControllerRemoved(address indexed controller);
     
@@ -66,17 +72,17 @@ The ``ControllerAdded`` and ``ControllerRemoved`` events allow watchers to deter
 
 ::
 
-    event NameMigrated(bytes32 indexed hash, address indexed owner, uint expires);
+    event NameMigrated(uint256 indexed hash, address indexed owner, uint expires);
 
-The ``NameMigrated`` event is emitted when a name is migrated over from the legacy registrar.
+The ``NameMigrated`` event is emitted when a registration is migrated over from the legacy registrar.
 
 ::
 
-    event NameRegistered(bytes32 indexed hash, address indexed owner, uint expires);
-    event NameRenewed(bytes32 indexed hash, uint expires);
-    event NameTransferred(bytes32 indexed hash, address indexed oldOwner, address indexed newOwner);
+    event NameRegistered(uint256 indexed hash, address indexed owner, uint expires);
+    event NameRenewed(uint256 indexed hash, uint expires);
+    event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
 
-The ``NameRegistered`` event is emitted when a name is registered for the first time. ``NameRenewed`` is emitted when a name's expiry is extended. ``NameTransferred`` is emitted when the owner address of a name is changed.
+The ``NameRegistered`` event is emitted when a new registration is made. ``NameRenewed`` is emitted when a registration's expiry is extended. ``Transfer`` is part of ERC721_ and is emitted when the owner address of a name is changed.
 
 ::
 
@@ -84,13 +90,13 @@ The ``NameRegistered`` event is emitted when a name is registered for the first 
 
 ``baseNode`` is the namehash of the name that this registrar handles registrations for - ``namehash('eth')`` for the deployed registrar.
 
-The registrar works exclusively with 'label hashes' - the ``keccak256`` of the first component of the label (eg, ``keccak256('ens')`` for ``ens.eth``). The namehash can be derived by computing ``keccak256(baseNode, labelHash)``.
+The registrar works exclusively with label hashes - the ``keccak256`` of the first component of the label (eg, ``keccak256('ens')`` for ``ens.eth``). For compatibility with ERC721, these are expressed as `uint256` values rather than `bytes32`, but can be cast backwards and forwards transparently. The namehash of a name can be derived by computing ``keccak256(baseNode, labelHash)``.
 
 ::
 
     uint public transferPeriodEnds;
 
-``transferPeriodEnds`` documents the unix timestamp at which it is no longer possible to migrate over names from the legacy registrar, and any non-migrated names become available for registration.
+``transferPeriodEnds`` documents the unix timestamp at which it is no longer possible to migrate over registrations from the legacy registrar, and any non-migrated registrations become available for registration by anyone.
 
 ::
 
@@ -100,40 +106,46 @@ The registrar works exclusively with 'label hashes' - the ``keccak256`` of the f
 
 ::
 
-    mapping(bytes32=>Registration) public registrations;
- 
-``registrations`` provides access to the registration information of names, keyed by their label hash. Note that registrations from the legacy registrar that have not been migrated are *not* recorded here.
+    function ownerOf(uint256 label) external view returns(address);
 
-
-::
-
-    function nameOwner(bytes32 label) external view returns(address);
-
-``nameOwner`` returns the address that owns the name identified by the label hash. This returns the correct owner for all label hashes, including those that have not yet been migrated from the legacy registrar.
+``ownerOf`` returns the address that owns the registration identified by the label hash, or reverts if the registration does not exist. Registrations that have not yet been migrated from the legacy registrar are treated the same as registrations that do not exist. This function is part of ERC721_.
 
 ::
 
-    function nameExpires(bytes32 label) external view returns(uint);
+    function nameExpires(uint256 label) external view returns(uint);
 
-Returns the unix timestamp at which a name currently expires. Names that are not yet mirated from the legacy registrar will return 0.
-
-::
-
-    function available(bytes32 label) public view returns(bool);
-
-Returns true if a name is available for registration. Takes into account not-yet-migrated names from the legacy registrar. Registrar controllers may impose more restrictions on registrarions than this contract (for example, a minimum name length), so this function should not be used to check if a name can be registered by a user.
+Returns the unix timestamp at which a registration currently expires. Names that do not exist or are not yet mirated from the legacy registrar will return 0.
 
 ::
 
-    function transfer(bytes32 label, address newOwner) external;
+    function available(uint256 label) public view returns(bool);
 
-Transfers a name owned by the caller to another address.
+Returns true if a name is available for registration. Takes into account not-yet-migrated registrations from the legacy registrar. Registrar controllers may impose more restrictions on registrarions than this contract (for example, a minimum name length), so this function should not be used to check if a name can be registered by a user.
 
 ::
 
-    function reclaim(bytes32 label) external;
+    function transferFrom(address from, address to, uint256 tokenId) public;
+    function safeTransferFrom(address from, address to, uint256 tokenId) public;
 
-Sets the owner record of the name in the ENS registry to match the owner of the name in this registry. May only be called by the owner of the name.
+    function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory data) public;
+
+These functions transfer the registration. They behave as specified in ERC721_.
+
+::
+
+    function approve(address to, uint256 tokenId) public;
+    function getApproved(uint256 tokenId) public view returns (address operator);
+
+    function setApprovalForAll(address operator, bool _approved) public;
+    function isApprovedForAll(address owner, address operator) public view returns (bool);
+
+These functions manage approvals as documented in ERC721_.
+
+::
+
+    function reclaim(uint256 label) external;
+
+Sets the owner record of the name in the ENS registry to match the owner of the registration in this registry. May only be called by the owner of the registration.
 
 Controller Interface
 --------------------
