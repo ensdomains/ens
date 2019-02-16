@@ -29,6 +29,7 @@
   "devDependencies": {
     "solidity-coverage": "^0.3.5",
     "solium": "^1.0.4",
-    "truffle": "^5.0.0"
+    "truffle": "^5.0.0",
+    "@ensdomains/test-utils": "^1.0.3"
   }
 }

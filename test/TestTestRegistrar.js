@@ -1,7 +1,7 @@
 const TestRegistrar = artifacts.require('TestRegistrar.sol');
 const ENS = artifacts.require('ENSRegistry.sol');
 
-const utils = require('./helpers/Utils.js');
+const { exception, evm } = require('@ensdomains/test-utils');
 const namehash = require('eth-ens-namehash');
 const sha3 = require('web3-utils').sha3;
 
@@ -32,7 +32,7 @@ contract('TestRegistrar', function (accounts) {
         try {
             await registrar.register(sha3('eth'), accounts[0], {from: accounts[0]});
         } catch (error) {
-            return utils.ensureException(error);
+            return exception.ensureException(error);
         }
 
         assert.fail('transferring name did not fail');
@@ -43,7 +43,7 @@ contract('TestRegistrar', function (accounts) {
         await registrar.register(sha3('eth'), accounts[1], {from: accounts[0]});
         assert.equal(await ens.owner(node), accounts[1]);
 
-        await utils.advanceTime(28 * 24 * 60 * 60 + 1);
+        await evm.advanceTime(28 * 24 * 60 * 60 + 1);
 
         await registrar.register(sha3('eth'), accounts[0], {from: accounts[0]});
         assert.equal(await ens.owner(node), accounts[0]);

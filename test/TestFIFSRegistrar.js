@@ -1,7 +1,7 @@
 const FIFSRegistrar = artifacts.require('FIFSRegistrar.sol');
 const ENS = artifacts.require('ENSRegistry.sol');
 
-const utils = require('./helpers/Utils.js');
+const { exception } = require('@ensdomains/test-utils');
 const sha3 = require('web3-utils').sha3;
 const namehash = require('eth-ens-namehash');
 
@@ -37,7 +37,7 @@ contract('FIFSRegistrar', function (accounts) {
             try {
                 await registrar.register(sha3('eth'), accounts[1], {from: accounts[1]});
             } catch (error) {
-                return utils.ensureException(error);
+                return exception.ensureException(error);
             }
 
             assert.fail('transfer did not fail');
