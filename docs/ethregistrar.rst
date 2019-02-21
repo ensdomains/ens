@@ -173,8 +173,8 @@ These public constants set the minimum and maximum age of commitments, and the m
 
 ::
 
-    event NameRegistered(string name, address indexed owner, uint cost, uint expires);
-    event NameRenewed(string name, uint cost, uint expires);
+    event NameRegistered(string name, bytes32 indexed label, address indexed owner, uint cost, uint expires);
+    event NameRenewed(string name, bytes32 indexed label, uint cost, uint expires);
 
 These events record when a name was registered or renewed. In contrast to the corresponding events on the Registrar, these are only triggered for registrations and renewals made using this controller. However, they contain additional information not available to the Registrar: The plaintext label (eg, 'ens' in the case of 'ens.eth') and the cost of the registration or renewal.
 
