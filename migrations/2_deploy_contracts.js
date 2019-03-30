@@ -38,7 +38,7 @@ function deployFIFSRegistrar(deployer, tld) {
     })
     .then(function() {
       // Transfer the owner of the `rootNode` to the FIFSRegistrar
-      ENS.at(ENS.address).setSubnodeOwner('0x0', rootNode.sha3, FIFSRegistrar.address);
+      return ENS.at(ENS.address).then((c) => c.setSubnodeOwner('0x0', rootNode.sha3, FIFSRegistrar.address));
     });
 }
 
@@ -60,7 +60,7 @@ function deployAuctionRegistrar(deployer, tld) {
     })
     .then(function() {
       // Transfer the owner of the `rootNode` to the HashRegistrar
-      ENS.at(ENS.address).setSubnodeOwner('0x0', rootNode.sha3, Registrar.address);
+      return ENS.at(ENS.address).then((c) => c.setSubnodeOwner('0x0', rootNode.sha3, Registrar.address));
     });
 }
 
