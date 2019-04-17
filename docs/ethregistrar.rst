@@ -233,6 +233,29 @@ Because the rent price may vary over time, callers are recommended to send sligh
 
 ``renew`` renews a name. This function can be called by anyone, as long as sufficient funds are provided. Because the rent price may vary over time, callers are recommended to send slightly more than the value returned by ``rentPrice`` - a premium of 5-10% will likely be sufficient. Any excess funds are returned to the caller.
 
+
+Migration
+--------------------
+
+Registration service providers who have provided auction servcie for Temporary Hash Registrar, we strongly advise to offer migration service of the existing names.
+To migrate existing names you need to call the following function on [HashRegistrar](https://github.com/ensdomains/ens/blob/master/contracts/HashRegistrar.sol)
+
+::
+
+    function transferRegistrars(bytes32 _hash) external onlyOwner(_hash);
+
+
+`transferRegistrars` internally calls `acceptRegistrarTransfer` of the new ethregistrar to transfer ownership to new registrar while releasing the deposit on the deed back to the user.
+
+Please note that migration is available between 4th May 2019 - 4th May 2020. After the migration period, users who haven't migrated lose ownership.
+
+::
+
+    function releaseDeed(bytes32 _hash) external onlyOwner(_hash);
+
+`releaseDeed` close the deed and returns the deposit back to user. This function should be callable by the old name owners not only during migration for those who do not wish to migrate, but also after the migration period so that anyone can get their deposit back indefinitely.
+
+
 .. _ethregistrar: https://github.com/ensdomains/ethregistrar
 .. _BaseRegistrar: https://github.com/ensdomains/ethregistrar/blob/master/contracts/BaseRegistrarImplementation.sol
 .. _ETHRegistrarController: https://github.com/ensdomains/ethregistrar/blob/master/contracts/ETHRegistrarController.sol
