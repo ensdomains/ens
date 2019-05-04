@@ -12,6 +12,11 @@ Javascript
  - ethereum-ens_
  - ethjs-ens_
 
+Go
+==
+
+ - go-ens_
+
 Python
 ======
 
@@ -21,11 +26,15 @@ Python
 Command-line
 ============
 
+ - ethereal_
  - ethers-ens_
+
 
 .. _ethereum-ens: https://www.npmjs.com/package/ethereum-ens
 .. _ethjs-ens: https://www.npmjs.com/package/ethjs-ens
 .. _ethers-ens: https://github.com/ethers-io/ethers-ens
 .. _ens.py: https://github.com/carver/ens.py
+.. _ethereal: https://github.com/wealdtech/ethereal
+.. _go-ens: https://github.com/wealdtech/go-ens
 .. _web3.py: https://github.com/ethereum/web3.py
 .. _`send us a PR`: https://github.com/ensdomains/ens/compare
