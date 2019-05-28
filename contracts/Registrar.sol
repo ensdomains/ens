@@ -13,6 +13,7 @@ interface Registrar {
     event HashReleased(bytes32 indexed hash, uint value);
     event HashInvalidated(bytes32 indexed hash, string indexed name, uint value, uint registrationDate);
 
+    function state(bytes32 _hash) external view returns (Mode);
     function startAuction(bytes32 _hash) external;
     function startAuctions(bytes32[] calldata _hashes) external;
     function newBid(bytes32 sealedBid) external payable;
