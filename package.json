@@ -1,6 +1,6 @@
 {
   "name": "@ensdomains/ens",
-  "version": "0.3.7",
+  "version": "0.3.8",
   "description": "Implementations for registrars and local resolvers for the Ethereum Name Service",
   "scripts": {
     "test": "truffle test",
@@ -8,6 +8,7 @@
     "prepublishOnly": "truffle compile && truffle networks --clean",
     "pub": "yarn prepublishOnly && yarn publish"
   },
+  "main": "index.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ensdomains/ens.git"
