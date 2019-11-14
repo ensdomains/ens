@@ -67,13 +67,24 @@ contract ENSRegistry is ENS {
         records[node].ttl = ttl;
     }
 
+    function setRecord(bytes32 node, address owner, address resolver, uint64 ttl) external only_owner(node) {
+        emit NewTTL(node, ttl);
+        records[node].ttl = ttl;
+
+        emit NewResolver(node, resolver);
+        records[node].resolver = resolver;
+
+        emit Transfer(node, owner);
+        records[node].owner = owner;
+    }
+
     /**
      * @dev Returns the address that owns the specified node.
      * @param node The specified node.
      * @return address of the owner.
      */
     function owner(bytes32 node) external view returns (address) {
-        if (!hasOwner(node)) {
+        if (!canWrite(node)) {
             return old.owner(node);
         }
 
@@ -86,7 +97,7 @@ contract ENSRegistry is ENS {
      * @return address of the resolver.
      */
     function resolver(bytes32 node) external view returns (address) {
-        if (!hasOwner(node)) {
+        if (!canWrite(node)) {
             return old.resolver(node);
         }
 
@@ -99,14 +110,14 @@ contract ENSRegistry is ENS {
      * @return ttl of the node.
      */
     function ttl(bytes32 node) external view returns (uint64) {
-        if (!hasOwner(node)) {
+        if (!canWrite(node)) {
             return old.ttl(node);
         }
 
         return records[node].ttl;
     }
 
-    function hasOwner(bytes32 node) private view returns (bool) {
+    function canWrite(bytes32 node) external view returns (bool) {
         return records[node].owner != address(0x0);
     }
 }
