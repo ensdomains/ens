@@ -64,6 +64,13 @@ contract ENSRegistry is ENS {
         records[node].ttl = ttl;
     }
 
+    /**
+     * @dev Sets the record for a node.
+     * @param node The node to update.
+     * @param owner The address of the new owner.
+     * @param resolver The address of the resolver.
+     * @param ttl The TTL in seconds.
+     */
     function setRecord(bytes32 node, address owner, address resolver, uint64 ttl) external only_owner(node) {
         emit NewTTL(node, ttl);
         records[node].ttl = ttl;
