@@ -11,7 +11,6 @@ contract ENSRegistry is ENS {
     }
 
     mapping (bytes32 => Record) records;
-    mapping (bytes32 => bool) migrated;
 
     ENS public old;
 
@@ -20,9 +19,6 @@ contract ENSRegistry is ENS {
         require(records[node].owner == msg.sender);
         _;
     }
-
-    // Logged when the node is migrated
-    event Migrated(bytes32 indexed node);
 
     constructor(ENS _old) public {
         old = _old;
