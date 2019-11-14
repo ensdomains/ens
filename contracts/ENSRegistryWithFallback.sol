@@ -2,7 +2,7 @@ pragma solidity ^0.5.0;
 
 import "./ENS.sol";
 
-contract ENSRegistry is ENS {
+contract ENSRegistryWithFallback is ENS {
 
     struct Record {
         address owner;
@@ -12,6 +12,8 @@ contract ENSRegistry is ENS {
 
     mapping (bytes32 => Record) records;
 
+    ENS public old;
+
     // Permits modifications only by the owner of the specified node.
     modifier only_owner(bytes32 node) {
         require(records[node].owner == msg.sender);
@@ -19,6 +21,7 @@ contract ENSRegistry is ENS {
     }
 
     constructor(ENS _old) public {
+        old = _old;
         records[0x0].owner = msg.sender;
     }
 
@@ -81,6 +84,10 @@ contract ENSRegistry is ENS {
      * @return address of the owner.
      */
     function owner(bytes32 node) external view returns (address) {
+        if (!canWrite(node)) {
+            return old.owner(node);
+        }
+
         return records[node].owner;
     }
 
@@ -90,6 +97,10 @@ contract ENSRegistry is ENS {
      * @return address of the resolver.
      */
     function resolver(bytes32 node) external view returns (address) {
+        if (!canWrite(node)) {
+            return old.resolver(node);
+        }
+
         return records[node].resolver;
     }
 
@@ -99,6 +110,14 @@ contract ENSRegistry is ENS {
      * @return ttl of the node.
      */
     function ttl(bytes32 node) external view returns (uint64) {
+        if (!canWrite(node)) {
+            return old.ttl(node);
+        }
+
         return records[node].ttl;
+    }
+
+    function canWrite(bytes32 node) external view returns (bool) {
+        return records[node].owner != address(0x0);
     }
 }
