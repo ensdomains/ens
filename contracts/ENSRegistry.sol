@@ -2,10 +2,8 @@ pragma solidity ^0.5.0;
 
 import "./ENS.sol";
 
-/**
- * The ENS registry contract.
- */
 contract ENSRegistry is ENS {
+
     struct Record {
         address owner;
         address resolver;
@@ -13,6 +11,9 @@ contract ENSRegistry is ENS {
     }
 
     mapping (bytes32 => Record) records;
+    mapping (bytes32 => bool) migrated;
+
+    ENS public old;
 
     // Permits modifications only by the owner of the specified node.
     modifier only_owner(bytes32 node) {
@@ -20,10 +21,11 @@ contract ENSRegistry is ENS {
         _;
     }
 
-    /**
-     * @dev Constructs a new ENS registrar.
-     */
-    constructor() public {
+    // Logged when the node is migrated
+    event Migrated(bytes32 indexed node);
+
+    constructor(ENS _old) public {
+        old = _old;
         records[0x0].owner = msg.sender;
     }
 
@@ -55,7 +57,7 @@ contract ENSRegistry is ENS {
      * @param resolver The address of the resolver.
      */
     function setResolver(bytes32 node, address resolver) external only_owner(node) {
-        emit NewResolver(node, resolver);   
+        emit NewResolver(node, resolver);
         records[node].resolver = resolver;
     }
 
@@ -75,6 +77,10 @@ contract ENSRegistry is ENS {
      * @return address of the owner.
      */
     function owner(bytes32 node) external view returns (address) {
+        if (!hasOwner(node)) {
+            return old.owner(node);
+        }
+
         return records[node].owner;
     }
 
@@ -84,6 +90,10 @@ contract ENSRegistry is ENS {
      * @return address of the resolver.
      */
     function resolver(bytes32 node) external view returns (address) {
+        if (!hasOwner(node)) {
+            return old.resolver(node);
+        }
+
         return records[node].resolver;
     }
 
@@ -93,7 +103,14 @@ contract ENSRegistry is ENS {
      * @return ttl of the node.
      */
     function ttl(bytes32 node) external view returns (uint64) {
+        if (!hasOwner(node)) {
+            return old.ttl(node);
+        }
+
         return records[node].ttl;
     }
 
+    function hasOwner(bytes32 node) private view returns (bool) {
+        return records[node].owner != address(0x0);
+    }
 }
