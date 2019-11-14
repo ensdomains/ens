@@ -67,6 +67,13 @@ contract ENSRegistryWithFallback is ENS {
         records[node].ttl = ttl;
     }
 
+    /**
+     * @dev Sets the record for a node.
+     * @param node The node to update.
+     * @param owner The address of the new owner.
+     * @param resolver The address of the resolver.
+     * @param ttl The TTL in seconds.
+     */
     function setRecord(bytes32 node, address owner, address resolver, uint64 ttl) external only_owner(node) {
         emit NewTTL(node, ttl);
         records[node].ttl = ttl;
@@ -84,7 +91,7 @@ contract ENSRegistryWithFallback is ENS {
      * @return address of the owner.
      */
     function owner(bytes32 node) external view returns (address) {
-        if (!canWrite(node)) {
+        if (!recordExists(node)) {
             return old.owner(node);
         }
 
@@ -97,7 +104,7 @@ contract ENSRegistryWithFallback is ENS {
      * @return address of the resolver.
      */
     function resolver(bytes32 node) external view returns (address) {
-        if (!canWrite(node)) {
+        if (!recordExists(node)) {
             return old.resolver(node);
         }
 
@@ -110,14 +117,19 @@ contract ENSRegistryWithFallback is ENS {
      * @return ttl of the node.
      */
     function ttl(bytes32 node) external view returns (uint64) {
-        if (!canWrite(node)) {
+        if (!recordExists(node)) {
             return old.ttl(node);
         }
 
         return records[node].ttl;
     }
 
-    function canWrite(bytes32 node) external view returns (bool) {
+    /**
+     * @dev Returns whether a record has been imported to the registry.
+     * @param node The specified node.
+     * @return Bool if record exists
+     */
+    function recordExists(bytes32 node) external view returns (bool) {
         return records[node].owner != address(0x0);
     }
 }
