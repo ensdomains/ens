@@ -5,7 +5,7 @@ const { exceptions } = require("@ensdomains/test-utils")
 
 let contracts = [
     [artifacts.require('ENSRegistry.sol'), 'Solidity'],
-    [artifacts.require('ENS.lll'), 'LLL']
+    [artifacts.require('ENS.lll'), 'LLL'],
 ];
 
 contracts.forEach(function ([ENS, lang]) {

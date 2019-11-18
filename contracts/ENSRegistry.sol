@@ -18,7 +18,7 @@ contract ENSRegistry is ENS {
         _;
     }
 
-    constructor(ENS _old) public {
+    constructor() public {
         records[0x0].owner = msg.sender;
     }
 
