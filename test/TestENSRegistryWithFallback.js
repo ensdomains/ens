@@ -26,25 +26,29 @@ contract('ENSRegistryWithFallback', function (accounts) {
         assert.equal((await ens.resolver('0x0')), accounts[2]);
     });
 
-    it('should use fallback ttl if owner not set', async () => {
-        await ens.setOwner('0x0', '0x0000000000000000000000000000000000000000');
+    describe('fallback', async () => {
 
-        await old.setTTL('0x0', 3600, {from: accounts[0]});
-        assert.equal((await ens.ttl('0x0')).toNumber(), 3600);
+        let hash = namehash('eth');
+
+        beforeEach(async () => {
+            await old.setSubnodeOwner('0x0', sha3('eth'), accounts[0], {from: accounts[0]});
+        });
+
+        it('should use fallback ttl if owner not set', async () => {
+            let hash = namehash('eth')
+            await old.setSubnodeOwner('0x0', sha3('eth'), accounts[0], {from: accounts[0]});
+            await old.setTTL(hash, 3600, {from: accounts[0]});
+            assert.equal((await ens.ttl(hash)).toNumber(), 3600);
+        });
+
+        it('should use fallback owner if owner not set', async () => {
+            await old.setOwner(hash, accounts[0], {from: accounts[0]});
+            assert.equal(await ens.owner(hash), accounts[0]);
+        });
+
+        it('should use fallback resolver if owner not set', async () => {
+            await old.setResolver(hash, accounts[0], {from: accounts[0]});
+            assert.equal(await ens.resolver(hash), accounts[0]);
+        });
     });
-
-    it('should use fallback owner if owner not set', async () => {
-        await ens.setOwner('0x0', '0x0000000000000000000000000000000000000000');
-
-        await old.setOwner('0x0', accounts[0], {from: accounts[0]});
-        assert.equal(await ens.owner('0x0'), accounts[0]);
-    });
-
-    it('should use fallback resolver if owner not set', async () => {
-        await ens.setOwner('0x0', '0x0000000000000000000000000000000000000000');
-
-        await old.setResolver('0x0', accounts[0], {from: accounts[0]});
-        assert.equal(await ens.resolver('0x0'), accounts[0]);
-    });
-
 });

@@ -74,9 +74,8 @@ contract ENSRegistryWithFallback is ENSRegistry {
         }
 
         address addr = records[node].owner;
-
         if (addr == address(this)) {
-            addr = address(0x0);
+            return address(0x0);
         }
 
         return addr;
