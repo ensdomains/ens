@@ -18,12 +18,12 @@ contract('ENSRegistryWithFallback', function (accounts) {
     });
 
     it('should allow setting the record', async () => {
-        let result = await ens.setRecord('0x0', accounts[0], accounts[1], 3600, {from: accounts[0]});
+        let result = await ens.setRecord('0x0', accounts[1], accounts[2], 3600, {from: accounts[0]});
         assert.equal(result.logs.length, 3);
 
         assert.equal((await ens.ttl('0x0')).toNumber(), 3600);
-        assert.equal((await ens.owner('0x0')), accounts[0]);
-        assert.equal((await ens.resolver('0x0')), accounts[1]);
+        assert.equal((await ens.owner('0x0')), accounts[1]);
+        assert.equal((await ens.resolver('0x0')), accounts[2]);
     });
 
     it('should use fallback ttl if owner not set', async () => {
