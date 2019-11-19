@@ -72,14 +72,20 @@ contract ENSRegistry is ENS {
      * @param ttl The TTL in seconds.
      */
     function setRecord(bytes32 node, address owner, address resolver, uint64 ttl) external only_owner(node) {
-        emit NewTTL(node, ttl);
-        records[node].ttl = ttl;
+        if (records[node].ttl != ttl) {
+            emit NewTTL(node, ttl);
+            records[node].ttl = ttl;
+        }
 
-        emit NewResolver(node, resolver);
-        records[node].resolver = resolver;
+        if (records[node].resolver != resolver) {
+            emit NewResolver(node, resolver);
+            records[node].resolver = resolver;
+        }
 
-        emit Transfer(node, owner);
-        records[node].owner = owner;
+        if (records[node].owner != owner) {
+            emit Transfer(node, owner);
+            records[node].owner = owner;
+        }
     }
 
     /**
