@@ -57,7 +57,7 @@ contract ENSRegistryWithFallback is ENSRegistry {
             records[node].resolver = resolver;
         }
 
-        if (records[node].owner != owner) {
+        if (records[node].owner != owner || (owner != address(0x0) && records[node].owner != address(this))) {
             emit Transfer(node, owner);
             _setOwner(node, owner);
         }
