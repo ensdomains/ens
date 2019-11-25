@@ -10,12 +10,6 @@ contract ENSRegistryWithFallback is ENSRegistry {
 
     ENS public old;
 
-    // Permits modifications only by the owner of the specified node.
-    modifier only_owner(bytes32 node) {
-        require(records[node].owner == msg.sender);
-        _;
-    }
-
     /**
      * @dev Constructs a new ENS registrar.
      */
