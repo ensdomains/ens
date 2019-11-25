@@ -29,7 +29,7 @@ contract ENSRegistry is ENS {
      */
     function setOwner(bytes32 node, address owner) external only_owner(node) {
         emit Transfer(node, owner);
-        records[node].owner = owner;
+        _setOwner(node, owner);
     }
 
     /**
@@ -41,9 +41,9 @@ contract ENSRegistry is ENS {
     function setSubnodeOwner(bytes32 node, bytes32 label, address owner) external only_owner(node) {
         bytes32 subnode = keccak256(abi.encodePacked(node, label));
         emit NewOwner(node, label, owner);
-        records[subnode].owner = owner;
-    }
+        _setOwner(subnode, owner);
 
+    }
     /**
      * @dev Sets the resolver address for the specified node.
      * @param node The node to update.
@@ -82,9 +82,9 @@ contract ENSRegistry is ENS {
             records[node].resolver = resolver;
         }
 
-        if (records[node].owner != owner) {
+        if (records[node].owner != owner || (owner != address(0x0) && records[node].owner != address(this))) {
             emit Transfer(node, owner);
-            records[node].owner = owner;
+            _setOwner(node, owner);
         }
     }
 
@@ -94,7 +94,12 @@ contract ENSRegistry is ENS {
      * @return address of the owner.
      */
     function owner(bytes32 node) external view returns (address) {
-        return records[node].owner;
+        address addr = records[node].owner;
+        if (addr == address(this)) {
+            return address(0x0);
+        }
+
+        return addr;
     }
 
     /**
@@ -113,5 +118,23 @@ contract ENSRegistry is ENS {
      */
     function ttl(bytes32 node) external view returns (uint64) {
         return records[node].ttl;
+    }
+
+    /**
+     * @dev Returns whether a record has been imported to the registry.
+     * @param node The specified node.
+     * @return Bool if record exists
+     */
+    function recordExists(bytes32 node) public view returns (bool) {
+        return records[node].owner != address(0x0);
+    }
+
+    function _setOwner(bytes32 node, address owner) internal {
+        address addr = owner;
+        if (addr == address(0x0)) {
+            addr = address(this);
+        }
+
+        records[node].owner = addr;
     }
 }
