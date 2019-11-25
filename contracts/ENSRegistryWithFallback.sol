@@ -3,6 +3,9 @@ pragma solidity ^0.5.0;
 import "./ENS.sol";
 import "./ENSRegistry.sol";
 
+/**
+ * The ENS registry contract.
+ */
 contract ENSRegistryWithFallback is ENSRegistry {
 
     ENS public old;
@@ -13,6 +16,9 @@ contract ENSRegistryWithFallback is ENSRegistry {
         _;
     }
 
+    /**
+     * @dev Constructs a new ENS registrar.
+     */
     constructor(ENS _old) public ENSRegistry() {
         old = _old;
     }

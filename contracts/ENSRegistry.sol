@@ -2,6 +2,9 @@ pragma solidity ^0.5.0;
 
 import "./ENS.sol";
 
+/**
+ * The ENS registry contract.
+ */
 contract ENSRegistry is ENS {
 
     struct Record {
@@ -18,6 +21,9 @@ contract ENSRegistry is ENS {
         _;
     }
 
+    /**
+     * @dev Constructs a new ENS registrar.
+     */
     constructor() public {
         records[0x0].owner = msg.sender;
     }
