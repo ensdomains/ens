@@ -55,7 +55,7 @@ contract ENSRegistry is ENS {
      * @param node The node to update.
      * @param resolver The address of the resolver.
      */
-    function setResolver(bytes32 node, address resolver) external only_owner(node) {
+    function setResolver(bytes32 node, address resolver) public only_owner(node) {
         if (records[node].resolver != resolver) {
             emit NewResolver(node, resolver);
             records[node].resolver = resolver;
@@ -67,7 +67,7 @@ contract ENSRegistry is ENS {
      * @param node The node to update.
      * @param ttl The TTL in seconds.
      */
-    function setTTL(bytes32 node, uint64 ttl) external only_owner(node) {
+    function setTTL(bytes32 node, uint64 ttl) public only_owner(node) {
         if (records[node].ttl != ttl) {
             emit NewTTL(node, ttl);
             records[node].ttl = ttl;
