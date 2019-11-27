@@ -56,8 +56,10 @@ contract ENSRegistry is ENS {
      * @param resolver The address of the resolver.
      */
     function setResolver(bytes32 node, address resolver) external only_owner(node) {
-        emit NewResolver(node, resolver);
-        records[node].resolver = resolver;
+        if (records[node].resolver != resolver) {
+            emit NewResolver(node, resolver);
+            records[node].resolver = resolver;
+        }
     }
 
     /**
@@ -66,8 +68,10 @@ contract ENSRegistry is ENS {
      * @param ttl The TTL in seconds.
      */
     function setTTL(bytes32 node, uint64 ttl) external only_owner(node) {
-        emit NewTTL(node, ttl);
-        records[node].ttl = ttl;
+        if (records[node].ttl != ttl) {
+            emit NewTTL(node, ttl);
+            records[node].ttl = ttl;
+        }
     }
 
     /**
@@ -78,15 +82,8 @@ contract ENSRegistry is ENS {
      * @param ttl The TTL in seconds.
      */
     function setRecord(bytes32 node, address owner, address resolver, uint64 ttl) external only_owner(node) {
-        if (records[node].ttl != ttl) {
-            emit NewTTL(node, ttl);
-            records[node].ttl = ttl;
-        }
-
-        if (records[node].resolver != resolver) {
-            emit NewResolver(node, resolver);
-            records[node].resolver = resolver;
-        }
+        setTTL(node, ttl);
+        setResolver(node, resolver);
 
         if (records[node].owner != owner || (owner != address(0x0) && records[node].owner != address(this))) {
             emit Transfer(node, owner);
