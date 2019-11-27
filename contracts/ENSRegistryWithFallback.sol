@@ -22,12 +22,12 @@ contract ENSRegistryWithFallback is ENSRegistry {
      * @param node The specified node.
      * @return address of the resolver.
      */
-    function resolver(bytes32 node) external view returns (address) {
+    function resolver(bytes32 node) public view returns (address) {
         if (!recordExists(node)) {
             return old.resolver(node);
         }
 
-        return records[node].resolver;
+        return super.resolver(node);
     }
 
     /**
@@ -35,17 +35,12 @@ contract ENSRegistryWithFallback is ENSRegistry {
      * @param node The specified node.
      * @return address of the owner.
      */
-    function owner(bytes32 node) external view returns (address) {
+    function owner(bytes32 node) public view returns (address) {
         if (!recordExists(node)) {
             return old.owner(node);
         }
 
-        address addr = records[node].owner;
-        if (addr == address(this)) {
-            return address(0x0);
-        }
-
-        return addr;
+        return super.owner(node);
     }
 
     /**
@@ -53,11 +48,11 @@ contract ENSRegistryWithFallback is ENSRegistry {
      * @param node The specified node.
      * @return ttl of the node.
      */
-    function ttl(bytes32 node) external view returns (uint64) {
+    function ttl(bytes32 node) public view returns (uint64) {
         if (!recordExists(node)) {
             return old.ttl(node);
         }
 
-        return records[node].ttl;
+        return super.ttl(node);
     }
 }

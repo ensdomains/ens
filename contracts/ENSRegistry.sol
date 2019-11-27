@@ -99,7 +99,7 @@ contract ENSRegistry is ENS {
      * @param node The specified node.
      * @return address of the owner.
      */
-    function owner(bytes32 node) external view returns (address) {
+    function owner(bytes32 node) public view returns (address) {
         address addr = records[node].owner;
         if (addr == address(this)) {
             return address(0x0);
@@ -113,7 +113,7 @@ contract ENSRegistry is ENS {
      * @param node The specified node.
      * @return address of the resolver.
      */
-    function resolver(bytes32 node) external view returns (address) {
+    function resolver(bytes32 node) public view returns (address) {
         return records[node].resolver;
     }
 
@@ -122,7 +122,7 @@ contract ENSRegistry is ENS {
      * @param node The specified node.
      * @return ttl of the node.
      */
-    function ttl(bytes32 node) external view returns (uint64) {
+    function ttl(bytes32 node) public view returns (uint64) {
         return records[node].ttl;
     }
 
