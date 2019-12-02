@@ -29,13 +29,38 @@ contract ENSRegistry is ENS {
     }
 
     /**
+     * @dev Sets the record for a node.
+     * @param node The node to update.
+     * @param owner The address of the new owner.
+     * @param resolver The address of the resolver.
+     * @param ttl The TTL in seconds.
+     */
+    function setRecord(bytes32 node, address owner, address resolver, uint64 ttl) external {
+        setOwner(node, owner);
+        _setResolverAndTTL(node, resolver, ttl);
+    }
+
+    /**
+     * @dev Sets the record for a subnode.
+     * @param node The parent node.
+     * @param label The hash of the label specifying the subnode.
+     * @param owner The address of the new owner.
+     * @param resolver The address of the resolver.
+     * @param ttl The TTL in seconds.
+     */
+    function setSubnodeRecord(bytes32 node, bytes32 label, address owner, address resolver, uint64 ttl) external {
+        bytes32 subnode = setSubnodeOwner(node, label, owner);
+        _setResolverAndTTL(subnode, resolver, ttl);
+    }
+
+    /**
      * @dev Transfers ownership of a node to a new address. May only be called by the current owner of the node.
      * @param node The node to transfer ownership of.
      * @param owner The address of the new owner.
      */
-    function setOwner(bytes32 node, address owner) external only_owner(node) {
-        emit Transfer(node, owner);
+    function setOwner(bytes32 node, address owner) public only_owner(node) {
         _setOwner(node, owner);
+        emit Transfer(node, owner);
     }
 
     /**
@@ -44,28 +69,11 @@ contract ENSRegistry is ENS {
      * @param label The hash of the label specifying the subnode.
      * @param owner The address of the new owner.
      */
-    function setSubnodeOwner(bytes32 node, bytes32 label, address owner) external only_owner(node) {
+    function setSubnodeOwner(bytes32 node, bytes32 label, address owner) public only_owner(node) returns(bytes32) {
         bytes32 subnode = keccak256(abi.encodePacked(node, label));
-        emit NewOwner(node, label, owner);
         _setOwner(subnode, owner);
-
-    }
-
-    /**
-     * @dev Sets the record for a node.
-     * @param node The node to update.
-     * @param owner The address of the new owner.
-     * @param resolver The address of the resolver.
-     * @param ttl The TTL in seconds.
-     */
-    function setRecord(bytes32 node, address owner, address resolver, uint64 ttl) external only_owner(node) {
-        setTTL(node, ttl);
-        setResolver(node, resolver);
-
-        if (records[node].owner != owner || (owner != address(0x0) && records[node].owner != address(this))) {
-            emit Transfer(node, owner);
-            _setOwner(node, owner);
-        }
+        emit NewOwner(node, label, owner);
+        return subnode;
     }
 
     /**
@@ -74,10 +82,8 @@ contract ENSRegistry is ENS {
      * @param resolver The address of the resolver.
      */
     function setResolver(bytes32 node, address resolver) public only_owner(node) {
-        if (records[node].resolver != resolver) {
-            emit NewResolver(node, resolver);
-            records[node].resolver = resolver;
-        }
+        emit NewResolver(node, resolver);
+        records[node].resolver = resolver;
     }
 
     /**
@@ -86,10 +92,8 @@ contract ENSRegistry is ENS {
      * @param ttl The TTL in seconds.
      */
     function setTTL(bytes32 node, uint64 ttl) public only_owner(node) {
-        if (records[node].ttl != ttl) {
-            emit NewTTL(node, ttl);
-            records[node].ttl = ttl;
-        }
+        emit NewTTL(node, ttl);
+        records[node].ttl = ttl;
     }
 
     /**
@@ -134,11 +138,18 @@ contract ENSRegistry is ENS {
     }
 
     function _setOwner(bytes32 node, address owner) internal {
-        address addr = owner;
-        if (addr == address(0x0)) {
-            addr = address(this);
+        records[node].owner = owner;
+    }
+
+    function _setResolverAndTTL(bytes32 node, address resolver, uint64 ttl) internal {
+        if(resolver != records[node].resolver) {
+            records[node].resolver = resolver;
+            emit NewResolver(node, resolver);
         }
 
-        records[node].owner = addr;
+        if(ttl != records[node].ttl) {
+            records[node].ttl = ttl;
+            emit NewTTL(node, ttl);
+        }
     }
 }

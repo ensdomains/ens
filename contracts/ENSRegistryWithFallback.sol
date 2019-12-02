@@ -55,4 +55,13 @@ contract ENSRegistryWithFallback is ENSRegistry {
 
         return super.ttl(node);
     }
+
+    function _setOwner(bytes32 node, address owner) internal {
+        address addr = owner;
+        if (addr == address(0x0)) {
+            addr = address(this);
+        }
+
+        super._setOwner(node, owner);
+    }
 }
