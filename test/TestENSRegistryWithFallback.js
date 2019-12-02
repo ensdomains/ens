@@ -33,7 +33,13 @@ contract('ENSRegistryWithFallback', function (accounts) {
         assert.equal(await ens.owner(hash), accounts[1]);
         assert.equal(await ens.resolver(hash), accounts[2]);
         assert.equal((await ens.ttl(hash)).toNumber(), 3600);
-    })
+    });
+
+    it('should implement authorisations/operators', async () => {
+        await ens.setApprovalForAll(accounts[1], true, {from: accounts[0]});
+        await ens.setOwner("0x0", accounts[2], {from: accounts[1]});
+        assert.equal(await ens.owner("0x0"), accounts[2]);
+    });
 
     describe('fallback', async () => {
 
