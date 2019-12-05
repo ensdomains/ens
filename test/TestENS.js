@@ -1,6 +1,7 @@
-const utils = require('./helpers/Utils.js');
 const namehash = require('eth-ens-namehash');
 const sha3 = require('web3-utils').sha3;
+
+const { exceptions } = require("@ensdomains/test-utils")
 
 let contracts = [
     [artifacts.require('ENSRegistry.sol'), 'Solidity'],
@@ -33,7 +34,7 @@ contracts.forEach(function ([ENS, lang]) {
             try {
                 await ens.setOwner('0x1', '0x0000000000000000000000000000000000001234', {from: accounts[0]});
             } catch (error) {
-                return utils.ensureException(error);
+                return exceptions.ensureException(error);
             }
 
             assert.fail('transfer did not fail');
@@ -56,7 +57,7 @@ contracts.forEach(function ([ENS, lang]) {
             try {
                 await ens.setResolver('0x1', '0x0000000000000000000000000000000000001234', {from: accounts[0]});
             } catch (error) {
-                return utils.ensureException(error);
+                return exceptions.ensureException(error);
             }
 
             assert.fail('setting resolver did not fail');
@@ -77,7 +78,7 @@ contracts.forEach(function ([ENS, lang]) {
             try {
                 await ens.setTTL('0x1', 3600, {from: accounts[0]});
             } catch (error) {
-                return utils.ensureException(error);
+                return exceptions.ensureException(error);
             }
 
             assert.fail('setting resolver did not fail');
@@ -99,7 +100,7 @@ contracts.forEach(function ([ENS, lang]) {
             try {
                 await ens.setSubnodeOwner('0x0', sha3('eth'), accounts[1], {from: accounts[1]});
             } catch (error) {
-                return utils.ensureException(error);
+                return exceptions.ensureException(error);
             }
 
             assert.fail('setting resolver did not fail');

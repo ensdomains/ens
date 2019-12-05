@@ -13,8 +13,8 @@ interface Registrar {
     event HashReleased(bytes32 indexed hash, uint value);
     event HashInvalidated(bytes32 indexed hash, string indexed name, uint value, uint registrationDate);
 
-    function startAuction(bytes32 hash) external;
-    function startAuctions(bytes32[] calldata hashes) external;
+    function startAuction(bytes32 _hash) external;
+    function startAuctions(bytes32[] calldata _hashes) external;
     function newBid(bytes32 sealedBid) external payable;
     function startAuctionsAndBid(bytes32[] calldata hashes, bytes32 sealedBid) external payable;
     function unsealBid(bytes32 hash, uint value, bytes32 salt) external;
@@ -27,4 +27,5 @@ interface Registrar {
     function transferRegistrars(bytes32 hash) external;
     function acceptRegistrarTransfer(bytes32 hash, Deed deed, uint registrationDate) external;
     function entries(bytes32 hash) external view returns (Mode, address, uint, uint, uint);
+    function state(bytes32 _hash) external view returns (Mode);
 }
