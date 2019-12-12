@@ -106,9 +106,9 @@ Install Truffle
 
     $ npm install -g truffle
 
-Launch the RPC client, for example TestRPC:
+Launch the RPC client, for example ganache-cli:
 
-    $ testrpc
+    $ ganache-cli
 
 Deploy `ENS` and `FIFSRegistrar` to the private network, the deployment process is defined at [here](migrations/2_deploy_contracts.js):
 
