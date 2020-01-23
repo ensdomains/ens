@@ -62,6 +62,6 @@ contract ENSRegistryWithFallback is ENSRegistry {
             addr = address(this);
         }
 
-        super._setOwner(node, owner);
+        super._setOwner(node, addr);
     }
 }
