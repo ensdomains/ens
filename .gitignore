@@ -7,5 +7,3 @@ _templates
 
 # Compiled contract ABIs and binaries
 build/contracts/*
-# Keep the ENS lll artifact
-!build/contracts/ENS.lll.json
