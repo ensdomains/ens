@@ -1,6 +1,6 @@
 {
   "name": "@ensdomains/ens",
-  "version": "0.3.11",
+  "version": "0.4.0",
   "description": "Implementations for registrars and local resolvers for the Ethereum Name Service",
   "scripts": {
     "test": "truffle test",
@@ -21,7 +21,7 @@
   "homepage": "https://github.com/ensdomains/ens#readme",
   "dependencies": {
     "bluebird": "^3.5.2",
-    "eth-ens-namehash": "^1.0.2",
+    "eth-ens-namehash": "^2.0.8",
     "ethereumjs-testrpc": "^6.0.3",
     "ganache-cli": "^6.1.0",
     "solc": "^0.4.20",
@@ -32,6 +32,6 @@
     "@ensdomains/test-utils": "^1.2.0",
     "solidity-coverage": "^0.3.5",
     "solium": "^1.0.4",
-    "truffle": "^5.0.0"
+    "truffle": "5.0.19"
   }
 }

@@ -19,7 +19,7 @@ contract('FIFSRegistrar', function (accounts) {
     it('should allow registration of names', async () => {
         await registrar.register(sha3('eth'), accounts[0], {from: accounts[0]});
         assert.equal(await ens.owner('0x0'), registrar.address);
-        assert.equal(await ens.owner(namehash('eth')), accounts[0]);
+        assert.equal(await ens.owner(namehash.hash('eth')), accounts[0]);
     });
 
     describe('transferring names', async () => {
@@ -30,7 +30,7 @@ contract('FIFSRegistrar', function (accounts) {
 
         it('should allow transferring name to your own', async () => {
             await registrar.register(sha3('eth'), accounts[1], {from: accounts[0]});
-            assert.equal(await ens.owner(namehash('eth')), accounts[1]);
+            assert.equal(await ens.owner(namehash.hash('eth')), accounts[1]);
         });
 
         it('forbids transferring the name you do not own', async () => {
@@ -44,4 +44,3 @@ contract('FIFSRegistrar', function (accounts) {
         });
     });
 });
-

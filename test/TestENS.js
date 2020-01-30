@@ -4,8 +4,7 @@ const sha3 = require('web3-utils').sha3;
 const { exceptions } = require("@ensdomains/test-utils")
 
 let contracts = [
-    [artifacts.require('ENSRegistry.sol'), 'Solidity'],
-    [artifacts.require('ENS.lll'), 'LLL']
+    [artifacts.require('ENSRegistry.sol'), 'Solidity']
 ];
 
 contracts.forEach(function ([ENS, lang]) {
@@ -87,7 +86,7 @@ contracts.forEach(function ([ENS, lang]) {
         it('should allow the creation of subnodes', async () => {
             let result = await ens.setSubnodeOwner('0x0', sha3('eth'), accounts[1], {from: accounts[0]});
 
-            assert.equal(await ens.owner(namehash('eth')), accounts[1]);
+            assert.equal(await ens.owner(namehash.hash('eth')), accounts[1]);
 
             assert.equal(result.logs.length, 1);
             let args = result.logs[0].args;

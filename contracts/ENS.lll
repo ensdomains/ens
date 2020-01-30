@@ -2,6 +2,8 @@
 ;;; @title The Ethereum Name Service registry.
 ;;; @author Daniel Ellison <daniel@syrinx.net>
 
+;;; @deprecated This file is only kept as a reference.
+
 (seq
 
   ;; --------------------------------------------------------------------------

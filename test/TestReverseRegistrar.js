@@ -11,13 +11,13 @@ contract('ReverseRegistar', function (accounts) {
     let registrar, resolver, ens;
 
     beforeEach(async () => {
-        node = namehash(accounts[0].slice(2).toLowerCase() + ".addr.reverse");
+        node = namehash.hash(accounts[0].slice(2).toLowerCase() + ".addr.reverse");
         ens = await ENS.new();
         resolver = await DummyResolver.new();
         registrar = await ReverseRegistrar.new(ens.address, resolver.address);
 
         await ens.setSubnodeOwner('0x0', sha3('reverse'), accounts[0], {from: accounts[0]});
-        await ens.setSubnodeOwner(namehash('reverse'), sha3('addr'), registrar.address, {from: accounts[0]});
+        await ens.setSubnodeOwner(namehash.hash('reverse'), sha3('addr'), registrar.address, {from: accounts[0]});
     });
 
     it('should calculate node hash correctly', async () => {
