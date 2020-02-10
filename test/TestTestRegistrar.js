@@ -11,7 +11,7 @@ contract('TestRegistrar', function (accounts) {
     let registrar, ens;
 
     beforeEach(async () => {
-        node = namehash('eth');
+        node = namehash.hash('eth');
 
         ens = await ENS.new();
         registrar = await TestRegistrar.new(ens.address, '0x0');
