@@ -6,7 +6,7 @@ const FIFSRegistrar = require('./build/contracts/FIFSRegistrar.json')
 const HashRegistrar = require('./build/contracts/HashRegistrar.json')
 const Migrations = require('./build/contracts/Migrations.json')
 const Registrar = require('./build/contracts/Registrar.json')
-const Resolver = require('./build/contracts/Resolver.json')
+const Resolver = require('./build/contracts/NameResolver.json')
 const ReverseRegistrar = require('./build/contracts/ReverseRegistrar.json')
 const TestRegistrar = require('./build/contracts/TestRegistrar.json')
 
