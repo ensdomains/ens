@@ -1,6 +1,6 @@
 {
   "name": "@ensdomains/ens",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Implementations for registrars and local resolvers for the Ethereum Name Service",
   "scripts": {
     "test": "truffle test",
