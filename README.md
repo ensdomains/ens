@@ -25,7 +25,6 @@ import {
   HashRegistrar,
   Migrations,
   Registrar,
-  Resolver,
   ReverseRegistrar,
   TestRegistrar
 } from '@ensdomains/ens'
@@ -46,10 +45,6 @@ Implementation of a registrar based on second-price blind auctions and funds hel
 ## HashRegistrarSimplified.sol
 
 Simplified version of the above, with no support for renewals. This is the current proposal for interim registrar of the ENS system until a permanent registrar is decided on.
-
-## PublicResolver.sol
-
-Simple resolver implementation that allows the owner of any domain to configure how its name should resolve. One deployment of this contract allows any number of people to use it, by setting it as their resolver in the registry.
 
 # ENS Registry interface
 
@@ -98,7 +93,7 @@ ENS.lll.bin was generated with the following command, using the lllc packaged wi
 
 The files in the abi directory were generated with the following command:
 
-    $ solc --abi -o abi AbstractENS.sol FIFSRegistrar.sol HashRegistrarSimplified.sol PublicResolver.sol
+    $ solc --abi -o abi AbstractENS.sol FIFSRegistrar.sol HashRegistrarSimplified.sol
 
 # Getting started
 
