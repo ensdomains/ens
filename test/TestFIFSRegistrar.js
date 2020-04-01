@@ -34,13 +34,7 @@ contract('FIFSRegistrar', function (accounts) {
         });
 
         it('forbids transferring the name you do not own', async () => {
-            try {
-                await registrar.register(sha3('eth'), accounts[1], {from: accounts[1]});
-            } catch (error) {
-                return exceptions.ensureException(error);
-            }
-
-            assert.fail('transfer did not fail');
+            await exceptions.expectFailure(registrar.register(sha3('eth'), accounts[1], {from: accounts[1]}));
         });
     });
 });

@@ -26,17 +26,8 @@ contract('TestRegistrar', function (accounts) {
     });
 
     it('forbids transferring names within the test period', async () => {
-
         await registrar.register(sha3('eth'), accounts[1], {from: accounts[0]});
-
-        try {
-            await registrar.register(sha3('eth'), accounts[0], {from: accounts[0]});
-        } catch (error) {
-            return exceptions.ensureException(error);
-        }
-
-        assert.fail('transferring name did not fail');
-
+        await exceptions.expectFailure(registrar.register(sha3('eth'), accounts[0], {from: accounts[0]}));
     });
 
     it('allows claiming a name after the test period expires', async () => {
