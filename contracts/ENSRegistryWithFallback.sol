@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.7.0;
 
 import "./ENS.sol";
 import "./ENSRegistry.sol";
@@ -22,7 +22,7 @@ contract ENSRegistryWithFallback is ENSRegistry {
      * @param node The specified node.
      * @return address of the resolver.
      */
-    function resolver(bytes32 node) public view returns (address) {
+    function resolver(bytes32 node) public override view returns (address) {
         if (!recordExists(node)) {
             return old.resolver(node);
         }
@@ -35,7 +35,7 @@ contract ENSRegistryWithFallback is ENSRegistry {
      * @param node The specified node.
      * @return address of the owner.
      */
-    function owner(bytes32 node) public view returns (address) {
+    function owner(bytes32 node) public override view returns (address) {
         if (!recordExists(node)) {
             return old.owner(node);
         }
@@ -48,7 +48,7 @@ contract ENSRegistryWithFallback is ENSRegistry {
      * @param node The specified node.
      * @return ttl of the node.
      */
-    function ttl(bytes32 node) public view returns (uint64) {
+    function ttl(bytes32 node) public override view returns (uint64) {
         if (!recordExists(node)) {
             return old.ttl(node);
         }
@@ -56,7 +56,7 @@ contract ENSRegistryWithFallback is ENSRegistry {
         return super.ttl(node);
     }
 
-    function _setOwner(bytes32 node, address owner) internal {
+    function _setOwner(bytes32 node, address owner) internal override {
         address addr = owner;
         if (addr == address(0x0)) {
             addr = address(this);

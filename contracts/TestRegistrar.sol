@@ -1,4 +1,4 @@
-pragma solidity >=0.4.24;
+pragma solidity ^0.7.0;
 
 import "./ENS.sol";
 
@@ -29,9 +29,9 @@ contract TestRegistrar {
      * @param owner The address of the new owner.
      */
     function register(bytes32 label, address owner) public {
-        require(expiryTimes[label] < now);
+        require(expiryTimes[label] < block.timestamp);
 
-        expiryTimes[label] = now + registrationPeriod;
+        expiryTimes[label] = block.timestamp + registrationPeriod;
         ens.setSubnodeOwner(rootNode, label, owner);
     }
 }
