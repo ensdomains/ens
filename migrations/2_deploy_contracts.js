@@ -47,8 +47,5 @@ module.exports = function(deployer, network) {
   if (network === 'dev.fifs') {
     deployFIFSRegistrar(deployer, tld);
   }
-  else if (network === 'dev.auction') {
-    deployAuctionRegistrar(deployer, tld);
-  }
 
 };
