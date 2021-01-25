@@ -3,7 +3,6 @@ const DeedImplementation = require('./build/contracts/DeedImplementation.json')
 const ENS = require('./build/contracts/ENS.json')
 const ENSRegistry = require('./build/contracts/ENSRegistry.json')
 const FIFSRegistrar = require('./build/contracts/FIFSRegistrar.json')
-const HashRegistrar = require('./build/contracts/HashRegistrar.json')
 const Migrations = require('./build/contracts/Migrations.json')
 const Registrar = require('./build/contracts/Registrar.json')
 const Resolver = require('./build/contracts/NameResolver.json')
@@ -16,7 +15,6 @@ module.exports = {
   ENS,
   ENSRegistry,
   FIFSRegistrar,
-  HashRegistrar,
   Migrations,
   Registrar,
   Resolver,

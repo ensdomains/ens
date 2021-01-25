@@ -22,7 +22,6 @@ import {
   ENS,
   ENSRegistry,
   FIFSRegistrar,
-  HashRegistrar,
   Migrations,
   Registrar,
   ReverseRegistrar,
@@ -37,14 +36,6 @@ Implementation of the ENS Registry, the central contract used to look up resolve
 ## FIFSRegistrar.sol
 
 Implementation of a simple first-in-first-served registrar, which issues (sub-)domains to the first account to request them.
-
-## HashRegistrar.sol
-
-Implementation of a registrar based on second-price blind auctions and funds held on deposit, with a renewal process that weights renewal costs according to the change in mean price of registering a domain. Largely untested!
-
-## HashRegistrarSimplified.sol
-
-Simplified version of the above, with no support for renewals. This is the current proposal for interim registrar of the ENS system until a permanent registrar is decided on.
 
 # ENS Registry interface
 
@@ -108,9 +99,5 @@ Launch the RPC client, for example TestRPC:
 Deploy `ENS` and `FIFSRegistrar` to the private network, the deployment process is defined at [here](migrations/2_deploy_contracts.js):
 
     $ truffle migrate --network dev.fifs
-
-alternatively, deploy the `HashRegistrar`:
-
-    $ truffle migrate --network dev.auction
 
 Check the truffle [documentation](http://truffleframework.com/docs/) for more information.
