@@ -22,14 +22,13 @@
   "dependencies": {
     "bluebird": "^3.5.2",
     "eth-ens-namehash": "^2.0.8",
-    "solc": "^0.4.20",
     "testrpc": "0.0.1"
   },
   "devDependencies": {
     "@ensdomains/test-utils": "1.3.0",
     "solidity-coverage": "^0.3.5",
     "solium": "^1.0.4",
-    "web3-utils": "^1.3.0",
-    "truffle": "^5.1.62"
+    "truffle": "^5.1.62",
+    "web3-utils": "^1.3.0"
   }
 }
