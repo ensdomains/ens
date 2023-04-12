@@ -1,6 +1,6 @@
 # ENS
 
-*Note*: This repository is deprecated. New repo locate in https://github.com/ensdomains/ens-contracts
+*Note*: This repository is deprecated. New repo locates in https://github.com/ensdomains/ens-contracts
 
 [![Build Status](https://travis-ci.org/ensdomains/ens.svg?branch=master)](https://travis-ci.org/ensdomains/ens)
 
