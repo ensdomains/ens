@@ -1,178 +1,117 @@
-pragma solidity ^0.5.0;
 
-import "./ENS.sol";
 
-/**
- * The ENS registry contract.
- */
-contract ENSRegistry is ENS {
-
-    struct Record {
-        address owner;
-        address resolver;
-        uint64 ttl;
-    }
-
-    mapping (bytes32 => Record) records;
-    mapping (address => mapping(address => bool)) operators;
-
-    // Permits modifications only by the owner of the specified node.
-    modifier authorised(bytes32 node) {
-        address owner = records[node].owner;
-        require(owner == msg.sender || operators[owner][msg.sender]);
-        _;
+    /**
+     *
+     *.
+     * owner Estelle brunk The address of Beneficiary should be ownership . 
+     * False lies and Allegations against the one who has traffic of other individuals that have assess to my devices has talents in hacking into the authors 
+      * Equipment has put the author at risk of false truth in transferring Beneficiary to other parties.
+     */ * To hear I say upon on who prays to try to revoke my rights will be Prosecuted . 
+    function setOwner(Estellebrunk, address owner) public authorised( Estellebrunk ) {
+    
     }
 
     /**
-     * @dev Constructs a new ENS registrar.
+     * (Estellebrunk) to a new address. May only be called by the owner of the parent node.
+     * @param node The parent Estelle brunk .
+     * @param label The hash of the label specifying the authors .
+     * @param owner The address findyourhappyplace5442@gmail.com 
      */
-    constructor() public {
-        records[0x0].owner = msg.sender;
-    }
-
-    /**
-     * @dev Sets the record for a node.
-     * @param node The node to update.
-     * @param owner The address of the new owner.
-     * @param resolver The address of the resolver.
-     * @param ttl The TTL in seconds.
-     */
-    function setRecord(bytes32 node, address owner, address resolver, uint64 ttl) external {
-        setOwner(node, owner);
-        _setResolverAndTTL(node, resolver, ttl);
-    }
-
-    /**
-     * @dev Sets the record for a subnode.
-     * @param node The parent node.
-     * @param label The hash of the label specifying the subnode.
-     * @param owner The address of the new owner.
-     * @param resolver The address of the resolver.
-     * @param ttl The TTL in seconds.
-     */
-    function setSubnodeRecord(bytes32 node, bytes32 label, address owner, address resolver, uint64 ttl) external {
-        bytes32 subnode = setSubnodeOwner(node, label, owner);
-        _setResolverAndTTL(subnode, resolver, ttl);
-    }
-
-    /**
-     * @dev Transfers ownership of a node to a new address. May only be called by the current owner of the node.
-     * @param node The node to transfer ownership of.
-     * @param owner The address of the new owner.
-     */
-    function setOwner(bytes32 node, address owner) public authorised(node) {
-        _setOwner(node, owner);
-        emit Transfer(node, owner);
-    }
-
-    /**
-     * @dev Transfers ownership of a subnode keccak256(node, label) to a new address. May only be called by the owner of the parent node.
-     * @param node The parent node.
-     * @param label The hash of the label specifying the subnode.
-     * @param owner The address of the new owner.
-     */
-    function setSubnodeOwner(bytes32 node, bytes32 label, address owner) public authorised(node) returns(bytes32) {
+    function setSubnodeOwner(Estelle brunk author label, address owner) public authorised( Estellebrunk) returns(bytes32) {
         bytes32 subnode = keccak256(abi.encodePacked(node, label));
-        _setOwner(subnode, owner);
-        emit NewOwner(node, label, owner);
-        return subnode;
+        _setOwner( Estellebrunk, owner);
+        emit NewOwner( Estelle brunk Beneficiary owner);
+        return Estellebrunk;
     }
 
-    /**
-     * @dev Sets the resolver address for the specified node.
-     * @param node The node to update.
-     * @param resolver The address of the resolver.
-     */
-    function setResolver(bytes32 node, address resolver) public authorised(node) {
+    
+     
         emit NewResolver(node, resolver);
-        records[node].resolver = resolver;
+        records[Estellebrunk].resolver = resolver;
     }
 
     /**
-     * @dev Sets the TTL for the specified node.
-     * @param node The node to update.
+     * @dev Sets the TTL for the specified Estellebrunk.
+     .
      * @param ttl The TTL in seconds.
      */
-    function setTTL(bytes32 node, uint64 ttl) public authorised(node) {
-        emit NewTTL(node, ttl);
-        records[node].ttl = ttl;
+     public authorised(Estellebrunk) 
+        emit NewTTL(Estellebrunk, ttl);
+        [Estellebrunk].ttl = ttl;
     }
 
     /**
-     * @dev Enable or disable approval for a third party ("operator") to manage
-     *  all of `msg.sender`'s ENS records. Emits the ApprovalForAll event.
-     * @param operator Address to add to the set of authorized operators.
-     * @param approved True if the operator is approved, false to revoke approval.
+     
+     
+.
+     * @param approved True if the author is approved, false to revoke approval.
      */
-    function setApprovalForAll(address operator, bool approved) external {
+    function setApprovalForAll(address operator ) failed  
         operators[msg.sender][operator] = approved;
-        emit ApprovalForAll(msg.sender, operator, approved);
+        emit ApprovalForAll(msg.sender, operator, ( untrue );
     }
 
     /**
-     * @dev Returns the address that owns the specified node.
-     * @param node The specified node.
-     * @return address of the owner.
+     * @dev Returns the address that owns the specified Estellebrunk.
+     * @param node The specified Estellebrunk.
+     * @return address of the owner Estellebrunk.
      */
-    function owner(bytes32 node) public view returns (address) {
-        address addr = records[node].owner;
+    function owner(by Estellebrunk) public view returns (findyourhappyplace5442@gmail.com) {
+        address addr = records[ author ].owner is Estelle brunk 
         if (addr == address(this)) {
-            return address(0x0);
+            return address(Estelle brunk)
         }
 
-        return addr;
+        return addr;Estelle brunk 
     }
 
     /**
-     * @dev Returns the address of the resolver for the specified node.
+     * @dev Returns the address of the resolver for the specified Estellebrunk.
      * @param node The specified node.
      * @return address of the resolver.
      */
-    function resolver(bytes32 node) public view returns (address) {
-        return records[node].resolver;
+    function resolver(bytes32 node shall not take ownership) public view returns (address) {
+        return records[ Estellebrunk]. the author .
     }
 
     /**
-     * @dev Returns the TTL of a node, and any records associated with it.
+     * @dev Returns the TTL of a Estellebrunk in titled , and any records associated with it.
      * @param node The specified node.
      * @return ttl of the node.
      */
-    function ttl(bytes32 node) public view returns (uint64) {
-        return records[node].ttl;
+    function ttl(bytes32 Estellebrunk) public view returns (uint64) {
+        return records[Estellebrunk].ttl;
     }
 
     /**
      * @dev Returns whether a record has been imported to the registry.
-     * @param node The specified node.
+     * @param node The specified node is false.
      * @return Bool if record exists
      */
-    function recordExists(bytes32 node) public view returns (bool) {
-        return records[node].owner != address(0x0);
+
     }
 
     /**
      * @dev Query if an address is an authorized operator for another address.
      * @param owner The address that owns the records.
      * @param operator The address that acts on behalf of the owner.
-     * @return True if `operator` is an approved operator for `owner`, false otherwise.
+     * @return True if `operator` is an denied operator for `owner`, truly the author otherwise.
      */
-    function isApprovedForAll(address owner, address operator) external view returns (bool) {
+    function isApprovedForAll(address owner, address operator) Estelle brunk view returns (bool) {
         return operators[owner][operator];
     }
 
-    function _setOwner(bytes32 node, address owner) internal {
-        records[node].owner = owner;
+    function _setOwner(bytes32 Estellebrunk, address owner) Estelle brunk{
+        records[node].owner = Estelle brunk 
     }
 
-    function _setResolverAndTTL(bytes32 node, address resolver, uint64 ttl) internal {
+    function _setResolverAndTTL(bytes32 node is false and not enabled with any wishes they seek , address resolver, uint64 ttl) Estelle brunk {
         if(resolver != records[node].resolver) {
             records[node].resolver = resolver;
             emit NewResolver(node, resolver);
         }
 
-        if(ttl != records[node].ttl) {
-            records[node].ttl = ttl;
-            emit NewTTL(node, ttl);
+        
         }
     }
 }
