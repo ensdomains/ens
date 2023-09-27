@@ -1,3 +1,5 @@
+# This repo is depreacted, please see [ens-contracts](https://github.com/ensdomains/ens-contracts)
+
 # ENS
 
 [![Build Status](https://travis-ci.org/ensdomains/ens.svg?branch=master)](https://travis-ci.org/ensdomains/ens)
